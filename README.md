@@ -53,6 +53,19 @@ npm install
 npm run tauri dev
 ```
 
+For browser-only UI iteration with mock project/job data:
+
+```bash
+npm run dev:browser
+```
+
+If you launch the dev terminal from the Snap build of VS Code and see a `libpthread`
+symbol lookup error when Tauri starts, run the clean environment helper instead:
+
+```bash
+npm run tauri:dev:clean
+```
+
 Useful checks:
 
 ```bash

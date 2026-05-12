@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import "./App.css";
 
+type CommandArgs = Record<string, unknown> | undefined;
+
 type TaskType =
   | "vocals_instrumental"
   | "full_stem_split"
@@ -141,6 +143,35 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 ];
 
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
+const SILENT_WAV_DATA_URI =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
+function isTauriRuntime() {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+async function command<T>(name: string, args?: CommandArgs): Promise<T> {
+  if (isTauriRuntime()) {
+    return invoke<T>(name, args);
+  }
+
+  return mockCommand<T>(name, args);
+}
+
+async function listenTo<T>(
+  eventName: string,
+  handler: Parameters<typeof listen<T>>[1],
+): Promise<() => void> {
+  if (!isTauriRuntime()) {
+    return () => undefined;
+  }
+
+  return listen<T>(eventName, handler);
+}
+
+function audioSrc(path: string) {
+  return isTauriRuntime() ? convertFileSrc(path) : SILENT_WAV_DATA_URI;
+}
 
 function App() {
   const [boot, setBoot] = useState<BootstrapState | null>(null);
@@ -177,13 +208,13 @@ function App() {
     setStatus("Creating project session");
 
     try {
-      const imported = await invoke<ProjectSession>("import_audio_files", { paths });
+      const imported = await command<ProjectSession>("import_audio_files", { paths });
       setProject(imported);
       setSelectedSourceId(imported.originalFiles[0]?.id ?? "");
       setSelectedStemIds([]);
       setPreviewState({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
-      const refreshedJobs = await invoke<JobRecord[]>("get_jobs");
+      const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
     } catch (caught) {
       setError(String(caught));
@@ -198,7 +229,7 @@ function App() {
 
     async function bootstrap() {
       try {
-        const snapshot = await invoke<BootstrapState>("bootstrap_app");
+        const snapshot = await command<BootstrapState>("bootstrap_app");
         setBoot(snapshot);
         setModels(snapshot.models);
         setProject(snapshot.currentProject);
@@ -212,16 +243,16 @@ function App() {
     }
 
     async function bindEvents() {
-      const unlistenProgress = await listen<BackendProgress>("job_progress", (event) => {
+      const unlistenProgress = await listenTo<BackendProgress>("job_progress", (event) => {
         setStatus(event.payload.message);
       });
-      const unlistenJob = await listen<JobRecord>("job_state_changed", (event) => {
+      const unlistenJob = await listenTo<JobRecord>("job_state_changed", (event) => {
         mergeJob(event.payload);
       });
-      const unlistenProject = await listen<ProjectSession>("project_updated", (event) => {
+      const unlistenProject = await listenTo<ProjectSession>("project_updated", (event) => {
         setProject(event.payload);
       });
-      const unlistenLog = await listen<string>("log_entry", (event) => {
+      const unlistenLog = await listenTo<string>("log_entry", (event) => {
         setLogEntries((entries) => [event.payload, ...entries].slice(0, 6));
       });
 
@@ -242,17 +273,19 @@ function App() {
   useEffect(() => {
     let unlistenDragDrop: (() => void) | undefined;
 
-    getCurrentWebview()
-      .onDragDropEvent((event) => {
-        const payload = event.payload as { type?: string; paths?: string[] };
-        if (payload.type === "drop" && payload.paths) {
-          importAudioPaths(payload.paths);
-        }
-      })
-      .then((unlisten) => {
-        unlistenDragDrop = unlisten;
-      })
-      .catch(() => undefined);
+    if (isTauriRuntime()) {
+      getCurrentWebview()
+        .onDragDropEvent((event) => {
+          const payload = event.payload as { type?: string; paths?: string[] };
+          if (payload.type === "drop" && payload.paths) {
+            importAudioPaths(payload.paths);
+          }
+        })
+        .then((unlisten) => {
+          unlistenDragDrop = unlisten;
+        })
+        .catch(() => undefined);
+    }
 
     return () => unlistenDragDrop?.();
   }, [importAudioPaths]);
@@ -296,6 +329,11 @@ function App() {
   const soloActive = Object.values(previewState).some((state) => state.solo);
 
   async function chooseFiles() {
+    if (!isTauriRuntime()) {
+      await importAudioPaths(["/mock/Artist - Browser Demo.wav"]);
+      return;
+    }
+
     const selected = await open({
       multiple: true,
       filters: [{ name: "Audio", extensions: AUDIO_EXTENSIONS }],
@@ -309,7 +347,7 @@ function App() {
   }
 
   async function refreshModels() {
-    const refreshed = await invoke<ModelEntry[]>("list_models");
+    const refreshed = await command<ModelEntry[]>("list_models");
     setModels(refreshed);
     setStatus("Model registry refreshed");
   }
@@ -330,13 +368,18 @@ function App() {
     setStatus("Queueing separation job");
 
     try {
-      const queued = await invoke<JobRecord>("enqueue_separation", {
+      const queued = await command<JobRecord>("enqueue_separation", {
         task,
         modelId: selectedModel.id,
         sourceId: selectedSourceId || null,
       });
       mergeJob(queued);
-      await invoke<JobRecord>("start_job", { jobId: queued.id });
+      const completed = await command<JobRecord>("start_job", { jobId: queued.id });
+      mergeJob(completed);
+      const refreshedProject = await command<ProjectSession | null>("get_project");
+      if (refreshedProject) {
+        setProject(refreshedProject);
+      }
       setStatus("Separation complete");
     } catch (caught) {
       setError(String(caught));
@@ -351,7 +394,7 @@ function App() {
       return;
     }
 
-    const cancelled = await invoke<JobRecord>("cancel_job", { jobId: runningJob.id });
+    const cancelled = await command<JobRecord>("cancel_job", { jobId: runningJob.id });
     mergeJob(cancelled);
     setStatus("Cancellation requested");
   }
@@ -361,13 +404,15 @@ function App() {
       return;
     }
 
-    const destination = await open({ directory: true, multiple: false });
+    const destination = isTauriRuntime()
+      ? await open({ directory: true, multiple: false })
+      : "/mock/export";
     if (!destination || Array.isArray(destination)) {
       return;
     }
 
     try {
-      const exported = await invoke<string[]>("export_stems", {
+      const exported = await command<string[]>("export_stems", {
         stemIds: selectedStemIds,
         destinationPath: destination,
       });
@@ -380,9 +425,9 @@ function App() {
 
   async function revealCurrentProject() {
     if (project) {
-      await invoke("reveal_path", { path: project.rootPath });
+      await command("reveal_path", { path: project.rootPath });
     } else if (boot) {
-      await invoke("reveal_path", { path: boot.projectRoot });
+      await command("reveal_path", { path: boot.projectRoot });
     }
   }
 
@@ -671,7 +716,7 @@ function StemPreview({
         <input type="checkbox" checked={selected} onChange={onSelect} />
         <span>{stem.label}</span>
       </label>
-      <audio ref={audioRef} controls muted={!isAudible} src={convertFileSrc(stem.path)} />
+      <audio ref={audioRef} controls muted={!isAudible} src={audioSrc(stem.path)} />
       <div className="stem-controls">
         <button
           className={state.solo ? "toggle is-on" : "toggle"}
@@ -707,6 +752,232 @@ function StateBadge({ state }: { state: JobState }) {
 
 function formatTask(value: TaskType) {
   return TASKS.find((task) => task.value === value)?.label ?? value;
+}
+
+const mockModels: ModelEntry[] = [
+  {
+    id: "stub_vocals_instrumental",
+    displayName: "Stub Vocals / Instrumental",
+    backend: "stub",
+    tasks: ["vocals_instrumental"],
+    stems: ["Vocals", "Instrumental"],
+    sampleRate: 44100,
+    quality: "development",
+    version: "0.1.0",
+    installed: true,
+    path: "",
+    downloadUrl: "",
+  },
+  {
+    id: "stub_full_stem_split",
+    displayName: "Stub Full Stem Split",
+    backend: "stub",
+    tasks: ["full_stem_split"],
+    stems: ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    sampleRate: 44100,
+    quality: "development",
+    version: "0.1.0",
+    installed: true,
+    path: "",
+    downloadUrl: "",
+  },
+  {
+    id: "onnx_roformer_full_split_placeholder",
+    displayName: "RoFormer Full Stem Split",
+    backend: "onnx",
+    tasks: ["full_stem_split", "experimental_best_quality"],
+    stems: ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    sampleRate: 44100,
+    quality: "best",
+    version: "placeholder",
+    installed: false,
+    path: "",
+    downloadUrl: "",
+  },
+];
+
+let mockProject: ProjectSession | null = null;
+let mockJobs: JobRecord[] = [];
+
+async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
+  await new Promise((resolve) => window.setTimeout(resolve, name === "start_job" ? 450 : 80));
+
+  switch (name) {
+    case "bootstrap_app":
+      return {
+        projectRoot: "/mock/TrackExtract Projects",
+        appDataDir: "/mock/TrackExtract App Data",
+        modelRegistryPath: "/mock/TrackExtract App Data/models.json",
+        models: mockModels,
+        currentProject: mockProject,
+        jobs: mockJobs,
+      } as T;
+
+    case "list_models":
+      return mockModels as T;
+
+    case "import_audio_files":
+      mockProject = createMockProject((args?.paths as string[] | undefined) ?? []);
+      mockJobs = [];
+      return mockProject as T;
+
+    case "enqueue_separation": {
+      if (!mockProject) {
+        throw new Error("Import mock audio before queueing a separation.");
+      }
+
+      const task = args?.task as TaskType;
+      const modelId = args?.modelId as string | null | undefined;
+      const model =
+        mockModels.find((candidate) => candidate.id === modelId) ??
+        mockModels.find((candidate) => candidate.installed && candidate.tasks.includes(task));
+
+      if (!model?.installed) {
+        throw new Error(`${model?.displayName ?? "Selected model"} is not installed.`);
+      }
+
+      const job = createMockJob(mockProject, task, model.id);
+      mockJobs = [job, ...mockJobs];
+      mockProject.jobs = [job.id, ...mockProject.jobs];
+      return job as T;
+    }
+
+    case "start_job": {
+      const jobId = args?.jobId as string;
+      const job = mockJobs.find((candidate) => candidate.id === jobId);
+      if (!job || !mockProject) {
+        throw new Error("Mock job was not found.");
+      }
+
+      const model = mockModels.find((candidate) => candidate.id === job.modelId);
+      const stems =
+        model?.stems.map((label) => ({
+          id: mockId("stem"),
+          label,
+          path: `${mockProject?.rootPath}/stems/${mockProject?.name} - ${label}.wav`,
+          sourceJobId: job.id,
+          muted: false,
+          solo: false,
+          volume: 1,
+        })) ?? [];
+
+      const completed = {
+        ...job,
+        state: "complete" as JobState,
+        progress: 1,
+        statusMessage: "Mock separation complete",
+        stems,
+        logPath: `${mockProject.rootPath}/logs/${job.id}.log`,
+        updatedAt: new Date().toISOString(),
+      };
+
+      mockJobs = mockJobs.map((candidate) => (candidate.id === job.id ? completed : candidate));
+      mockProject = {
+        ...mockProject,
+        stems,
+        updatedAt: new Date().toISOString(),
+      };
+      return completed as T;
+    }
+
+    case "cancel_job": {
+      const jobId = args?.jobId as string;
+      const cancelled = mockJobs.find((candidate) => candidate.id === jobId);
+      if (!cancelled) {
+        throw new Error("Mock job was not found.");
+      }
+      const next = {
+        ...cancelled,
+        state: "cancelled" as JobState,
+        statusMessage: "Cancelled",
+        updatedAt: new Date().toISOString(),
+      };
+      mockJobs = mockJobs.map((candidate) => (candidate.id === jobId ? next : candidate));
+      return next as T;
+    }
+
+    case "get_project":
+      return mockProject as T;
+
+    case "get_jobs":
+      return mockJobs as T;
+
+    case "export_stems": {
+      const destinationPath = (args?.destinationPath as string | undefined) ?? "/mock/export";
+      const exported = (mockProject?.stems ?? []).map(
+        (stem) => `${destinationPath}/${lastPathPart(stem.path) ?? `${stem.label}.wav`}`,
+      );
+      return exported as T;
+    }
+
+    case "reveal_path":
+      return undefined as T;
+
+    default:
+      throw new Error(`No browser mock exists for ${name}.`);
+  }
+}
+
+function createMockProject(paths: string[]): ProjectSession {
+  const sourcePaths = paths.length > 0 ? paths : ["/mock/Artist - Browser Demo.wav"];
+  const firstName = lastPathPart(sourcePaths[0] ?? "")?.replace(/\.[^.]+$/, "") ?? "Browser Demo";
+  const now = new Date().toISOString();
+  const rootPath = `/mock/TrackExtract Projects/${firstName}`;
+
+  return {
+    schemaVersion: 1,
+    id: mockId("project"),
+    name: firstName,
+    rootPath,
+    createdAt: now,
+    updatedAt: now,
+    originalFiles: sourcePaths.map((path) => {
+      const originalName = lastPathPart(path) ?? "audio.wav";
+      return {
+        id: mockId("source"),
+        originalName,
+        sourcePath: path,
+        projectPath: `${rootPath}/original/${originalName}`,
+        sampleRate: 44100,
+        channels: 2,
+        durationSeconds: 184,
+      };
+    }),
+    jobs: [],
+    stems: [],
+  };
+}
+
+function createMockJob(project: ProjectSession, task: TaskType, modelId: string): JobRecord {
+  const now = new Date().toISOString();
+  const source = project.originalFiles[0];
+
+  return {
+    id: mockId("job"),
+    projectId: project.id,
+    projectName: project.name,
+    sourceId: source?.id ?? mockId("source"),
+    sourcePath: source?.projectPath ?? `${project.rootPath}/original/mock.wav`,
+    task,
+    modelId,
+    state: "queued",
+    progress: 0,
+    statusMessage: "Queued in browser mock mode",
+    error: null,
+    stems: [],
+    logPath: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function mockId(prefix: string) {
+  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function lastPathPart(path: string) {
+  const parts = path.split("/").filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : null;
 }
 
 export default App;

@@ -78,9 +78,9 @@ describe("TrackExtract app", () => {
   it("shows mocked bootstrap data after startup", async () => {
     render(<App />);
 
-    await waitFor(() => {
-      expect(mockInvoke.mock.calls.some(([command]) => command === "bootstrap_app")).toBe(true);
-    });
     expect((await screen.findAllByText("Stub Vocals / Instrumental")).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(mockInvoke).not.toHaveBeenCalled();
+    });
   });
 });
