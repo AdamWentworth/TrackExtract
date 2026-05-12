@@ -38,6 +38,16 @@ pub struct Engine {
 impl Engine {
     pub fn bootstrap(bundled_model_registry: &str) -> Result<Self> {
         let app_data_dir = default_app_data_dir()?;
+        let project_root = default_project_root()?;
+
+        Self::bootstrap_with_paths(bundled_model_registry, app_data_dir, project_root)
+    }
+
+    pub fn bootstrap_with_paths(
+        bundled_model_registry: &str,
+        app_data_dir: PathBuf,
+        project_root: PathBuf,
+    ) -> Result<Self> {
         fs::create_dir_all(&app_data_dir)?;
 
         let model_registry_path = app_data_dir.join("models.json");
@@ -46,7 +56,6 @@ impl Engine {
         }
 
         let registry = ModelRegistry::load(&model_registry_path)?;
-        let project_root = default_project_root()?;
         fs::create_dir_all(&project_root)?;
 
         Ok(Self {
