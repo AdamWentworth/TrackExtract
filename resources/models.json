@@ -1,0 +1,67 @@
+[
+  {
+    "id": "stub_full_stem_split",
+    "displayName": "Stub Full Stem Split",
+    "backend": "stub",
+    "tasks": ["full_stem_split"],
+    "stems": ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    "sampleRate": 44100,
+    "quality": "development",
+    "version": "0.1.0",
+    "installed": true,
+    "path": "",
+    "downloadUrl": ""
+  },
+  {
+    "id": "stub_vocals_instrumental",
+    "displayName": "Stub Vocals / Instrumental",
+    "backend": "stub",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "development",
+    "version": "0.1.0",
+    "installed": true,
+    "path": "",
+    "downloadUrl": ""
+  },
+  {
+    "id": "onnx_roformer_full_split_placeholder",
+    "displayName": "RoFormer Full Stem Split",
+    "backend": "onnx",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "placeholder",
+    "installed": false,
+    "path": "",
+    "downloadUrl": ""
+  },
+  {
+    "id": "onnx_mdx_vocals_placeholder",
+    "displayName": "MDX Vocals / Instrumental",
+    "backend": "onnx",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "placeholder",
+    "installed": false,
+    "path": "",
+    "downloadUrl": ""
+  },
+  {
+    "id": "pytorch_demucs_experimental_placeholder",
+    "displayName": "Demucs Experimental Worker",
+    "backend": "pytorch-worker",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "placeholder",
+    "installed": false,
+    "path": "",
+    "downloadUrl": ""
+  }
+]

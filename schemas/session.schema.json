@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://phlosion.com/trackextract/session.schema.json",
+  "title": "TrackExtract Project Session",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "rootPath",
+    "createdAt",
+    "updatedAt",
+    "originalFiles",
+    "jobs",
+    "stems"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "rootPath": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "originalFiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "originalName", "sourcePath", "projectPath"],
+        "properties": {
+          "id": { "type": "string" },
+          "originalName": { "type": "string" },
+          "sourcePath": { "type": "string" },
+          "projectPath": { "type": "string" },
+          "sampleRate": { "type": ["integer", "null"] },
+          "channels": { "type": ["integer", "null"] },
+          "durationSeconds": { "type": ["number", "null"] }
+        }
+      }
+    },
+    "jobs": { "type": "array", "items": { "type": "string" } },
+    "stems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "path", "sourceJobId", "muted", "solo", "volume"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": "string" },
+          "sourceJobId": { "type": "string" },
+          "muted": { "type": "boolean" },
+          "solo": { "type": "boolean" },
+          "volume": { "type": "number" }
+        }
+      }
+    }
+  }
+}
