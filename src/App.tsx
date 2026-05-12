@@ -285,6 +285,18 @@ function App() {
           unlistenDragDrop = unlisten;
         })
         .catch(() => undefined);
+    } else {
+      const preventBrowserNavigation = (event: DragEvent) => {
+        event.preventDefault();
+      };
+
+      window.addEventListener("dragover", preventBrowserNavigation);
+      window.addEventListener("drop", preventBrowserNavigation);
+
+      unlistenDragDrop = () => {
+        window.removeEventListener("dragover", preventBrowserNavigation);
+        window.removeEventListener("drop", preventBrowserNavigation);
+      };
     }
 
     return () => unlistenDragDrop?.();
@@ -344,6 +356,21 @@ function App() {
     }
 
     await importAudioPaths(Array.isArray(selected) ? selected : [selected]);
+  }
+
+  async function handleDropZoneDrop(event: React.DragEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (isTauriRuntime()) {
+      return;
+    }
+
+    const files = Array.from(event.dataTransfer.files);
+    const mockPaths = files.length > 0
+      ? files.map((file) => `/mock/${file.name}`)
+      : ["/mock/Artist - Browser Demo.wav"];
+    await importAudioPaths(mockPaths);
   }
 
   async function refreshModels() {
@@ -467,7 +494,14 @@ function App() {
               <Upload aria-hidden />
               <h2>Import</h2>
             </div>
-            <button className="drop-zone" type="button" onClick={chooseFiles} disabled={isBusy}>
+            <button
+              className="drop-zone"
+              type="button"
+              onClick={chooseFiles}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={handleDropZoneDrop}
+              disabled={isBusy}
+            >
               <Music2 aria-hidden />
               <span>Drop audio here</span>
               <small>WAV, AIFF, FLAC, MP3, M4A</small>
