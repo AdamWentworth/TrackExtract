@@ -170,7 +170,7 @@ async function listenTo<T>(
 }
 
 function audioSrc(path: string) {
-  return isTauriRuntime() ? convertFileSrc(path) : SILENT_WAV_DATA_URI;
+  return isTauriRuntime() ? convertFileSrc(path) : mockPreviewAudioUrl(path);
 }
 
 function App() {
@@ -1012,6 +1012,82 @@ function mockId(prefix: string) {
 function lastPathPart(path: string) {
   const parts = path.split("/").filter(Boolean);
   return parts.length > 0 ? parts[parts.length - 1] : null;
+}
+
+const mockPreviewUrls = new Map<string, string>();
+
+function mockPreviewAudioUrl(path: string) {
+  if (mockPreviewUrls.has(path)) {
+    return mockPreviewUrls.get(path) ?? SILENT_WAV_DATA_URI;
+  }
+
+  if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
+    return SILENT_WAV_DATA_URI;
+  }
+
+  const sampleRate = 44_100;
+  const durationSeconds = 0.35;
+  const frames = Math.floor(sampleRate * durationSeconds);
+  const channels = 1;
+  const bytesPerSample = 2;
+  const dataBytes = frames * channels * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(buffer);
+  let offset = 0;
+  const pitch = 220 + (hashString(path) % 440);
+
+  const writeString = (value: string) => {
+    for (let index = 0; index < value.length; index += 1) {
+      view.setUint8(offset, value.charCodeAt(index));
+      offset += 1;
+    }
+  };
+  const writeU16 = (value: number) => {
+    view.setUint16(offset, value, true);
+    offset += 2;
+  };
+  const writeU32 = (value: number) => {
+    view.setUint32(offset, value, true);
+    offset += 4;
+  };
+
+  writeString("RIFF");
+  writeU32(36 + dataBytes);
+  writeString("WAVE");
+  writeString("fmt ");
+  writeU32(16);
+  writeU16(1);
+  writeU16(channels);
+  writeU32(sampleRate);
+  writeU32(sampleRate * channels * bytesPerSample);
+  writeU16(channels * bytesPerSample);
+  writeU16(16);
+  writeString("data");
+  writeU32(dataBytes);
+
+  for (let frame = 0; frame < frames; frame += 1) {
+    const envelope = Math.sin(Math.PI * frame / frames);
+    const sample =
+      Math.sin(2 * Math.PI * pitch * frame / sampleRate) * envelope * 0.18;
+    view.setInt16(offset, Math.round(sample * i16Max()), true);
+    offset += 2;
+  }
+
+  const url = URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+  mockPreviewUrls.set(path, url);
+  return url;
+}
+
+function hashString(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function i16Max() {
+  return 32767;
 }
 
 export default App;

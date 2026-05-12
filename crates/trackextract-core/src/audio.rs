@@ -153,13 +153,14 @@ pub fn write_wav(path: impl AsRef<Path>, audio: &DecodedAudio, gain: f32) -> Res
     let spec = hound::WavSpec {
         channels: audio.channels,
         sample_rate: audio.sample_rate,
-        bits_per_sample: 32,
-        sample_format: hound::SampleFormat::Float,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
     };
     let mut writer = hound::WavWriter::create(path, spec)?;
 
     for sample in &audio.samples {
-        writer.write_sample((sample * gain).clamp(-1.0, 1.0))?;
+        let normalized = (sample * gain).clamp(-1.0, 1.0);
+        writer.write_sample((normalized * i16::MAX as f32) as i16)?;
     }
 
     writer.finalize()?;

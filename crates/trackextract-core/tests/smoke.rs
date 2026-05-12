@@ -57,6 +57,9 @@ fn import_stub_render_and_export_flow() {
     assert_eq!(project.stems.len(), 2);
     for stem in &project.stems {
         assert!(stem.path.is_file());
+        let reader = hound::WavReader::open(&stem.path).expect("generated wav");
+        assert_eq!(reader.spec().bits_per_sample, 16);
+        assert_eq!(reader.spec().sample_format, hound::SampleFormat::Int);
     }
 
     let exported = engine

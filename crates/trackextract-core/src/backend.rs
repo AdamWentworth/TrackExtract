@@ -224,6 +224,8 @@ mod tests {
         for stem in output.stems {
             let reader = hound::WavReader::open(stem.path).expect("read generated wav");
             assert_eq!(reader.spec().sample_rate, 44_100);
+            assert_eq!(reader.spec().bits_per_sample, 16);
+            assert_eq!(reader.spec().sample_format, hound::SampleFormat::Int);
         }
     }
 }
