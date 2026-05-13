@@ -107,6 +107,10 @@ impl ProjectSession {
         Ok(session)
     }
 
+    pub fn load(path: &Path) -> Result<Self> {
+        Ok(serde_json::from_str(&fs::read_to_string(path)?)?)
+    }
+
     pub fn session_path(&self) -> PathBuf {
         self.root_path.join("session.json")
     }

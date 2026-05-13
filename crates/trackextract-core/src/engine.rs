@@ -61,13 +61,14 @@ impl Engine {
             registry.save(&model_registry_path)?;
         }
         fs::create_dir_all(&project_root)?;
+        let current_project = load_latest_project_session(&project_root);
 
         Ok(Self {
             project_root,
             app_data_dir,
             model_registry_path,
             registry,
-            current_project: None,
+            current_project,
             jobs: Vec::new(),
         })
     }
@@ -294,4 +295,16 @@ fn default_app_data_dir() -> Result<PathBuf> {
         .ok_or_else(|| {
             TrackExtractError::UserFacing("Could not find an app data directory".to_string())
         })
+}
+
+fn load_latest_project_session(project_root: &Path) -> Option<ProjectSession> {
+    fs::read_dir(project_root)
+        .ok()?
+        .filter_map(|entry| {
+            let path = entry.ok()?.path().join("session.json");
+            let modified = fs::metadata(&path).ok()?.modified().ok()?;
+            Some((modified, path))
+        })
+        .max_by_key(|(modified, _)| *modified)
+        .and_then(|(_, path)| ProjectSession::load(&path).ok())
 }
