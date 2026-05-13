@@ -436,6 +436,10 @@ select {
   font-weight: 700;
 }
 
+.stem-audio .media-error {
+  color: #9f3e31;
+}
+
 .toggle {
   background: #ece4d2;
   color: #24211d;

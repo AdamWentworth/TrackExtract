@@ -171,7 +171,7 @@ async function listenTo<T>(
 
 function stemMediaSrc(path: string) {
   return isTauriRuntime()
-    ? `trackextract-media://localhost/${encodeURIComponent(path)}`
+    ? `trackextract-media://localhost/stem?path=${encodeURIComponent(path)}`
     : mockPreviewAudioUrl(path);
 }
 
@@ -743,6 +743,7 @@ function StemPreview({
   onUpdate: (patch: Partial<PreviewState>) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
   const isAudible = !state.muted && (!soloActive || state.solo);
   const source = stemMediaSrc(stem.path);
 
@@ -763,9 +764,17 @@ function StemPreview({
         <span>{stem.label}</span>
       </label>
       <div className="stem-audio">
-        <audio ref={audioRef} controls muted={!isAudible} preload="metadata">
+        <audio
+          ref={audioRef}
+          controls
+          muted={!isAudible}
+          onCanPlay={() => setMediaError(null)}
+          onError={() => setMediaError(describeMediaError(audioRef.current?.error))}
+          preload="metadata"
+        >
           <source src={source} type="audio/wav" />
         </audio>
+        {mediaError ? <span className="media-error">{mediaError}</span> : null}
       </div>
       <div className="stem-controls">
         <button
@@ -794,6 +803,21 @@ function StemPreview({
       </div>
     </article>
   );
+}
+
+function describeMediaError(error: MediaError | null | undefined) {
+  switch (error?.code) {
+    case 1:
+      return "Playback was aborted.";
+    case 2:
+      return "Could not load the full stem file.";
+    case 3:
+      return "The audio decoder could not read this stem.";
+    case 4:
+      return "This stem source is not supported by the preview player.";
+    default:
+      return "The preview player could not load this stem.";
+  }
 }
 
 function StateBadge({ state }: { state: JobState }) {
