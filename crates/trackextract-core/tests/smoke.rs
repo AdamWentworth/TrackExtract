@@ -18,6 +18,25 @@ const TEST_MODELS: &str = r#"[
   }
 ]"#;
 
+const TEST_WORKFLOWS: &str = r#"[
+  {
+    "id": "quick",
+    "displayName": "Quick",
+    "description": "Quick workflow",
+    "kind": "preset",
+    "task": "vocals_instrumental",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Split",
+        "task": "vocals_instrumental",
+        "modelId": "internal_stub_vocals_instrumental",
+        "options": {}
+      }
+    ]
+  }
+]"#;
+
 #[test]
 fn import_stub_render_and_export_flow() {
     let temp = tempfile::tempdir().expect("tempdir");
@@ -26,6 +45,7 @@ fn import_stub_render_and_export_flow() {
 
     let mut engine = Engine::bootstrap_with_paths(
         TEST_MODELS,
+        TEST_WORKFLOWS,
         temp.path().join("app-data"),
         temp.path().join("TrackExtract Projects"),
     )

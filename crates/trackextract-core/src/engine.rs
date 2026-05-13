@@ -13,6 +13,7 @@ use crate::{
     model_installer::ModelInstallRequest,
     model_registry::{resolve_model_options, ModelEntry, ModelRegistry, TaskType},
     project::ProjectSession,
+    workflow_registry::{WorkflowEntry, WorkflowKind, WorkflowRegistry},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,7 +22,9 @@ pub struct BootstrapState {
     pub project_root: PathBuf,
     pub app_data_dir: PathBuf,
     pub model_registry_path: PathBuf,
+    pub workflow_registry_path: PathBuf,
     pub models: Vec<ModelEntry>,
+    pub workflows: Vec<WorkflowEntry>,
     pub current_project: Option<ProjectSession>,
     pub jobs: Vec<JobRecord>,
 }
@@ -31,35 +34,55 @@ pub struct Engine {
     project_root: PathBuf,
     app_data_dir: PathBuf,
     model_registry_path: PathBuf,
+    workflow_registry_path: PathBuf,
     registry: ModelRegistry,
+    workflow_registry: WorkflowRegistry,
     current_project: Option<ProjectSession>,
     jobs: Vec<JobRecord>,
 }
 
 impl Engine {
-    pub fn bootstrap(bundled_model_registry: &str) -> Result<Self> {
+    pub fn bootstrap(
+        bundled_model_registry: &str,
+        bundled_workflow_registry: &str,
+    ) -> Result<Self> {
         let app_data_dir = default_app_data_dir()?;
         let project_root = default_project_root()?;
 
-        Self::bootstrap_with_paths(bundled_model_registry, app_data_dir, project_root)
+        Self::bootstrap_with_paths(
+            bundled_model_registry,
+            bundled_workflow_registry,
+            app_data_dir,
+            project_root,
+        )
     }
 
     pub fn bootstrap_with_paths(
         bundled_model_registry: &str,
+        bundled_workflow_registry: &str,
         app_data_dir: PathBuf,
         project_root: PathBuf,
     ) -> Result<Self> {
         fs::create_dir_all(&app_data_dir)?;
 
         let model_registry_path = app_data_dir.join("models.json");
+        let workflow_registry_path = app_data_dir.join("workflows.json");
         let bundled_registry = ModelRegistry::from_json_str(bundled_model_registry)?;
+        let bundled_workflows = WorkflowRegistry::from_json_str(bundled_workflow_registry)?;
         if !model_registry_path.exists() {
             fs::write(&model_registry_path, bundled_model_registry)?;
+        }
+        if !workflow_registry_path.exists() {
+            fs::write(&workflow_registry_path, bundled_workflow_registry)?;
         }
 
         let mut registry = ModelRegistry::load(&model_registry_path)?;
         if registry.sync_with_bundled(&bundled_registry) {
             registry.save(&model_registry_path)?;
+        }
+        let mut workflow_registry = WorkflowRegistry::load(&workflow_registry_path)?;
+        if workflow_registry.sync_with_bundled(&bundled_workflows) {
+            workflow_registry.save(&workflow_registry_path)?;
         }
         let mut registry_changed = false;
         refresh_managed_download_status(&mut registry.models, &app_data_dir, &mut registry_changed);
@@ -73,7 +96,9 @@ impl Engine {
             project_root,
             app_data_dir,
             model_registry_path,
+            workflow_registry_path,
             registry,
+            workflow_registry,
             current_project,
             jobs: Vec::new(),
         })
@@ -84,7 +109,9 @@ impl Engine {
             project_root: self.project_root.clone(),
             app_data_dir: self.app_data_dir.clone(),
             model_registry_path: self.model_registry_path.clone(),
+            workflow_registry_path: self.workflow_registry_path.clone(),
             models: self.registry.models.clone(),
+            workflows: self.workflow_registry.workflows.clone(),
             current_project: self.current_project.clone(),
             jobs: self.jobs.clone(),
         }
@@ -92,6 +119,48 @@ impl Engine {
 
     pub fn list_models(&self) -> Vec<ModelEntry> {
         self.registry.models.clone()
+    }
+
+    pub fn list_workflows(&self) -> Vec<WorkflowEntry> {
+        self.workflow_registry.workflows.clone()
+    }
+
+    pub fn save_custom_workflow(&mut self, workflow: WorkflowEntry) -> Result<WorkflowEntry> {
+        if workflow.kind != WorkflowKind::Custom && workflow.kind != WorkflowKind::Template {
+            return Err(TrackExtractError::UserFacing(
+                "Only custom workflows can be saved from the app".to_string(),
+            ));
+        }
+
+        if workflow.id.trim().is_empty()
+            || workflow.display_name.trim().is_empty()
+            || workflow.steps.is_empty()
+        {
+            return Err(TrackExtractError::UserFacing(
+                "Workflow name and at least one step are required".to_string(),
+            ));
+        }
+
+        for step in &workflow.steps {
+            let model = self
+                .registry
+                .find(&step.model_id)
+                .ok_or_else(|| TrackExtractError::ModelUnavailable(step.model_id.clone()))?;
+            if !model.tasks.iter().any(|task| task == &step.task) {
+                return Err(TrackExtractError::ModelUnavailable(format!(
+                    "{} does not support {}",
+                    model.display_name,
+                    step.task.display_name()
+                )));
+            }
+        }
+
+        let id = workflow.id.clone();
+        self.workflow_registry.upsert_custom(workflow);
+        self.workflow_registry.save(&self.workflow_registry_path)?;
+        self.workflow_registry.find(&id).ok_or_else(|| {
+            TrackExtractError::UserFacing("Saved workflow could not be reloaded".to_string())
+        })
     }
 
     pub fn prepare_model_install(&self, model_id: &str) -> Result<ModelInstallRequest> {
@@ -463,6 +532,25 @@ mod tests {
       }
     ]"#;
 
+    const TEST_WORKFLOWS: &str = r#"[
+      {
+        "id": "quick",
+        "displayName": "Quick",
+        "description": "Quick workflow",
+        "kind": "preset",
+        "task": "vocals_instrumental",
+        "steps": [
+          {
+            "id": "split",
+            "displayName": "Split",
+            "task": "vocals_instrumental",
+            "modelId": "demucs",
+            "options": { "device": "auto" }
+          }
+        ]
+      }
+    ]"#;
+
     fn write_test_wav(path: &Path) {
         let spec = hound::WavSpec {
             channels: 1,
@@ -482,6 +570,7 @@ mod tests {
     fn engine_in_temp(temp: &tempfile::TempDir) -> Engine {
         Engine::bootstrap_with_paths(
             TEST_MODELS,
+            TEST_WORKFLOWS,
             temp.path().join("app-data"),
             temp.path().join("projects"),
         )
@@ -496,7 +585,9 @@ mod tests {
         let snapshot = engine.snapshot();
 
         assert!(snapshot.model_registry_path.is_file());
+        assert!(snapshot.workflow_registry_path.is_file());
         assert_eq!(snapshot.models.len(), 3);
+        assert_eq!(snapshot.workflows.len(), 1);
     }
 
     #[test]
@@ -530,9 +621,13 @@ mod tests {
         )
         .expect("local registry");
 
-        let engine =
-            Engine::bootstrap_with_paths(TEST_MODELS, app_data, temp.path().join("projects"))
-                .expect("engine");
+        let engine = Engine::bootstrap_with_paths(
+            TEST_MODELS,
+            TEST_WORKFLOWS,
+            app_data,
+            temp.path().join("projects"),
+        )
+        .expect("engine");
         let model = engine
             .list_models()
             .into_iter()
@@ -795,9 +890,13 @@ mod tests {
         thread::sleep(std::time::Duration::from_millis(5));
         let second = ProjectSession::create(&projects, &[source_b]).expect("second project");
 
-        let engine =
-            Engine::bootstrap_with_paths(TEST_MODELS, temp.path().join("app-data"), projects)
-                .expect("engine");
+        let engine = Engine::bootstrap_with_paths(
+            TEST_MODELS,
+            TEST_WORKFLOWS,
+            temp.path().join("app-data"),
+            projects,
+        )
+        .expect("engine");
 
         assert_eq!(engine.current_project().unwrap().id, second.id);
     }
@@ -811,12 +910,50 @@ mod tests {
 
         assert_eq!(snapshot.project_root, temp.path().join("projects"));
         assert_eq!(snapshot.app_data_dir, temp.path().join("app-data"));
+        assert!(snapshot.workflow_registry_path.ends_with("workflows.json"));
         assert!(snapshot
             .models
             .iter()
             .any(|model| model.id == "demucs" && model.sample_rate == 44_100));
+        assert!(snapshot
+            .workflows
+            .iter()
+            .any(|workflow| workflow.id == "quick"));
         assert!(snapshot.current_project.is_none());
         assert!(snapshot.jobs.is_empty());
         assert_eq!(SESSION_SCHEMA_VERSION, 1);
+    }
+
+    #[test]
+    fn saves_custom_workflow_to_app_data_registry() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let mut engine = engine_in_temp(&temp);
+        let workflow = WorkflowEntry {
+            id: "custom_vocal".into(),
+            display_name: "Custom Vocal".into(),
+            description: "User workflow".into(),
+            kind: WorkflowKind::Custom,
+            task: TaskType::VocalsInstrumental,
+            steps: vec![crate::workflow_registry::WorkflowStep {
+                id: "split".into(),
+                display_name: "Split".into(),
+                task: TaskType::VocalsInstrumental,
+                model_id: "demucs".into(),
+                input_stem: String::new(),
+                output_stems: Vec::new(),
+                options: serde_json::json!({ "device": "cpu" }),
+            }],
+        };
+
+        let saved = engine
+            .save_custom_workflow(workflow)
+            .expect("save workflow");
+
+        assert_eq!(saved.kind, WorkflowKind::Custom);
+        assert!(engine
+            .list_workflows()
+            .iter()
+            .any(|workflow| workflow.id == "custom_vocal"));
+        assert!(temp.path().join("app-data/workflows.json").is_file());
     }
 }

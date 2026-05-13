@@ -16,6 +16,7 @@ import {
   Pause,
   Play,
   RefreshCw,
+  Save,
   SlidersHorizontal,
   Square,
   Upload,
@@ -49,6 +50,7 @@ type JobState =
 type BackendKind = "stub" | "onnx" | "pytorch-worker" | "external-process";
 type ModelOptionType = "select" | "integer" | "number" | "boolean";
 type RenderOptionValue = string | number | boolean;
+type WorkflowKind = "preset" | "custom" | "template";
 
 interface ModelOptionChoice {
   value: string;
@@ -118,6 +120,25 @@ interface ProjectSession {
   stems: StemFile[];
 }
 
+interface WorkflowStep {
+  id: string;
+  displayName: string;
+  task: TaskType;
+  modelId: string;
+  inputStem?: string;
+  outputStems?: string[];
+  options: Record<string, RenderOptionValue>;
+}
+
+interface WorkflowEntry {
+  id: string;
+  displayName: string;
+  description: string;
+  kind: WorkflowKind;
+  task: TaskType;
+  steps: WorkflowStep[];
+}
+
 interface JobRecord {
   id: string;
   projectId: string;
@@ -141,7 +162,9 @@ interface BootstrapState {
   projectRoot: string;
   appDataDir: string;
   modelRegistryPath: string;
+  workflowRegistryPath: string;
   models: ModelEntry[];
+  workflows: WorkflowEntry[];
   currentProject: ProjectSession | null;
   jobs: JobRecord[];
 }
@@ -218,9 +241,11 @@ function browserStemMediaSrc(path: string) {
 function App() {
   const [boot, setBoot] = useState<BootstrapState | null>(null);
   const [models, setModels] = useState<ModelEntry[]>([]);
+  const [workflows, setWorkflows] = useState<WorkflowEntry[]>([]);
   const [project, setProject] = useState<ProjectSession | null>(null);
   const [jobs, setJobs] = useState<JobRecord[]>([]);
   const [task, setTask] = useState<TaskType>("vocals_instrumental");
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>("");
   const [selectedModelId, setSelectedModelId] = useState<string>("");
   const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
@@ -228,6 +253,9 @@ function App() {
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [modelInstallProgress, setModelInstallProgress] = useState<Record<string, ModelDownloadProgress>>({});
+  const [modelManagerOpen, setModelManagerOpen] = useState(false);
+  const [modelFilter, setModelFilter] = useState("");
+  const [customWorkflowName, setCustomWorkflowName] = useState("");
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -278,6 +306,8 @@ function App() {
         const snapshot = await command<BootstrapState>("bootstrap_app");
         setBoot(snapshot);
         setModels(snapshot.models);
+        setWorkflows(snapshot.workflows);
+        setSelectedWorkflowId(snapshot.workflows[0]?.id ?? "");
         setProject(snapshot.currentProject);
         setJobs(snapshot.jobs);
         setSelectedSourceId(snapshot.currentProject?.originalFiles[0]?.id ?? "");
@@ -311,6 +341,9 @@ function App() {
       const unlistenModelsUpdated = await listenTo<ModelEntry[]>("models_updated", (event) => {
         setModels(event.payload);
       });
+      const unlistenWorkflowsUpdated = await listenTo<WorkflowEntry[]>("workflows_updated", (event) => {
+        setWorkflows(event.payload);
+      });
 
       cleanup = () => {
         unlistenProgress();
@@ -319,6 +352,7 @@ function App() {
         unlistenLog();
         unlistenModelProgress();
         unlistenModelsUpdated();
+        unlistenWorkflowsUpdated();
       };
     }
 
@@ -440,6 +474,8 @@ function App() {
     };
   }, [project, mediaUrls]);
 
+  const selectedWorkflow = workflows.find((workflow) => workflow.id === selectedWorkflowId);
+  const selectedWorkflowStep = selectedWorkflow?.steps[0];
   const compatibleModels = useMemo(
     () => models.filter((model) => model.tasks.includes(task)),
     [models, task],
@@ -451,10 +487,35 @@ function App() {
   const selectedSource = project?.originalFiles.find((source) => source.id === selectedSourceId) ?? project?.originalFiles[0];
   const soloActive = Object.values(previewState).some((state) => state.solo);
   const selectedModelRunnable = selectedModel ? isRunnableModel(selectedModel) : false;
+  const filteredModels = useMemo(() => {
+    const query = modelFilter.trim().toLowerCase();
+    return models.filter((model) => {
+      const matchesQuery = !query || [model.displayName, model.backend, model.quality, model.version, model.notes]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+      return matchesQuery;
+    });
+  }, [modelFilter, models]);
 
   useEffect(() => {
-    setRenderOptions(selectedModel ? defaultRenderOptions(selectedModel) : {});
-  }, [selectedModel?.id]);
+    if (!selectedWorkflowStep) {
+      return;
+    }
+
+    setTask(selectedWorkflowStep.task);
+    setSelectedModelId(selectedWorkflowStep.modelId);
+  }, [selectedWorkflowStep?.id, selectedWorkflowStep?.modelId, selectedWorkflowStep?.task]);
+
+  useEffect(() => {
+    setRenderOptions(
+      selectedModel
+        ? {
+            ...defaultRenderOptions(selectedModel),
+            ...(selectedWorkflowStep?.modelId === selectedModel.id ? selectedWorkflowStep.options : {}),
+          }
+        : {},
+    );
+  }, [selectedModel?.id, selectedWorkflowId, selectedWorkflowStep?.modelId]);
 
   async function chooseFiles() {
     if (!isTauriRuntime()) {
@@ -495,9 +556,20 @@ function App() {
     setStatus("Model registry refreshed");
   }
 
+  async function refreshWorkflows() {
+    const refreshed = await command<WorkflowEntry[]>("list_workflows");
+    setWorkflows(refreshed);
+    setStatus("Workflow registry refreshed");
+  }
+
   async function runSeparation() {
     if (!project || !selectedModel) {
       setError("Import an audio file and choose a runnable model first.");
+      return;
+    }
+
+    if (selectedWorkflow && selectedWorkflow.steps.length > 1) {
+      setError("Multi-step workflow execution is planned; this prototype can run single-step workflows for now.");
       return;
     }
 
@@ -513,7 +585,7 @@ function App() {
 
     setIsBusy(true);
     setError(null);
-    setStatus("Queueing separation job");
+    setStatus("Queueing workflow job");
 
     try {
       const queued = await command<JobRecord>("enqueue_separation", {
@@ -627,6 +699,55 @@ function App() {
     }
   }
 
+  async function saveCurrentWorkflow() {
+    if (!selectedModel) {
+      setError("Choose a model before saving a workflow.");
+      return;
+    }
+
+    const displayName = customWorkflowName.trim();
+    if (!displayName) {
+      setError("Name the workflow before saving it.");
+      return;
+    }
+
+    const workflow: WorkflowEntry = {
+      id: `custom_${slugify(displayName)}_${Date.now().toString(36)}`,
+      displayName,
+      description: `Custom ${formatTask(task)} workflow.`,
+      kind: "custom",
+      task,
+      steps: [
+        {
+          id: "step_1",
+          displayName: formatTask(task),
+          task,
+          modelId: selectedModel.id,
+          options: renderOptions,
+        },
+      ],
+    };
+
+    try {
+      const saved = await command<WorkflowEntry>("save_custom_workflow", { workflow });
+      const refreshed = await command<WorkflowEntry[]>("list_workflows");
+      setWorkflows(refreshed);
+      setSelectedWorkflowId(saved.id);
+      setCustomWorkflowName("");
+      setStatus(`Saved workflow ${saved.displayName}`);
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Workflow save failed");
+    }
+  }
+
+  function useModelFromManager(model: ModelEntry) {
+    setSelectedWorkflowId("");
+    setTask(model.tasks.includes(task) ? task : model.tasks[0]);
+    setSelectedModelId(model.id);
+    setModelManagerOpen(false);
+  }
+
   function setRenderOption(option: ModelOptionDefinition, value: RenderOptionValue) {
     setRenderOptions((existing) => ({
       ...existing,
@@ -696,24 +817,30 @@ function App() {
             )}
           </section>
 
-          <section className="panel">
+          <section className="panel workflow-panel">
             <div className="panel-heading">
               <SlidersHorizontal aria-hidden />
-              <h2>Task</h2>
+              <h2>Workflow</h2>
             </div>
-            <div className="task-grid" role="radiogroup" aria-label="Separation task">
-              {TASKS.map((taskOption) => (
+            <div className="workflow-list" role="radiogroup" aria-label="Workflow">
+              {workflows.map((workflow) => (
                 <button
-                  className={task === taskOption.value ? "task-option is-selected" : "task-option"}
-                  key={taskOption.value}
+                  className={selectedWorkflowId === workflow.id ? "workflow-option is-selected" : "workflow-option"}
+                  key={workflow.id}
                   type="button"
-                  onClick={() => setTask(taskOption.value)}
+                  onClick={() => setSelectedWorkflowId(workflow.id)}
                 >
-                  <span>{taskOption.label}</span>
-                  <small>{taskOption.short}</small>
+                  <span>{workflow.displayName}</span>
+                  <small>
+                    {workflow.kind} · {workflow.steps.length} step{workflow.steps.length === 1 ? "" : "s"}
+                  </small>
                 </button>
               ))}
             </div>
+            <button className="secondary-action compact-action" type="button" onClick={refreshWorkflows}>
+              <RefreshCw aria-hidden />
+              Refresh workflows
+            </button>
 
             {project && project.originalFiles.length > 1 ? (
               <label className="field-label">
@@ -741,7 +868,12 @@ function App() {
                 <h2>Queue</h2>
               </div>
               <p className="panel-copy">
-                Curated presets stay simple now, while the Rust engine keeps backend choices replaceable later.
+                {selectedWorkflow
+                  ? `${selectedWorkflow.displayName}: ${selectedWorkflow.description}`
+                  : "Ad hoc model setup. Save it as a named workflow when it feels right."}
+              </p>
+              <p className="panel-copy">
+                {selectedModel ? `Model: ${selectedModel.displayName}` : "No model selected"}
               </p>
             </div>
             <div className="run-actions">
@@ -752,7 +884,11 @@ function App() {
                 disabled={!project || !selectedModelRunnable || isBusy}
               >
                 {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
-                Run separation
+                Run workflow
+              </button>
+              <button className="secondary-action inline-action" type="button" onClick={() => setModelManagerOpen(true)}>
+                <Database aria-hidden />
+                Model manager
               </button>
               <button className="icon-action" type="button" onClick={cancelRunningJob} disabled={!runningJob} title="Cancel job">
                 <Square aria-hidden />
@@ -783,6 +919,19 @@ function App() {
                 ))}
               </div>
             )}
+            <div className="custom-workflow-row">
+              <input
+                aria-label="Custom workflow name"
+                onChange={(event) => setCustomWorkflowName(event.currentTarget.value)}
+                placeholder="Name this workflow"
+                type="text"
+                value={customWorkflowName}
+              />
+              <button className="secondary-action inline-action" type="button" onClick={saveCurrentWorkflow}>
+                <Save aria-hidden />
+                Save workflow
+              </button>
+            </div>
           </section>
 
           <section className="panel queue-panel">
@@ -838,70 +987,42 @@ function App() {
         </section>
 
         <aside className="rail model-rail">
-          <section className="panel model-panel">
+          <section className="panel workflow-details-panel">
             <div className="panel-heading with-action">
               <span>
-                <Database aria-hidden />
-                <h2>Models</h2>
+                <ListMusic aria-hidden />
+                <h2>Workflow Details</h2>
               </span>
-              <button className="icon-button" type="button" onClick={refreshModels} title="Refresh model registry">
-                <RefreshCw aria-hidden />
+              <button className="icon-button" type="button" onClick={() => setModelManagerOpen(true)} title="Open model manager">
+                <Database aria-hidden />
               </button>
             </div>
-            <div className="model-list">
-              {compatibleModels.map((model) => (
-                <article
-                  className={selectedModelId === model.id ? "model-row is-selected" : "model-row"}
-                  key={model.id}
-                >
-                  <button className="model-select" type="button" onClick={() => setSelectedModelId(model.id)}>
-                    <span>
-                      <strong>{model.displayName}</strong>
-                      <small>
-                        {model.backend} · {model.quality} · {model.version}
-                        {model.downloadSizeMb ? ` · ${model.downloadSizeMb} MB` : ""}
-                      </small>
-                      {model.license ? <small>{model.license}</small> : null}
-                      <small>{modelStatusText(model, modelInstallProgress[model.id])}</small>
-                    </span>
-                    {model.installed ? (
-                      isRunnableModel(model) ? (
-                        <CheckCircle2 aria-label="Installed" />
-                      ) : (
-                        <AlertTriangle aria-label="Backend pending" />
-                      )
-                    ) : (
-                      <X aria-label="Missing" />
-                    )}
-                  </button>
-                  <span className="model-actions">
-                    {isInstallableModel(model) ? (
-                      <button
-                        className="model-install"
-                        type="button"
-                        onClick={() => installModel(model)}
-                        disabled={Boolean(modelInstallProgress[model.id])}
-                      >
-                        <Download aria-hidden />
-                        {modelInstallProgress[model.id]
-                          ? `${Math.round(modelInstallProgress[model.id].progress * 100)}%`
-                          : "Install"}
-                      </button>
-                    ) : null}
-                    {model.sourceUrl || model.downloadUrl ? (
-                      <button
-                        className="model-link"
-                        type="button"
-                        onClick={() => openModelSource(model)}
-                        title="Open model source"
-                      >
-                        <ExternalLink aria-hidden />
-                      </button>
-                    ) : null}
-                  </span>
-                </article>
-              ))}
+            <div className="workflow-step-list">
+              {(selectedWorkflow?.steps ?? [{
+                id: "ad_hoc",
+                displayName: "Ad hoc step",
+                task,
+                modelId: selectedModelId,
+                options: renderOptions,
+              }]).map((step, index) => {
+                const stepModel = models.find((model) => model.id === step.modelId);
+                return (
+                  <article className="workflow-step-row" key={step.id}>
+                    <span>{index + 1}</span>
+                    <div>
+                      <strong>{step.displayName}</strong>
+                      <small>{formatTask(step.task)}</small>
+                      <small>{stepModel?.displayName ?? step.modelId}</small>
+                      {stepModel ? <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small> : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
+            <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
+              <Database aria-hidden />
+              Manage models
+            </button>
           </section>
 
           <section className="panel export-panel">
@@ -972,7 +1093,121 @@ function App() {
           </section>
         </aside>
       </section>
+      {modelManagerOpen ? (
+        <ModelManager
+          filter={modelFilter}
+          installProgress={modelInstallProgress}
+          models={filteredModels}
+          onClose={() => setModelManagerOpen(false)}
+          onFilterChange={setModelFilter}
+          onInstall={installModel}
+          onOpenSource={openModelSource}
+          onRefresh={refreshModels}
+          onUse={useModelFromManager}
+          selectedModelId={selectedModelId}
+        />
+      ) : null}
     </main>
+  );
+}
+
+function ModelManager({
+  filter,
+  installProgress,
+  models,
+  onClose,
+  onFilterChange,
+  onInstall,
+  onOpenSource,
+  onRefresh,
+  onUse,
+  selectedModelId,
+}: {
+  filter: string;
+  installProgress: Record<string, ModelDownloadProgress>;
+  models: ModelEntry[];
+  onClose: () => void;
+  onFilterChange: (value: string) => void;
+  onInstall: (model: ModelEntry) => void;
+  onOpenSource: (model: ModelEntry) => void;
+  onRefresh: () => void;
+  onUse: (model: ModelEntry) => void;
+  selectedModelId: string;
+}) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section aria-label="Model Manager" className="model-manager" role="dialog">
+        <div className="modal-heading">
+          <span>
+            <Database aria-hidden />
+            <h2>Model Manager</h2>
+          </span>
+          <button className="icon-button" type="button" onClick={onClose} title="Close model manager">
+            <X aria-hidden />
+          </button>
+        </div>
+        <div className="model-manager-toolbar">
+          <input
+            aria-label="Filter models"
+            onChange={(event) => onFilterChange(event.currentTarget.value)}
+            placeholder="Filter models"
+            type="search"
+            value={filter}
+          />
+          <button className="secondary-action inline-action" type="button" onClick={onRefresh}>
+            <RefreshCw aria-hidden />
+            Refresh
+          </button>
+        </div>
+        <div className="manager-model-list">
+          {models.map((model) => (
+            <article className={selectedModelId === model.id ? "manager-model-row is-selected" : "manager-model-row"} key={model.id}>
+              <div>
+                <strong>{model.displayName}</strong>
+                <small>
+                  {model.backend} · {model.quality} · {model.version}
+                  {model.downloadSizeMb ? ` · ${model.downloadSizeMb} MB` : ""}
+                </small>
+                <small>{model.tasks.map(formatTask).join(", ")}</small>
+                {model.license ? <small>{model.license}</small> : null}
+                <small>{modelStatusText(model, installProgress[model.id])}</small>
+              </div>
+              <div className="manager-model-actions">
+                <button className="secondary-action inline-action" type="button" onClick={() => onUse(model)}>
+                  <SlidersHorizontal aria-hidden />
+                  Use
+                </button>
+                {isInstallableModel(model) ? (
+                  <button
+                    className="secondary-action inline-action"
+                    type="button"
+                    onClick={() => onInstall(model)}
+                    disabled={Boolean(installProgress[model.id])}
+                  >
+                    <Download aria-hidden />
+                    {installProgress[model.id] ? `${Math.round(installProgress[model.id].progress * 100)}%` : "Install"}
+                  </button>
+                ) : null}
+                {model.sourceUrl || model.downloadUrl ? (
+                  <button className="icon-button" type="button" onClick={() => onOpenSource(model)} title="Open model source">
+                    <ExternalLink aria-hidden />
+                  </button>
+                ) : null}
+                {model.installed ? (
+                  isRunnableModel(model) ? (
+                    <CheckCircle2 aria-label="Installed" />
+                  ) : (
+                    <AlertTriangle aria-label="Backend pending" />
+                  )
+                ) : (
+                  <X aria-label="Missing" />
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -1180,6 +1415,14 @@ function formatDuration(seconds: number) {
   return `${minutes}:${remainingSeconds}`;
 }
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48) || "workflow";
+}
+
 function isRunnableModel(model: ModelEntry) {
   return model.installed && (model.backend === "pytorch-worker" || model.backend === "stub");
 }
@@ -1382,6 +1625,85 @@ const mockModels: ModelEntry[] = [
   },
 ];
 
+let mockWorkflows: WorkflowEntry[] = [
+  {
+    id: "quick_vocal_split",
+    displayName: "Quick Vocal Split",
+    description: "Reliable vocal and instrumental separation using the installed balanced Demucs preset.",
+    kind: "preset",
+    task: "vocals_instrumental",
+    steps: [
+      {
+        id: "split",
+        displayName: "Split vocals",
+        task: "vocals_instrumental",
+        modelId: "demucs_htdemucs_vocals_instrumental",
+        options: {
+          device: "auto",
+          demucsShifts: 1,
+          demucsOverlap: 0.25,
+          demucsSegmentSeconds: 0,
+        },
+      },
+    ],
+  },
+  {
+    id: "full_6_stem_split",
+    displayName: "Full 6-Stem Split",
+    description: "Vocals, drums, bass, guitar, piano, and other from the experimental Demucs six-source model.",
+    kind: "preset",
+    task: "full_stem_split",
+    steps: [
+      {
+        id: "split",
+        displayName: "Render six stems",
+        task: "full_stem_split",
+        modelId: "demucs_htdemucs_6s_full_split",
+        options: {
+          device: "auto",
+          demucsShifts: 1,
+          demucsOverlap: 0.25,
+          demucsSegmentSeconds: 0,
+        },
+      },
+    ],
+  },
+  {
+    id: "clean_lead_vocal_uvr_chain",
+    displayName: "Clean Lead Vocal Chain",
+    description: "UVR-inspired vocal cleanup chain.",
+    kind: "preset",
+    task: "vocal_cleanup_chain",
+    steps: [
+      {
+        id: "instvoc",
+        displayName: "Extract vocal",
+        task: "vocal_cleanup_chain",
+        modelId: "uvr_mdx23c_instvoc_hq",
+        options: {
+          device: "auto",
+          chunkSize: 256,
+          overlap: 0.25,
+          batchSize: 1,
+        },
+      },
+      {
+        id: "karaoke",
+        displayName: "Reduce layered vocals",
+        task: "layered_vocal_cleanup",
+        modelId: "onnx_uvr_mdxnet_karaoke_2",
+        options: {
+          device: "auto",
+          mdxSegmentSize: 256,
+          mdxOverlap: 0.25,
+          batchSize: 1,
+          enableDenoisePass: false,
+        },
+      },
+    ],
+  },
+];
+
 let mockProject: ProjectSession | null = null;
 let mockJobs: JobRecord[] = [];
 
@@ -1394,13 +1716,25 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
         projectRoot: "/mock/TrackExtract Projects",
         appDataDir: "/mock/TrackExtract App Data",
         modelRegistryPath: "/mock/TrackExtract App Data/models.json",
+        workflowRegistryPath: "/mock/TrackExtract App Data/workflows.json",
         models: mockModels,
+        workflows: mockWorkflows,
         currentProject: mockProject,
         jobs: mockJobs,
       } as T;
 
     case "list_models":
       return mockModels as T;
+
+    case "list_workflows":
+      return mockWorkflows as T;
+
+    case "save_custom_workflow": {
+      const workflow = args?.workflow as WorkflowEntry;
+      const saved = { ...workflow, kind: "custom" as WorkflowKind };
+      mockWorkflows = [...mockWorkflows.filter((candidate) => candidate.id !== saved.id), saved];
+      return saved as T;
+    }
 
     case "install_model": {
       const modelId = args?.modelId as string;

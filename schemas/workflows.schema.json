@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://phlosion.com/trackextract/workflows.schema.json",
+  "title": "TrackExtract Workflow Registry",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "displayName", "description", "kind", "task", "steps"],
+    "properties": {
+      "id": { "type": "string", "minLength": 1 },
+      "displayName": { "type": "string", "minLength": 1 },
+      "description": { "type": "string" },
+      "kind": {
+        "type": "string",
+        "enum": ["preset", "custom", "template"]
+      },
+      "task": {
+        "type": "string",
+        "enum": [
+          "vocals_instrumental",
+          "full_stem_split",
+          "drums_only",
+          "bass_only",
+          "guitar_only",
+          "piano_only",
+          "experimental_best_quality",
+          "vocal_cleanup_chain",
+          "layered_vocal_cleanup",
+          "vocal_dereverb",
+          "vocal_denoise"
+        ]
+      },
+      "steps": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["id", "displayName", "task", "modelId", "options"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "displayName": { "type": "string", "minLength": 1 },
+            "task": {
+              "type": "string",
+              "enum": [
+                "vocals_instrumental",
+                "full_stem_split",
+                "drums_only",
+                "bass_only",
+                "guitar_only",
+                "piano_only",
+                "experimental_best_quality",
+                "vocal_cleanup_chain",
+                "layered_vocal_cleanup",
+                "vocal_dereverb",
+                "vocal_denoise"
+              ]
+            },
+            "modelId": { "type": "string", "minLength": 1 },
+            "inputStem": { "type": "string" },
+            "outputStems": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "options": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+}

@@ -70,12 +70,13 @@ describe("TrackExtract app", () => {
     });
   });
 
-  it("renders import, model, queue, preview, and export surfaces", async () => {
+  it("renders import, workflow, queue, preview, and export surfaces", async () => {
     render(<App />);
 
     expect(await screen.findByText("TrackExtract")).toBeInTheDocument();
     expect(screen.getByText("Import")).toBeInTheDocument();
-    expect(screen.getByText("Models")).toBeInTheDocument();
+    expect(screen.getByText("Workflow")).toBeInTheDocument();
+    expect(screen.getByText("Workflow Details")).toBeInTheDocument();
     expect(screen.getByText("Queue")).toBeInTheDocument();
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
     expect(screen.getByText("Render Options")).toBeInTheDocument();
@@ -97,6 +98,7 @@ describe("TrackExtract app", () => {
   it("shows mocked bootstrap data after startup", async () => {
     render(<App />);
 
+    expect(await screen.findByText("Quick Vocal Split")).toBeInTheDocument();
     expect((await screen.findAllByText("Demucs HTDemucs Vocals / Instrumental")).length).toBeGreaterThan(0);
     await waitFor(() => {
       expect(mockInvoke).not.toHaveBeenCalled();
@@ -106,35 +108,38 @@ describe("TrackExtract app", () => {
   it("shows downloadable vocal cleanup models and marks them backend-pending after install", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Clean Lead Vocal"));
-    expect(await screen.findByText("UVR MDX23C InstVoc HQ")).toBeInTheDocument();
+    fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
+    fireEvent.click(await screen.findByText("Manage models"));
+    fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "MDX23C" } });
+    expect((await screen.findAllByText("UVR MDX23C InstVoc HQ")).length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getAllByText("Install")[0]);
 
     expect(await screen.findByText("UVR MDX23C InstVoc HQ installed")).toBeInTheDocument();
-    expect(await screen.findByText("Installed · backend pending")).toBeInTheDocument();
+    expect((await screen.findAllByText("Installed · backend pending")).length).toBeGreaterThan(0);
   });
 
-  it("filters full stem models when the full split task is selected", async () => {
+  it("selects full stem workflow models", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Full Stem Split"));
+    fireEvent.click(await screen.findByText("Full 6-Stem Split"));
 
     expect(await screen.findByText("Demucs HTDemucs 6 Stem Split")).toBeInTheDocument();
   });
 
-  it("filters layered vocal cleanup models", async () => {
+  it("shows layered vocal cleanup as part of the cleanup workflow", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Remove Layered Vocals"));
+    fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
 
     expect(await screen.findByText("UVR MDX-NET Karaoke 2 ONNX")).toBeInTheDocument();
   });
 
-  it("filters denoise models", async () => {
+  it("filters denoise models in the model manager", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Denoise Vocal"));
+    fireEvent.click(await screen.findByText("Model manager"));
+    fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "denoise" } });
 
     expect(await screen.findByText("UVR DeNoise")).toBeInTheDocument();
   });
@@ -152,7 +157,7 @@ describe("TrackExtract app", () => {
     render(<App />);
 
     fireEvent.click(await screen.findByText("Drop audio here"));
-    const runButton = await screen.findByText("Run separation");
+    const runButton = await screen.findByText("Run workflow");
     await waitFor(() => expect(runButton).not.toBeDisabled());
     fireEvent.click(runButton);
 
@@ -165,6 +170,7 @@ describe("TrackExtract app", () => {
     const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     render(<App />);
 
+    fireEvent.click(await screen.findByText("Model manager"));
     fireEvent.click((await screen.findAllByTitle("Open model source"))[0]);
 
     expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("github.com"), "_blank", "noopener,noreferrer");
@@ -174,7 +180,8 @@ describe("TrackExtract app", () => {
   it("refreshes the model registry from the toolbar action", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByTitle("Refresh model registry"));
+    fireEvent.click(await screen.findByText("Model manager"));
+    fireEvent.click(await screen.findByText("Refresh"));
 
     expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
   });
@@ -182,16 +189,28 @@ describe("TrackExtract app", () => {
   it("keeps backend-pending installed models from running separation", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Clean Lead Vocal"));
+    fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
     fireEvent.click(await screen.findByText("Drop audio here"));
     expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
 
+    fireEvent.click(await screen.findByText("Manage models"));
     const installButtons = screen.queryAllByText("Install");
     if (installButtons.length > 0) {
       fireEvent.click(installButtons[0]);
       await screen.findByText(/installed$/);
     }
 
-    await waitFor(() => expect(screen.getByText("Run separation")).toBeDisabled());
+    await waitFor(() => expect(screen.getByText("Run workflow")).toBeDisabled());
+  });
+
+  it("saves the current setup as a custom workflow", async () => {
+    render(<App />);
+
+    expect((await screen.findAllByText("Demucs HTDemucs Vocals / Instrumental")).length).toBeGreaterThan(0);
+    fireEvent.change(await screen.findByLabelText("Custom workflow name"), { target: { value: "My Vocal Chain" } });
+    fireEvent.click(await screen.findByText("Save workflow"));
+
+    expect(await screen.findByText("Saved workflow My Vocal Chain")).toBeInTheDocument();
+    expect(await screen.findByText("My Vocal Chain")).toBeInTheDocument();
   });
 });

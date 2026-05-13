@@ -17,10 +17,11 @@ use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
 use trackextract_core::{
     download_model_file, BackendKind, BackendProgress, BootstrapState, Engine, JobRecord,
     ModelDownloadProgress, ModelEntry, ProjectSession, PythonWorkerBackend, SeparationBackend,
-    StubSeparationBackend, TaskType, TrackExtractError,
+    StubSeparationBackend, TaskType, TrackExtractError, WorkflowEntry,
 };
 
 const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
+const BUNDLED_WORKFLOWS: &str = include_str!("../../resources/workflows.json");
 
 struct RuntimeState {
     engine: Mutex<Engine>,
@@ -34,7 +35,7 @@ impl RuntimeState {
         let media_server = MediaServer::start()?;
 
         Ok(Self {
-            engine: Mutex::new(Engine::bootstrap(BUNDLED_MODELS)?),
+            engine: Mutex::new(Engine::bootstrap(BUNDLED_MODELS, BUNDLED_WORKFLOWS)?),
             cancellations: Mutex::new(HashMap::new()),
             model_installs: Mutex::new(HashSet::new()),
             media_server,
@@ -77,6 +78,31 @@ fn bootstrap_app(state: State<'_, Arc<RuntimeState>>) -> Result<BootstrapState, 
 #[tauri::command]
 fn list_models(state: State<'_, Arc<RuntimeState>>) -> Result<Vec<ModelEntry>, String> {
     Ok(lock_engine(&state)?.list_models())
+}
+
+#[tauri::command]
+fn list_workflows(state: State<'_, Arc<RuntimeState>>) -> Result<Vec<WorkflowEntry>, String> {
+    Ok(lock_engine(&state)?.list_workflows())
+}
+
+#[tauri::command]
+fn save_custom_workflow(
+    workflow: WorkflowEntry,
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<WorkflowEntry, String> {
+    let (workflow, workflows) = {
+        let mut engine = lock_engine(&state)?;
+        let workflow = engine
+            .save_custom_workflow(workflow)
+            .map_err(command_error)?;
+        let workflows = engine.list_workflows();
+        (workflow, workflows)
+    };
+
+    app.emit("workflows_updated", &workflows)
+        .map_err(|error| error.to_string())?;
+    Ok(workflow)
 }
 
 #[tauri::command]
@@ -686,6 +712,8 @@ pub fn run() {
             bootstrap_app,
             import_audio_files,
             list_models,
+            list_workflows,
+            save_custom_workflow,
             install_model,
             enqueue_separation,
             start_job,

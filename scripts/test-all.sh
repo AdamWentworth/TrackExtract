@@ -7,6 +7,7 @@ if [[ -f "${HOME}/.cargo/env" ]]; then
 fi
 
 npm run test:models
+npm run test:workflows
 npm run test:frontend
 npm run test:build
 npm run test:rust

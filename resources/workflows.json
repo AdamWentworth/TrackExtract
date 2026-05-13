@@ -1,0 +1,200 @@
+[
+  {
+    "id": "quick_vocal_split",
+    "displayName": "Quick Vocal Split",
+    "description": "Reliable vocal and instrumental separation using the installed balanced Demucs preset.",
+    "kind": "preset",
+    "task": "vocals_instrumental",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Split vocals",
+        "task": "vocals_instrumental",
+        "modelId": "demucs_htdemucs_vocals_instrumental",
+        "options": {
+          "device": "auto",
+          "demucsShifts": 1,
+          "demucsOverlap": 0.25,
+          "demucsSegmentSeconds": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "best_vocal_split",
+    "displayName": "Best Vocal Split",
+    "description": "Slower fine-tuned Demucs vocal split intended for cleaner vocal extraction.",
+    "kind": "preset",
+    "task": "vocals_instrumental",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Fine-tuned split",
+        "task": "vocals_instrumental",
+        "modelId": "demucs_htdemucs_ft_vocals_instrumental",
+        "options": {
+          "device": "auto",
+          "demucsShifts": 2,
+          "demucsOverlap": 0.25,
+          "demucsSegmentSeconds": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "full_6_stem_split",
+    "displayName": "Full 6-Stem Split",
+    "description": "Vocals, drums, bass, guitar, piano, and other from the experimental Demucs six-source model.",
+    "kind": "preset",
+    "task": "full_stem_split",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Render six stems",
+        "task": "full_stem_split",
+        "modelId": "demucs_htdemucs_6s_full_split",
+        "options": {
+          "device": "auto",
+          "demucsShifts": 1,
+          "demucsOverlap": 0.25,
+          "demucsSegmentSeconds": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "clean_lead_vocal_uvr_chain",
+    "displayName": "Clean Lead Vocal Chain",
+    "description": "A UVR-inspired vocal cleanup chain: extract, remove layered vocals, refine vocals, dereverb, then denoise.",
+    "kind": "preset",
+    "task": "vocal_cleanup_chain",
+    "steps": [
+      {
+        "id": "instvoc",
+        "displayName": "Extract vocal",
+        "task": "vocal_cleanup_chain",
+        "modelId": "uvr_mdx23c_instvoc_hq",
+        "options": {
+          "device": "auto",
+          "chunkSize": 256,
+          "overlap": 0.25,
+          "batchSize": 1
+        }
+      },
+      {
+        "id": "karaoke",
+        "displayName": "Reduce layered vocals",
+        "task": "layered_vocal_cleanup",
+        "modelId": "onnx_uvr_mdxnet_karaoke_2",
+        "options": {
+          "device": "auto",
+          "mdxSegmentSize": 256,
+          "mdxOverlap": 0.25,
+          "batchSize": 1,
+          "enableDenoisePass": false
+        }
+      },
+      {
+        "id": "voc_ft",
+        "displayName": "Refine lead vocal",
+        "task": "vocal_cleanup_chain",
+        "modelId": "onnx_uvr_mdxnet_voc_ft",
+        "options": {
+          "device": "auto",
+          "mdxSegmentSize": 256,
+          "mdxOverlap": 0.25,
+          "batchSize": 1,
+          "enableDenoisePass": false
+        }
+      },
+      {
+        "id": "dereverb",
+        "displayName": "Remove reverb",
+        "task": "vocal_dereverb",
+        "modelId": "onnx_reverb_hq_by_foxjoy",
+        "options": {
+          "device": "auto",
+          "mdxSegmentSize": 256,
+          "mdxOverlap": 0.25,
+          "batchSize": 1,
+          "enableDenoisePass": false
+        }
+      },
+      {
+        "id": "denoise",
+        "displayName": "Denoise vocal",
+        "task": "vocal_denoise",
+        "modelId": "uvr_denoise",
+        "options": {
+          "device": "auto",
+          "chunkSize": 256,
+          "overlap": 0.25,
+          "batchSize": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "drums_only",
+    "displayName": "Drums Only",
+    "description": "Render drums and a no-drums mix using Demucs.",
+    "kind": "preset",
+    "task": "drums_only",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Extract drums",
+        "task": "drums_only",
+        "modelId": "demucs_htdemucs_drums_only",
+        "options": {
+          "device": "auto",
+          "demucsShifts": 1,
+          "demucsOverlap": 0.25,
+          "demucsSegmentSeconds": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "bass_only",
+    "displayName": "Bass Only",
+    "description": "Render bass and a no-bass mix using Demucs.",
+    "kind": "preset",
+    "task": "bass_only",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Extract bass",
+        "task": "bass_only",
+        "modelId": "demucs_htdemucs_bass_only",
+        "options": {
+          "device": "auto",
+          "demucsShifts": 1,
+          "demucsOverlap": 0.25,
+          "demucsSegmentSeconds": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "custom_workflow_template",
+    "displayName": "Custom Workflow",
+    "description": "Start from the selected model and render options, then save it as a named custom workflow.",
+    "kind": "template",
+    "task": "vocals_instrumental",
+    "steps": [
+      {
+        "id": "split",
+        "displayName": "Custom step",
+        "task": "vocals_instrumental",
+        "modelId": "demucs_htdemucs_vocals_instrumental",
+        "options": {
+          "device": "auto",
+          "demucsShifts": 1,
+          "demucsOverlap": 0.25,
+          "demucsSegmentSeconds": 0
+        }
+      }
+    ]
+  }
+]

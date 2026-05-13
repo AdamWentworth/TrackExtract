@@ -215,6 +215,7 @@ h2 {
 
 .drop-zone small,
 .task-option small,
+.workflow-option small,
 .model-row small {
   color: #6b7068;
   font-size: 0.75rem;
@@ -239,12 +240,14 @@ h2 {
   grid-row: 1 / span 2;
 }
 
-.task-grid {
+.task-grid,
+.workflow-list {
   display: grid;
   gap: 8px;
 }
 
 .task-option,
+.workflow-option,
 .model-select {
   background: #fbf7ed;
   border-radius: 8px;
@@ -259,6 +262,13 @@ h2 {
 
 .task-option {
   border: 1px solid #e3dac5;
+}
+
+.workflow-option {
+  border: 1px solid #e3dac5;
+  display: grid;
+  gap: 4px;
+  justify-content: stretch;
 }
 
 .model-select {
@@ -279,6 +289,7 @@ h2 {
 }
 
 .task-option.is-selected,
+.workflow-option.is-selected,
 .model-row.is-selected {
   border-color: #247c75;
   box-shadow: inset 0 0 0 1px #247c75;
@@ -302,6 +313,17 @@ select {
   padding: 0 10px;
 }
 
+input[type="search"],
+input[type="text"] {
+  background: #fffdf8;
+  border: 1px solid #d8d0bc;
+  border-radius: 8px;
+  color: #1a1c1f;
+  min-height: 38px;
+  padding: 0 10px;
+  width: 100%;
+}
+
 input[type="number"] {
   background: #fffdf8;
   border: 1px solid #d8d0bc;
@@ -323,6 +345,11 @@ input[type="number"] {
   align-items: center;
   display: flex;
   gap: 8px;
+}
+
+.run-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .primary-action,
@@ -353,6 +380,16 @@ input[type="number"] {
   width: 100%;
 }
 
+.secondary-action.inline-action {
+  margin-top: 0;
+  width: auto;
+}
+
+.secondary-action.compact-action {
+  font-size: 0.78rem;
+  min-height: 32px;
+}
+
 .icon-action,
 .icon-button {
   background: #ece4d2;
@@ -377,7 +414,7 @@ input[type="number"] {
 
 .options-panel {
   display: grid;
-  gap: 4px;
+  gap: 10px;
 }
 
 .option-grid {
@@ -400,6 +437,14 @@ input[type="number"] {
   justify-self: start;
   margin: 8px 0;
   width: 22px;
+}
+
+.custom-workflow-row {
+  border-top: 1px solid #ebe3d0;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  padding-top: 10px;
 }
 
 .job-row {
@@ -500,6 +545,47 @@ input[type="number"] {
   overflow-y: auto;
   padding-right: 3px;
   scrollbar-gutter: stable;
+}
+
+.workflow-step-list {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-step-row {
+  align-items: start;
+  background: #fbf7ed;
+  border: 1px solid #e3dac5;
+  border-radius: 8px;
+  display: grid;
+  gap: 9px;
+  grid-template-columns: 26px minmax(0, 1fr);
+  padding: 10px;
+}
+
+.workflow-step-row > span {
+  align-items: center;
+  background: #247c75;
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 800;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.workflow-step-row div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.workflow-step-row small {
+  color: #6b7068;
+  font-size: 0.74rem;
+  overflow-wrap: anywhere;
 }
 
 .stem-row {
@@ -662,6 +748,103 @@ input[type="number"] {
   list-style: none;
   margin: 12px 0 0;
   padding: 10px 0 0;
+}
+
+.modal-backdrop {
+  align-items: center;
+  background: rgba(26, 28, 31, 0.42);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
+.model-manager {
+  background: #fffdf8;
+  border: 1px solid #d8d0bc;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(20, 18, 14, 0.24);
+  display: grid;
+  gap: 14px;
+  max-height: min(760px, calc(100vh - 48px));
+  max-width: 980px;
+  min-height: 520px;
+  overflow: hidden;
+  padding: 16px;
+  width: min(980px, calc(100vw - 48px));
+}
+
+.modal-heading,
+.model-manager-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.modal-heading span {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.manager-model-list {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.manager-model-row {
+  align-items: center;
+  background: #fbf7ed;
+  border: 1px solid #e3dac5;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px;
+}
+
+.manager-model-row.is-selected {
+  border-color: #247c75;
+  box-shadow: inset 0 0 0 1px #247c75;
+}
+
+.manager-model-row div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.manager-model-row small {
+  color: #6b7068;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.manager-model-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.manager-model-actions > svg {
+  color: #247c75;
+  height: 18px;
+  width: 18px;
+}
+
+.manager-model-actions > svg[aria-label="Missing"] {
+  color: #bd6958;
+}
+
+.manager-model-actions > svg[aria-label="Backend pending"] {
+  color: #a28549;
 }
 
 @media (max-width: 1120px) {
