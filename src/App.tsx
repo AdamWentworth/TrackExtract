@@ -628,7 +628,7 @@ function App() {
       </header>
 
       <section className="workspace">
-        <aside className="rail">
+        <aside className="rail model-rail">
           <section className="panel import-panel">
             <div className="panel-heading">
               <Upload aria-hidden />

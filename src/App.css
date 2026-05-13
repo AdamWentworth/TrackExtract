@@ -18,6 +18,7 @@ body {
   margin: 0;
   min-width: 980px;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 button,
@@ -36,8 +37,10 @@ button:disabled {
 }
 
 .app-shell {
+  height: 100vh;
   min-height: 100vh;
   padding: 22px;
+  overflow: hidden;
 }
 
 .topbar {
@@ -107,6 +110,8 @@ h2 {
   display: grid;
   gap: 16px;
   grid-template-columns: 280px minmax(420px, 1fr) 320px;
+  height: calc(100vh - 98px);
+  min-height: 0;
 }
 
 .rail,
@@ -114,7 +119,23 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
+}
+
+.main-column {
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.rail {
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.rail.model-rail {
+  overflow: hidden;
 }
 
 .panel {
@@ -123,6 +144,18 @@ h2 {
   border-radius: 8px;
   box-shadow: 0 10px 24px rgba(34, 32, 26, 0.08);
   padding: 14px;
+}
+
+.model-rail .model-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.model-rail .export-panel,
+.model-rail .details-panel {
+  flex: 0 0 auto;
 }
 
 .panel-heading {
@@ -417,6 +450,14 @@ select {
   gap: 8px;
 }
 
+.model-list {
+  max-height: clamp(220px, calc(100vh - 430px), 460px);
+  min-height: 160px;
+  overflow-y: auto;
+  padding-right: 3px;
+  scrollbar-gutter: stable;
+}
+
 .stem-row {
   align-items: center;
   background: #fbf7ed;
@@ -592,6 +633,15 @@ select {
     grid-column: 1 / -1;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     display: grid;
+    overflow: visible;
+  }
+
+  .rail.model-rail .model-panel {
+    max-height: 380px;
+  }
+
+  .model-list {
+    max-height: 285px;
   }
 
   .stem-row {
