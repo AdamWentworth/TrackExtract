@@ -23,23 +23,29 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
   open: vi.fn(),
 }));
 
+vi.mock("@tauri-apps/plugin-opener", () => ({
+  openUrl: vi.fn(),
+}));
+
 const bootstrap = {
   projectRoot: "/tmp/TrackExtract Projects",
   appDataDir: "/tmp/TrackExtract",
   modelRegistryPath: "/tmp/TrackExtract/models.json",
   models: [
     {
-      id: "stub_vocals_instrumental",
-      displayName: "Stub Vocals / Instrumental",
-      backend: "stub",
+      id: "demucs_htdemucs_vocals_instrumental",
+      displayName: "Demucs HTDemucs Vocals / Instrumental",
+      backend: "pytorch-worker",
       tasks: ["vocals_instrumental"],
       stems: ["Vocals", "Instrumental"],
       sampleRate: 44100,
-      quality: "development",
-      version: "0.1.0",
+      quality: "balanced",
+      version: "demucs-4.0.1/htdemucs",
       installed: true,
-      path: "",
-      downloadUrl: "",
+      path: "workers/demucs_worker.py",
+      downloadUrl: "https://pypi.org/project/demucs/",
+      sourceUrl: "https://github.com/facebookresearch/demucs",
+      license: "MIT",
     },
   ],
   currentProject: null,
@@ -78,7 +84,7 @@ describe("TrackExtract app", () => {
   it("shows mocked bootstrap data after startup", async () => {
     render(<App />);
 
-    expect((await screen.findAllByText("Stub Vocals / Instrumental")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("Demucs HTDemucs Vocals / Instrumental")).length).toBeGreaterThan(0);
     await waitFor(() => {
       expect(mockInvoke).not.toHaveBeenCalled();
     });

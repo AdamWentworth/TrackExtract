@@ -2,7 +2,7 @@
 
 TrackExtract is a local-first desktop prototype for AI stem separation by Phlosion. It is aimed at producers, engineers, DJs, remixers, and creators who need a cleaner workflow than dependency-heavy command-line wrappers: import audio, choose a curated separation task, run an offline job, preview stems, and export DAW-ready files.
 
-This repository currently implements the first Tauri + React + Rust skeleton plus an isolated Demucs worker path for real local stem separation. The stub backend remains available for fast UI testing, but the app can now route installed Demucs model entries through a Python/PyTorch sidecar without making the frontend depend on Python.
+This repository currently implements the first Tauri + React + Rust skeleton plus an isolated Demucs worker path for real local stem separation. The shipped model registry now exposes real Demucs presets first; the internal stub backend is kept only for automated tests and development harnesses.
 
 ## Current Prototype Scope
 
@@ -12,9 +12,9 @@ This repository currently implements the first Tauri + React + Rust skeleton plu
 - Project/session folder creation under `TrackExtract Projects`.
 - JSON model registry copied into app data on first launch.
 - Job queue with queued, preparing, running, complete, failed, and cancelled states.
-- Stub separation backend using `symphonia` for decoding and `hound` for WAV output.
-- Experimental Demucs/PyTorch worker backend for real vocals/instrumental and six-stem renders.
-- Stem preview and export UI placeholders wired to Rust commands.
+- Experimental Demucs/PyTorch worker backend for real vocals/instrumental, source-isolation, best-quality four-stem, and six-stem renders.
+- Curated model registry entries with source links, license notes, and missing/not-yet-supported ONNX candidates.
+- Stem preview and export flows wired to Rust commands.
 
 The MVP does not include real-time separation, a DAW plugin, cloud processing, account logic, payments, or a production model downloader.
 
@@ -31,9 +31,9 @@ React/Tauri UI
      -> output folder management
      -> logging/progress events
      -> backend selection
-        -> StubSeparationBackend
         -> PythonWorkerBackend
         -> OnnxRuntimeBackend       (future)
+        -> StubSeparationBackend    (internal tests/dev only)
 ```
 
 The `crates/trackextract-core` crate has no Tauri dependency. That boundary is deliberate so the same engine can later power a CLI, local background service, or JUCE VST3/AU bridge without making the desktop UI the center of the system.
@@ -105,14 +105,25 @@ TrackExtract Projects/
 
 ## Model Registry
 
-The bundled registry lives at `resources/models.json`, and the app copies it into local app data on first launch. Each entry records model id, display name, supported tasks, expected stems, sample rate, backend kind, local path, placeholder download URL, version, quality label, and installed/missing status.
+The bundled registry lives at `resources/models.json`, and the app copies it into local app data on first launch. On later launches, curated bundled entries are synced into the local registry and old prototype stub/placeholder entries are pruned. User-added model ids are left alone.
 
 Installed Demucs worker entries are included for real development renders:
 
 - `demucs_htdemucs_vocals_instrumental` uses Demucs `htdemucs` with `--two-stems=vocals`.
+- `demucs_htdemucs_ft_vocals_instrumental` uses fine-tuned `htdemucs_ft` for slower, higher-quality vocal splits.
 - `demucs_htdemucs_6s_full_split` uses Demucs `htdemucs_6s` for vocals, drums, bass, guitar, piano, and other.
+- `demucs_htdemucs_ft_4stem_best_split` uses fine-tuned `htdemucs_ft` for vocals, drums, bass, and other.
+- `demucs_htdemucs_drums_only` and `demucs_htdemucs_bass_only` provide isolated source plus inverse stems.
+- `demucs_htdemucs_6s_guitar_only` and `demucs_htdemucs_6s_piano_only` provide experimental isolated source plus inverse stems.
 
-Stub models are still installed for app development. ONNX entries remain missing placeholders until the Rust ONNX Runtime path is implemented.
+Missing ONNX and RoFormer rows are real catalog candidates, not fake placeholders. They link to model sources such as sherpa-onnx/UVR ONNX releases and Hugging Face RoFormer collections, but they remain unavailable until TrackExtract has a compatible ONNX or RoFormer backend.
+
+Useful public model sources:
+
+- Demucs: https://github.com/facebookresearch/demucs
+- UVR ONNX models via sherpa-onnx: https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html
+- Hugging Face source-separation models: https://huggingface.co/models?other=source-separation
+- RoFormer catalog source: https://huggingface.co/AEmotionStudio/roformer-models
 
 ## Roadmap
 

@@ -59,6 +59,14 @@ pub struct ModelEntry {
     #[serde(default)]
     pub download_url: String,
     #[serde(default)]
+    pub source_url: String,
+    #[serde(default)]
+    pub license: String,
+    #[serde(default)]
+    pub notes: String,
+    #[serde(default)]
+    pub download_size_mb: Option<u32>,
+    #[serde(default)]
     pub runtime: ModelRuntimeConfig,
 }
 
@@ -95,16 +103,33 @@ impl ModelRegistry {
         Ok(())
     }
 
-    pub fn append_missing_from(&mut self, bundled: &Self) -> bool {
+    pub fn sync_with_bundled(&mut self, bundled: &Self) -> bool {
+        let before_count = self.models.len();
+        self.models
+            .retain(|model| !DEPRECATED_BUNDLED_MODEL_IDS.contains(&model.id.as_str()));
+
         let mut known_ids = self
             .models
             .iter()
             .map(|model| model.id.clone())
             .collect::<HashSet<_>>();
-        let mut changed = false;
+        let mut changed = self.models.len() != before_count;
 
         for model in &bundled.models {
-            if known_ids.insert(model.id.clone()) {
+            if DEPRECATED_BUNDLED_MODEL_IDS.contains(&model.id.as_str()) {
+                continue;
+            }
+
+            if let Some(existing) = self
+                .models
+                .iter_mut()
+                .find(|existing| existing.id == model.id)
+            {
+                if existing != model {
+                    *existing = model.clone();
+                    changed = true;
+                }
+            } else if known_ids.insert(model.id.clone()) {
                 self.models.push(model.clone());
                 changed = true;
             }
@@ -140,6 +165,14 @@ impl ModelRegistry {
     }
 }
 
+const DEPRECATED_BUNDLED_MODEL_IDS: &[&str] = &[
+    "stub_full_stem_split",
+    "stub_vocals_instrumental",
+    "onnx_roformer_full_split_placeholder",
+    "onnx_mdx_vocals_placeholder",
+    "pytorch_demucs_experimental_placeholder",
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -174,11 +207,11 @@ mod tests {
     }
 
     #[test]
-    fn append_missing_keeps_existing_entries_and_adds_new_models() {
+    fn sync_keeps_user_entries_updates_bundled_entries_and_removes_deprecated_models() {
         let mut local = ModelRegistry::from_json_str(
             r#"[
               {
-                "id": "stub",
+                "id": "stub_vocals_instrumental",
                 "displayName": "Local Stub",
                 "backend": "stub",
                 "tasks": ["vocals_instrumental"],
@@ -188,24 +221,24 @@ mod tests {
                 "version": "local",
                 "installed": true,
                 "path": ""
+              },
+              {
+                "id": "user_custom_model",
+                "displayName": "User Model",
+                "backend": "external-process",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "custom",
+                "version": "local",
+                "installed": true,
+                "path": "/models/user"
               }
             ]"#,
         )
         .expect("local registry");
         let bundled = ModelRegistry::from_json_str(
             r#"[
-              {
-                "id": "stub",
-                "displayName": "Bundled Stub",
-                "backend": "stub",
-                "tasks": ["vocals_instrumental"],
-                "stems": ["Vocals", "Instrumental"],
-                "sampleRate": 44100,
-                "quality": "development",
-                "version": "bundled",
-                "installed": true,
-                "path": ""
-              },
               {
                 "id": "demucs",
                 "displayName": "Demucs",
@@ -222,9 +255,16 @@ mod tests {
         )
         .expect("bundled registry");
 
-        assert!(local.append_missing_from(&bundled));
+        assert!(local.sync_with_bundled(&bundled));
         assert_eq!(local.models.len(), 2);
-        assert_eq!(local.find("stub").expect("stub").display_name, "Local Stub");
+        assert!(local.find("stub_vocals_instrumental").is_none());
+        assert_eq!(
+            local
+                .find("user_custom_model")
+                .expect("user model")
+                .display_name,
+            "User Model"
+        );
         assert!(local.find("demucs").is_some());
     }
 }

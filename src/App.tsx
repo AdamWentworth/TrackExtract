@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
   AlertTriangle,
@@ -55,6 +56,10 @@ interface ModelEntry {
   installed: boolean;
   path: string;
   downloadUrl: string;
+  sourceUrl?: string;
+  license?: string;
+  notes?: string;
+  downloadSizeMb?: number;
 }
 
 interface AudioSource {
@@ -511,6 +516,23 @@ function App() {
     }
   }
 
+  async function openModelSource(model: ModelEntry) {
+    const url = model.sourceUrl || model.downloadUrl;
+    if (!url) {
+      return;
+    }
+
+    try {
+      if (isTauriRuntime()) {
+        await openUrl(url);
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    } catch (caught) {
+      setError(String(caught));
+    }
+  }
+
   function setStemPreview(id: string, patch: Partial<PreviewState>) {
     setPreviewState((existing) => {
       const current = existing[id] ?? { muted: false, solo: false, volume: 1 };
@@ -702,18 +724,32 @@ function App() {
             </div>
             <div className="model-list">
               {compatibleModels.map((model) => (
-                <button
+                <article
                   className={selectedModelId === model.id ? "model-row is-selected" : "model-row"}
                   key={model.id}
-                  type="button"
-                  onClick={() => setSelectedModelId(model.id)}
                 >
-                  <span>
-                    <strong>{model.displayName}</strong>
-                    <small>{model.backend} · {model.quality} · {model.version}</small>
-                  </span>
-                  {model.installed ? <CheckCircle2 aria-label="Installed" /> : <X aria-label="Missing" />}
-                </button>
+                  <button className="model-select" type="button" onClick={() => setSelectedModelId(model.id)}>
+                    <span>
+                      <strong>{model.displayName}</strong>
+                      <small>
+                        {model.backend} · {model.quality} · {model.version}
+                        {model.downloadSizeMb ? ` · ${model.downloadSizeMb} MB` : ""}
+                      </small>
+                      {model.license ? <small>{model.license}</small> : null}
+                    </span>
+                    {model.installed ? <CheckCircle2 aria-label="Installed" /> : <X aria-label="Missing" />}
+                  </button>
+                  {model.sourceUrl || model.downloadUrl ? (
+                    <button
+                      className="model-link"
+                      type="button"
+                      onClick={() => openModelSource(model)}
+                      title="Open model source"
+                    >
+                      <ExternalLink aria-hidden />
+                    </button>
+                  ) : null}
+                </article>
               ))}
             </div>
           </section>
@@ -880,43 +916,50 @@ function formatTask(value: TaskType) {
 
 const mockModels: ModelEntry[] = [
   {
-    id: "stub_vocals_instrumental",
-    displayName: "Stub Vocals / Instrumental",
-    backend: "stub",
+    id: "demucs_htdemucs_vocals_instrumental",
+    displayName: "Demucs HTDemucs Vocals / Instrumental",
+    backend: "pytorch-worker",
     tasks: ["vocals_instrumental"],
     stems: ["Vocals", "Instrumental"],
     sampleRate: 44100,
-    quality: "development",
-    version: "0.1.0",
+    quality: "balanced",
+    version: "demucs-4.0.1/htdemucs",
     installed: true,
-    path: "",
-    downloadUrl: "",
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
   },
   {
-    id: "stub_full_stem_split",
-    displayName: "Stub Full Stem Split",
-    backend: "stub",
+    id: "demucs_htdemucs_6s_full_split",
+    displayName: "Demucs HTDemucs 6 Stem Split",
+    backend: "pytorch-worker",
     tasks: ["full_stem_split"],
     stems: ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
     sampleRate: 44100,
-    quality: "development",
-    version: "0.1.0",
+    quality: "experimental",
+    version: "demucs-4.0.1/htdemucs_6s",
     installed: true,
-    path: "",
-    downloadUrl: "",
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
   },
   {
-    id: "onnx_roformer_full_split_placeholder",
-    displayName: "RoFormer Full Stem Split",
+    id: "onnx_uvr_mdxnet_9482",
+    displayName: "UVR MDX-NET 9482 ONNX",
     backend: "onnx",
-    tasks: ["full_stem_split", "experimental_best_quality"],
-    stems: ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    tasks: ["vocals_instrumental"],
+    stems: ["Vocals", "Instrumental"],
     sampleRate: 44100,
-    quality: "best",
-    version: "placeholder",
+    quality: "fast",
+    version: "UVR_MDXNET_9482",
     installed: false,
-    path: "",
-    downloadUrl: "",
+    path: "models/onnx/UVR_MDXNET_9482.onnx",
+    downloadUrl: "https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/UVR_MDXNET_9482.onnx",
+    sourceUrl: "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
+    license: "MIT per UVR public model pack; verify before redistribution",
+    downloadSizeMb: 28,
   },
 ];
 

@@ -4,8 +4,8 @@ use trackextract_core::{Engine, JobState, SeparationBackend, StubSeparationBacke
 
 const TEST_MODELS: &str = r#"[
   {
-    "id": "stub_vocals_instrumental",
-    "displayName": "Stub Vocals / Instrumental",
+    "id": "internal_stub_vocals_instrumental",
+    "displayName": "Internal Stub Vocals / Instrumental",
     "backend": "stub",
     "tasks": ["vocals_instrumental"],
     "stems": ["Vocals", "Instrumental"],

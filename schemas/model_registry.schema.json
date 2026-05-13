@@ -51,6 +51,10 @@
       "installed": { "type": "boolean" },
       "path": { "type": "string" },
       "downloadUrl": { "type": "string" },
+      "sourceUrl": { "type": "string" },
+      "license": { "type": "string" },
+      "notes": { "type": "string" },
+      "downloadSizeMb": { "type": "integer", "minimum": 1 },
       "runtime": {
         "type": "object",
         "properties": {

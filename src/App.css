@@ -211,9 +211,8 @@ h2 {
 }
 
 .task-option,
-.model-row {
+.model-select {
   background: #fbf7ed;
-  border: 1px solid #e3dac5;
   border-radius: 8px;
   color: #24211d;
   display: flex;
@@ -222,6 +221,23 @@ h2 {
   padding: 10px;
   text-align: left;
   width: 100%;
+}
+
+.task-option {
+  border: 1px solid #e3dac5;
+}
+
+.model-select {
+  border: 0;
+}
+
+.model-row {
+  background: #fbf7ed;
+  border: 1px solid #e3dac5;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  overflow: hidden;
 }
 
 .task-option {
@@ -461,19 +477,44 @@ select {
   align-items: center;
 }
 
-.model-row span {
-  display: grid;
-  gap: 2px;
+.model-select {
+  align-items: center;
+  border-radius: 0;
 }
 
-.model-row svg {
+.model-select span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.model-select svg {
   color: #247c75;
   height: 18px;
   width: 18px;
 }
 
-.model-row svg[aria-label="Missing"] {
+.model-select svg[aria-label="Missing"] {
   color: #bd6958;
+}
+
+.model-link {
+  align-items: center;
+  background: #f1eadb;
+  border: 0;
+  border-left: 1px solid #e3dac5;
+  color: #5b665a;
+  display: flex;
+  justify-content: center;
+}
+
+.model-link:hover {
+  color: #247c75;
+}
+
+.model-link svg {
+  height: 16px;
+  width: 16px;
 }
 
 .export-panel .primary-action {

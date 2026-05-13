@@ -57,7 +57,7 @@ impl Engine {
         }
 
         let mut registry = ModelRegistry::load(&model_registry_path)?;
-        if registry.append_missing_from(&bundled_registry) {
+        if registry.sync_with_bundled(&bundled_registry) {
             registry.save(&model_registry_path)?;
         }
         fs::create_dir_all(&project_root)?;
