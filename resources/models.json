@@ -1,5 +1,43 @@
 [
   {
+    "id": "demucs_htdemucs_vocals_instrumental",
+    "displayName": "Demucs HTDemucs Vocals / Instrumental",
+    "backend": "pytorch-worker",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "demucs-4.0.1/htdemucs",
+    "installed": true,
+    "path": "workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "runtime": {
+      "workerScript": "workers/demucs_worker.py",
+      "demucsModel": "htdemucs",
+      "demucsMode": "vocals",
+      "device": "auto"
+    }
+  },
+  {
+    "id": "demucs_htdemucs_6s_full_split",
+    "displayName": "Demucs HTDemucs 6 Stem Split",
+    "backend": "pytorch-worker",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "demucs-4.0.1/htdemucs_6s",
+    "installed": true,
+    "path": "workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "runtime": {
+      "workerScript": "workers/demucs_worker.py",
+      "demucsModel": "htdemucs_6s",
+      "demucsMode": "full",
+      "device": "auto"
+    }
+  },
+  {
     "id": "stub_full_stem_split",
     "displayName": "Stub Full Stem Split",
     "backend": "stub",

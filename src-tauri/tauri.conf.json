@@ -32,6 +32,7 @@
     "targets": "all",
     "resources": [
       "../resources/models.json",
+      "../workers/demucs_worker.py",
       "../schemas/model_registry.schema.json",
       "../schemas/session.schema.json"
     ],

@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 target
+.venv
+.venv-*
 *.local
 
 # Editor directories and files

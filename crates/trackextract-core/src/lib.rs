@@ -7,10 +7,11 @@ pub mod model_registry;
 pub mod project;
 
 pub use backend::{
-    BackendProgress, SeparationBackend, SeparationOutput, SeparationRequest, StubSeparationBackend,
+    BackendProgress, PythonWorkerBackend, SeparationBackend, SeparationOutput, SeparationRequest,
+    StubSeparationBackend,
 };
 pub use engine::{BootstrapState, Engine};
 pub use error::{Result, TrackExtractError};
 pub use job::{JobRecord, JobState};
-pub use model_registry::{BackendKind, ModelEntry, ModelRegistry, TaskType};
+pub use model_registry::{BackendKind, ModelEntry, ModelRegistry, ModelRuntimeConfig, TaskType};
 pub use project::{AudioSource, ProjectSession, StemFile};

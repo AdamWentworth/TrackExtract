@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{collections::HashSet, fs, path::Path};
 
 use serde::{Deserialize, Serialize};
 
@@ -58,6 +58,21 @@ pub struct ModelEntry {
     pub path: String,
     #[serde(default)]
     pub download_url: String,
+    #[serde(default)]
+    pub runtime: ModelRuntimeConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelRuntimeConfig {
+    #[serde(default)]
+    pub worker_script: String,
+    #[serde(default)]
+    pub demucs_model: String,
+    #[serde(default)]
+    pub demucs_mode: String,
+    #[serde(default)]
+    pub device: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -73,6 +88,29 @@ impl ModelRegistry {
 
     pub fn load(path: impl AsRef<Path>) -> Result<Self> {
         Self::from_json_str(&fs::read_to_string(path)?)
+    }
+
+    pub fn save(&self, path: impl AsRef<Path>) -> Result<()> {
+        fs::write(path, serde_json::to_string_pretty(&self.models)?)?;
+        Ok(())
+    }
+
+    pub fn append_missing_from(&mut self, bundled: &Self) -> bool {
+        let mut known_ids = self
+            .models
+            .iter()
+            .map(|model| model.id.clone())
+            .collect::<HashSet<_>>();
+        let mut changed = false;
+
+        for model in &bundled.models {
+            if known_ids.insert(model.id.clone()) {
+                self.models.push(model.clone());
+                changed = true;
+            }
+        }
+
+        changed
     }
 
     pub fn installed_for_task(&self, task: &TaskType) -> Vec<ModelEntry> {
@@ -93,7 +131,12 @@ impl ModelRegistry {
     }
 
     pub fn default_for_task(&self, task: &TaskType) -> Option<ModelEntry> {
-        self.installed_for_task(task).into_iter().next()
+        let installed = self.installed_for_task(task);
+        installed
+            .iter()
+            .find(|model| model.backend != BackendKind::Stub)
+            .cloned()
+            .or_else(|| installed.into_iter().next())
     }
 }
 
@@ -128,5 +171,60 @@ mod tests {
     fn rejects_missing_required_fields() {
         let json = r#"[{"id":"stub"}]"#;
         assert!(ModelRegistry::from_json_str(json).is_err());
+    }
+
+    #[test]
+    fn append_missing_keeps_existing_entries_and_adds_new_models() {
+        let mut local = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "stub",
+                "displayName": "Local Stub",
+                "backend": "stub",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "development",
+                "version": "local",
+                "installed": true,
+                "path": ""
+              }
+            ]"#,
+        )
+        .expect("local registry");
+        let bundled = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "stub",
+                "displayName": "Bundled Stub",
+                "backend": "stub",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "development",
+                "version": "bundled",
+                "installed": true,
+                "path": ""
+              },
+              {
+                "id": "demucs",
+                "displayName": "Demucs",
+                "backend": "pytorch-worker",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "balanced",
+                "version": "4.0.1",
+                "installed": true,
+                "path": "workers/demucs_worker.py"
+              }
+            ]"#,
+        )
+        .expect("bundled registry");
+
+        assert!(local.append_missing_from(&bundled));
+        assert_eq!(local.models.len(), 2);
+        assert_eq!(local.find("stub").expect("stub").display_name, "Local Stub");
+        assert!(local.find("demucs").is_some());
     }
 }

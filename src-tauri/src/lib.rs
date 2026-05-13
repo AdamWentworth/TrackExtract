@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    env,
     path::PathBuf,
     process::Command,
     sync::{
@@ -8,10 +9,10 @@ use std::{
     },
 };
 
-use tauri::{AppHandle, Emitter, State};
+use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
 use trackextract_core::{
-    BackendProgress, BootstrapState, Engine, JobRecord, ModelEntry, ProjectSession,
-    SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError,
+    BackendKind, BackendProgress, BootstrapState, Engine, JobRecord, ModelEntry, ProjectSession,
+    PythonWorkerBackend, SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError,
 };
 
 const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
@@ -122,27 +123,39 @@ async fn start_job(
     let app_for_job = app.clone();
     let job_id_for_job = job_id.clone();
     let backend_result = tauri::async_runtime::spawn_blocking(move || {
-        let backend = StubSeparationBackend;
-        backend.run(
-            request,
-            &|progress: BackendProgress| {
-                let updated_job = lock_engine(&runtime_for_job).and_then(|mut engine| {
-                    engine
-                        .update_job_progress(
-                            &progress.job_id,
-                            progress.progress,
-                            progress.message.clone(),
-                        )
-                        .map_err(command_error)
-                });
+        let progress_handler = |progress: BackendProgress| {
+            let updated_job = lock_engine(&runtime_for_job).and_then(|mut engine| {
+                engine
+                    .update_job_progress(
+                        &progress.job_id,
+                        progress.progress,
+                        progress.message.clone(),
+                    )
+                    .map_err(command_error)
+            });
 
-                if let Ok(job) = updated_job {
-                    let _ = app_for_job.emit("job_progress", &progress);
-                    let _ = app_for_job.emit("job_state_changed", &job);
-                }
-            },
-            cancel_token,
-        )
+            if let Ok(job) = updated_job {
+                let _ = app_for_job.emit("job_progress", &progress);
+                let _ = app_for_job.emit("job_state_changed", &job);
+            }
+        };
+
+        match request.model.backend.clone() {
+            BackendKind::Stub => {
+                let backend = StubSeparationBackend;
+                backend.run(request, &progress_handler, cancel_token)
+            }
+            BackendKind::PytorchWorker => {
+                let backend = PythonWorkerBackend;
+                backend.run(request, &progress_handler, cancel_token)
+            }
+            BackendKind::Onnx => Err(TrackExtractError::ModelUnavailable(
+                "ONNX Runtime backend is not implemented in this prototype yet".to_string(),
+            )),
+            BackendKind::ExternalProcess => Err(TrackExtractError::ModelUnavailable(
+                "External process backend is not implemented in this prototype yet".to_string(),
+            )),
+        }
     })
     .await
     .map_err(|error| error.to_string())?;
@@ -257,6 +270,17 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(Arc::new(runtime))
+        .setup(|app| {
+            if let Ok(worker_path) = app
+                .path()
+                .resolve("demucs_worker.py", BaseDirectory::Resource)
+            {
+                if worker_path.exists() {
+                    env::set_var("TRACKEXTRACT_DEMUCS_WORKER", worker_path);
+                }
+            }
+            Ok(())
+        })
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![

@@ -50,7 +50,17 @@
       "version": { "type": "string", "minLength": 1 },
       "installed": { "type": "boolean" },
       "path": { "type": "string" },
-      "downloadUrl": { "type": "string" }
+      "downloadUrl": { "type": "string" },
+      "runtime": {
+        "type": "object",
+        "properties": {
+          "workerScript": { "type": "string" },
+          "demucsModel": { "type": "string" },
+          "demucsMode": { "type": "string" },
+          "device": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
     }
   }
 }

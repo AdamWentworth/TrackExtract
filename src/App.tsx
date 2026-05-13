@@ -304,7 +304,10 @@ function App() {
 
   useEffect(() => {
     const compatible = models.filter((model) => model.tasks.includes(task));
-    const preferred = compatible.find((model) => model.installed) ?? compatible[0];
+    const preferred =
+      compatible.find((model) => model.installed && model.backend !== "stub") ??
+      compatible.find((model) => model.installed) ??
+      compatible[0];
 
     if (preferred && !compatible.some((model) => model.id === selectedModelId)) {
       setSelectedModelId(preferred.id);

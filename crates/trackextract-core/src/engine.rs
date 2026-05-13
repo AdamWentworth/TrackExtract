@@ -10,7 +10,7 @@ use crate::{
     backend::{SeparationOutput, SeparationRequest},
     error::{Result, TrackExtractError},
     job::{JobRecord, JobState},
-    model_registry::{BackendKind, ModelEntry, ModelRegistry, TaskType},
+    model_registry::{ModelEntry, ModelRegistry, TaskType},
     project::ProjectSession,
 };
 
@@ -51,11 +51,15 @@ impl Engine {
         fs::create_dir_all(&app_data_dir)?;
 
         let model_registry_path = app_data_dir.join("models.json");
+        let bundled_registry = ModelRegistry::from_json_str(bundled_model_registry)?;
         if !model_registry_path.exists() {
             fs::write(&model_registry_path, bundled_model_registry)?;
         }
 
-        let registry = ModelRegistry::load(&model_registry_path)?;
+        let mut registry = ModelRegistry::load(&model_registry_path)?;
+        if registry.append_missing_from(&bundled_registry) {
+            registry.save(&model_registry_path)?;
+        }
         fs::create_dir_all(&project_root)?;
 
         Ok(Self {
@@ -145,13 +149,6 @@ impl Engine {
                 "{} does not support {}",
                 model.display_name,
                 task.display_name()
-            )));
-        }
-
-        if model.backend != BackendKind::Stub {
-            return Err(TrackExtractError::ModelUnavailable(format!(
-                "{} is a placeholder for a future backend",
-                model.display_name
             )));
         }
 

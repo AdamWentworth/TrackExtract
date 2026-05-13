@@ -2,7 +2,7 @@
 
 TrackExtract is a local-first desktop prototype for AI stem separation by Phlosion. It is aimed at producers, engineers, DJs, remixers, and creators who need a cleaner workflow than dependency-heavy command-line wrappers: import audio, choose a curated separation task, run an offline job, preview stems, and export DAW-ready files.
 
-This repository currently implements the first Tauri + React + Rust skeleton. The separation backend is intentionally a stub that writes valid placeholder WAV stems, which lets the product workflow, project/session format, queue states, model registry, and export path settle before real inference is added.
+This repository currently implements the first Tauri + React + Rust skeleton plus an isolated Demucs worker path for real local stem separation. The stub backend remains available for fast UI testing, but the app can now route installed Demucs model entries through a Python/PyTorch sidecar without making the frontend depend on Python.
 
 ## Current Prototype Scope
 
@@ -13,6 +13,7 @@ This repository currently implements the first Tauri + React + Rust skeleton. Th
 - JSON model registry copied into app data on first launch.
 - Job queue with queued, preparing, running, complete, failed, and cancelled states.
 - Stub separation backend using `symphonia` for decoding and `hound` for WAV output.
+- Experimental Demucs/PyTorch worker backend for real vocals/instrumental and six-stem renders.
 - Stem preview and export UI placeholders wired to Rust commands.
 
 The MVP does not include real-time separation, a DAW plugin, cloud processing, account logic, payments, or a production model downloader.
@@ -31,8 +32,8 @@ React/Tauri UI
      -> logging/progress events
      -> backend selection
         -> StubSeparationBackend
+        -> PythonWorkerBackend
         -> OnnxRuntimeBackend       (future)
-        -> PythonWorkerBackend      (future)
 ```
 
 The `crates/trackextract-core` crate has no Tauri dependency. That boundary is deliberate so the same engine can later power a CLI, local background service, or JUCE VST3/AU bridge without making the desktop UI the center of the system.
@@ -52,6 +53,14 @@ Then install JavaScript dependencies and run the app:
 npm install
 npm run tauri dev
 ```
+
+To enable real Demucs separation in development, create the sidecar environment:
+
+```bash
+scripts/setup-demucs-worker.sh
+```
+
+TrackExtract auto-detects `.venv-demucs/bin/python` when launched from this repo. To force a specific Python environment, set `TRACKEXTRACT_PYTHON`. To force a Demucs device, set `TRACKEXTRACT_DEMUCS_DEVICE` to values such as `cpu` or `cuda`.
 
 For browser-only UI iteration with mock project/job data:
 
@@ -98,14 +107,19 @@ TrackExtract Projects/
 
 The bundled registry lives at `resources/models.json`, and the app copies it into local app data on first launch. Each entry records model id, display name, supported tasks, expected stems, sample rate, backend kind, local path, placeholder download URL, version, quality label, and installed/missing status.
 
-Stub models are installed for app development. ONNX and PyTorch worker entries are intentionally present as missing placeholders so the UI can show the future model management shape without pretending real downloads are implemented.
+Installed Demucs worker entries are included for real development renders:
+
+- `demucs_htdemucs_vocals_instrumental` uses Demucs `htdemucs` with `--two-stems=vocals`.
+- `demucs_htdemucs_6s_full_split` uses Demucs `htdemucs_6s` for vocals, drums, bass, guitar, piano, and other.
+
+Stub models are still installed for app development. ONNX entries remain missing placeholders until the Rust ONNX Runtime path is implemented.
 
 ## Roadmap
 
 1. Real ONNX Runtime backend with CPU first.
 2. Hardware execution-provider selection for CUDA, DirectML or Windows ML, CoreML, and OpenVINO where practical.
-3. Isolated Python/PyTorch worker backend for experimental models that are not portable to ONNX yet.
-4. Curated RoFormer, Demucs, MDX, and SCNet-compatible model support.
+3. Package/manage the Demucs sidecar more cleanly for end users.
+4. Curated RoFormer, MDX, and SCNet-compatible model support.
 5. Better batch processing, cancellation, and resumable jobs.
 6. DAW export templates for Ableton, Logic, Pro Tools, Reaper, and FL Studio.
 7. Future VST3/AU bridge plugin that talks to the same offline TrackExtract engine.
