@@ -151,6 +151,7 @@ h2 {
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .model-rail .export-panel,
@@ -493,8 +494,9 @@ input[type="number"] {
 }
 
 .model-list {
-  max-height: clamp(220px, calc(100vh - 430px), 460px);
-  min-height: 160px;
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 3px;
   scrollbar-gutter: stable;
@@ -680,10 +682,11 @@ input[type="number"] {
 
   .rail.model-rail .model-panel {
     max-height: 380px;
+    min-height: 260px;
   }
 
   .model-list {
-    max-height: 285px;
+    max-height: none;
   }
 
   .stem-row {
