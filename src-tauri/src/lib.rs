@@ -2,20 +2,18 @@ use std::{
     collections::HashMap,
     env,
     fs::File,
-    io::{Read, Seek, SeekFrom},
+    io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
+    net::{TcpListener, TcpStream},
     path::{Path, PathBuf},
     process::Command,
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc, Mutex, MutexGuard,
     },
+    thread,
 };
 
-use tauri::{
-    http::{header, Response, StatusCode},
-    path::BaseDirectory,
-    plugin, AppHandle, Emitter, Manager, Runtime, State,
-};
+use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
 use trackextract_core::{
     BackendKind, BackendProgress, BootstrapState, Engine, JobRecord, ModelEntry, ProjectSession,
     PythonWorkerBackend, SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError,
@@ -26,13 +24,17 @@ const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
 struct RuntimeState {
     engine: Mutex<Engine>,
     cancellations: Mutex<HashMap<String, Arc<AtomicBool>>>,
+    media_server: MediaServer,
 }
 
 impl RuntimeState {
     fn new() -> trackextract_core::Result<Self> {
+        let media_server = MediaServer::start()?;
+
         Ok(Self {
             engine: Mutex::new(Engine::bootstrap(BUNDLED_MODELS)?),
             cancellations: Mutex::new(HashMap::new()),
+            media_server,
         })
     }
 }
@@ -240,6 +242,11 @@ fn export_stems(
 }
 
 #[tauri::command]
+fn stem_media_url(path: String, state: State<'_, Arc<RuntimeState>>) -> Result<String, String> {
+    Ok(state.media_server.url_for_path(&PathBuf::from(path)))
+}
+
+#[tauri::command]
 fn reveal_path(path: String) -> Result<(), String> {
     open_path(&PathBuf::from(path))
 }
@@ -270,25 +277,92 @@ fn open_path(path: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
-fn media_protocol<R: Runtime>() -> plugin::TauriPlugin<R> {
-    plugin::Builder::new("trackextract-media")
-        .register_uri_scheme_protocol("trackextract-media", |_ctx, request| {
-            match stream_stem_response(request) {
-                Ok(response) => response,
-                Err(error) => Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .header(header::CONTENT_TYPE, "text/plain")
-                    .body(error.into_bytes())
-                    .expect("error response"),
-            }
-        })
-        .build()
+#[derive(Debug)]
+struct MediaServer {
+    origin: String,
 }
 
-fn stream_stem_response(
-    request: tauri::http::Request<Vec<u8>>,
-) -> Result<Response<Vec<u8>>, String> {
-    let path = media_request_path(request.uri())?;
+impl MediaServer {
+    fn start() -> std::io::Result<Self> {
+        let listener = TcpListener::bind("127.0.0.1:0")?;
+        let origin = format!("http://{}", listener.local_addr()?);
+
+        thread::spawn(move || {
+            for stream in listener.incoming().flatten() {
+                thread::spawn(move || {
+                    let _ = handle_media_stream(stream);
+                });
+            }
+        });
+
+        Ok(Self { origin })
+    }
+
+    fn url_for_path(&self, path: &Path) -> String {
+        format!(
+            "{}/stem?path={}",
+            self.origin,
+            percent_encode(&path.to_string_lossy())
+        )
+    }
+}
+
+fn handle_media_stream(mut stream: TcpStream) -> std::io::Result<()> {
+    let mut reader = BufReader::new(stream.try_clone()?);
+    let mut request_line = String::new();
+    reader.read_line(&mut request_line)?;
+
+    let mut headers = HashMap::new();
+    loop {
+        let mut line = String::new();
+        reader.read_line(&mut line)?;
+        let line = line.trim_end_matches(['\r', '\n']);
+        if line.is_empty() {
+            break;
+        }
+
+        if let Some((key, value)) = line.split_once(':') {
+            headers.insert(key.trim().to_ascii_lowercase(), value.trim().to_string());
+        }
+    }
+
+    let mut parts = request_line.split_whitespace();
+    let method = parts.next().unwrap_or_default();
+    let target = parts.next().unwrap_or_default();
+
+    if method == "OPTIONS" {
+        write_response(
+            &mut stream,
+            "204 No Content",
+            &[("Access-Control-Allow-Origin", "*".to_string())],
+            &[],
+        )?;
+        return Ok(());
+    }
+
+    if method != "GET" && method != "HEAD" {
+        write_error_response(&mut stream, "405 Method Not Allowed", "Method not allowed")?;
+        return Ok(());
+    }
+
+    match stream_stem_http(
+        &mut stream,
+        target,
+        headers.get("range").map(String::as_str),
+        method == "HEAD",
+    ) {
+        Ok(()) => Ok(()),
+        Err(error) => write_error_response(&mut stream, "400 Bad Request", &error),
+    }
+}
+
+fn stream_stem_http(
+    stream: &mut TcpStream,
+    target: &str,
+    range: Option<&str>,
+    head_only: bool,
+) -> Result<(), String> {
+    let path = media_target_path(target)?;
     let canonical_path = path.canonicalize().map_err(|error| error.to_string())?;
 
     if !is_trackextract_stem_path(&canonical_path) {
@@ -302,53 +376,108 @@ fn stream_stem_response(
     file.seek(SeekFrom::Start(0))
         .map_err(|error| error.to_string())?;
 
-    let mut response = Response::builder()
-        .header(header::CONTENT_TYPE, "audio/wav")
-        .header(header::ACCEPT_RANGES, "bytes");
-
-    if let Some(range) = request.headers().get(header::RANGE) {
-        let range = range
-            .to_str()
-            .map_err(|_| "Range header is not valid UTF-8".to_string())?;
+    if let Some(range) = range {
         let (start, end) = parse_byte_range(range, len)?;
         let bytes_to_read = end + 1 - start;
-        let mut body = vec![0; bytes_to_read as usize];
-        file.seek(SeekFrom::Start(start))
-            .map_err(|error| error.to_string())?;
-        file.read_exact(&mut body)
-            .map_err(|error| error.to_string())?;
+        write_headers(
+            stream,
+            "206 Partial Content",
+            &[
+                ("Content-Type", "audio/wav".to_string()),
+                ("Accept-Ranges", "bytes".to_string()),
+                ("Content-Length", bytes_to_read.to_string()),
+                ("Content-Range", format!("bytes {start}-{end}/{len}")),
+                ("Access-Control-Allow-Origin", "*".to_string()),
+                ("Connection", "close".to_string()),
+            ],
+        )
+        .map_err(|error| error.to_string())?;
 
-        response = response
-            .status(StatusCode::PARTIAL_CONTENT)
-            .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{len}"))
-            .header(header::CONTENT_LENGTH, bytes_to_read);
-        response.body(body).map_err(|error| error.to_string())
+        if !head_only {
+            file.seek(SeekFrom::Start(start))
+                .map_err(|error| error.to_string())?;
+            std::io::copy(&mut file.take(bytes_to_read), stream)
+                .map_err(|error| error.to_string())?;
+        }
     } else {
-        let mut body = Vec::with_capacity(len as usize);
-        file.read_to_end(&mut body)
-            .map_err(|error| error.to_string())?;
+        write_headers(
+            stream,
+            "200 OK",
+            &[
+                ("Content-Type", "audio/wav".to_string()),
+                ("Accept-Ranges", "bytes".to_string()),
+                ("Content-Length", len.to_string()),
+                ("Access-Control-Allow-Origin", "*".to_string()),
+                ("Connection", "close".to_string()),
+            ],
+        )
+        .map_err(|error| error.to_string())?;
 
-        response = response.header(header::CONTENT_LENGTH, len);
-        response.body(body).map_err(|error| error.to_string())
-    }
-}
-
-fn media_request_path(uri: &tauri::http::Uri) -> Result<PathBuf, String> {
-    if let Some(query) = uri.query() {
-        for pair in query.split('&') {
-            let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
-            if key == "path" {
-                return Ok(PathBuf::from(percent_decode(value)?));
-            }
+        if !head_only {
+            std::io::copy(&mut file, stream).map_err(|error| error.to_string())?;
         }
     }
 
-    let decoded = percent_decode(uri.path())?;
-    let absolute_path = decoded
-        .strip_prefix("//")
-        .map(|path| format!("/{path}"))
-        .unwrap_or(decoded);
-    Ok(PathBuf::from(absolute_path))
+    Ok(())
+}
+
+fn media_target_path(target: &str) -> Result<PathBuf, String> {
+    let (path, query) = target
+        .split_once('?')
+        .ok_or_else(|| "Media request is missing a path query".to_string())?;
+    if path != "/stem" {
+        return Err("Media request path is not supported".to_string());
+    }
+
+    for pair in query.split('&') {
+        let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
+        if key == "path" {
+            return Ok(PathBuf::from(percent_decode(value)?));
+        }
+    }
+
+    Err("Media request is missing a stem path".to_string())
+}
+
+fn write_error_response(
+    stream: &mut TcpStream,
+    status: &str,
+    message: &str,
+) -> std::io::Result<()> {
+    write_response(
+        stream,
+        status,
+        &[
+            ("Content-Type", "text/plain".to_string()),
+            ("Access-Control-Allow-Origin", "*".to_string()),
+            ("Connection", "close".to_string()),
+        ],
+        message.as_bytes(),
+    )
+}
+
+fn write_response(
+    stream: &mut TcpStream,
+    status: &str,
+    headers: &[(&str, String)],
+    body: &[u8],
+) -> std::io::Result<()> {
+    let mut headers = headers.to_vec();
+    headers.push(("Content-Length", body.len().to_string()));
+    write_headers(stream, status, &headers)?;
+    stream.write_all(body)
+}
+
+fn write_headers(
+    stream: &mut TcpStream,
+    status: &str,
+    headers: &[(&str, String)],
+) -> std::io::Result<()> {
+    write!(stream, "HTTP/1.1 {status}\r\n")?;
+    for (key, value) in headers {
+        write!(stream, "{key}: {value}\r\n")?;
+    }
+    write!(stream, "\r\n")
 }
 
 fn is_trackextract_stem_path(path: &Path) -> bool {
@@ -428,6 +557,21 @@ fn percent_decode(input: &str) -> Result<String, String> {
     String::from_utf8(output).map_err(|_| "Media path is not valid UTF-8".to_string())
 }
 
+fn percent_encode(input: &str) -> String {
+    let mut output = String::with_capacity(input.len());
+
+    for byte in input.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                output.push(byte as char);
+            }
+            _ => output.push_str(&format!("%{byte:02X}")),
+        }
+    }
+
+    output
+}
+
 fn hex_value(byte: u8) -> Option<u8> {
     match byte {
         b'0'..=b'9' => Some(byte - b'0'),
@@ -443,7 +587,6 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(Arc::new(runtime))
-        .plugin(media_protocol())
         .setup(|app| {
             if let Ok(worker_path) = app
                 .path()
@@ -467,6 +610,7 @@ pub fn run() {
             get_project,
             get_jobs,
             export_stems,
+            stem_media_url,
             reveal_path
         ])
         .run(tauri::generate_context!())

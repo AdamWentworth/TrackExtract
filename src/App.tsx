@@ -169,10 +169,8 @@ async function listenTo<T>(
   return listen<T>(eventName, handler);
 }
 
-function stemMediaSrc(path: string) {
-  return isTauriRuntime()
-    ? `trackextract-media://localhost/stem?path=${encodeURIComponent(path)}`
-    : mockPreviewAudioUrl(path);
+function browserStemMediaSrc(path: string) {
+  return mockPreviewAudioUrl(path);
 }
 
 function App() {
@@ -185,6 +183,7 @@ function App() {
   const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -215,6 +214,7 @@ function App() {
       setSelectedSourceId(imported.originalFiles[0]?.id ?? "");
       setSelectedStemIds([]);
       setPreviewState({});
+      setMediaUrls({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
@@ -336,7 +336,53 @@ function App() {
       return next;
     });
 
+    setMediaUrls((existing) => {
+      const ids = new Set(project.stems.map((stem) => stem.id));
+      return Object.fromEntries(Object.entries(existing).filter(([id]) => ids.has(id)));
+    });
   }, [project]);
+
+  useEffect(() => {
+    if (!project) {
+      return;
+    }
+
+    if (!isTauriRuntime()) {
+      setMediaUrls((existing) => {
+        const next = Object.fromEntries(
+          project.stems.map((stem) => [stem.id, existing[stem.id] ?? browserStemMediaSrc(stem.path)]),
+        );
+        return Object.keys(next).every((id) => next[id] === existing[id]) &&
+          Object.keys(existing).length === Object.keys(next).length
+          ? existing
+          : next;
+      });
+      return;
+    }
+
+    let cancelled = false;
+    for (const stem of project.stems) {
+      if (mediaUrls[stem.id]) {
+        continue;
+      }
+
+      command<string>("stem_media_url", { path: stem.path })
+        .then((url) => {
+          if (!cancelled) {
+            setMediaUrls((existing) => ({ ...existing, [stem.id]: url }));
+          }
+        })
+        .catch((caught) => {
+          if (!cancelled) {
+            setError(String(caught));
+          }
+        });
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project, mediaUrls]);
 
   const compatibleModels = useMemo(
     () => models.filter((model) => model.tasks.includes(task)),
@@ -633,6 +679,7 @@ function App() {
                     soloActive={soloActive}
                     state={previewState[stem.id] ?? { muted: false, solo: false, volume: 1 }}
                     stem={stem}
+                    mediaUrl={mediaUrls[stem.id]}
                     onSelect={() => toggleStemSelection(stem.id)}
                     onUpdate={(patch) => setStemPreview(stem.id, patch)}
                   />
@@ -732,6 +779,7 @@ function StemPreview({
   state,
   soloActive,
   selected,
+  mediaUrl,
   onSelect,
   onUpdate,
 }: {
@@ -739,13 +787,14 @@ function StemPreview({
   state: PreviewState;
   soloActive: boolean;
   selected: boolean;
+  mediaUrl?: string;
   onSelect: () => void;
   onUpdate: (patch: Partial<PreviewState>) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const isAudible = !state.muted && (!soloActive || state.solo);
-  const source = stemMediaSrc(stem.path);
+  const source = mediaUrl;
 
   useEffect(() => {
     if (audioRef.current) {
@@ -754,6 +803,7 @@ function StemPreview({
   }, [state.volume]);
 
   useEffect(() => {
+    setMediaError(null);
     audioRef.current?.load();
   }, [source]);
 
@@ -772,7 +822,7 @@ function StemPreview({
           onError={() => setMediaError(describeMediaError(audioRef.current?.error))}
           preload="metadata"
         >
-          <source src={source} type="audio/wav" />
+          {source ? <source src={source} type="audio/wav" /> : null}
         </audio>
         {mediaError ? <span className="media-error">{mediaError}</span> : null}
       </div>

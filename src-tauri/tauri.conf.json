@@ -20,7 +20,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost; media-src 'self' asset: http://asset.localhost trackextract-media: http://trackextract-media.localhost; style-src 'self' 'unsafe-inline'",
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost; media-src 'self' asset: http://asset.localhost http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline'",
       "assetProtocol": {
         "enable": true,
         "scope": ["$HOME/**", "$APPDATA/**", "$LOCALDATA/**", "$DOCUMENT/**", "$DOWNLOAD/**", "$AUDIO/**"]
