@@ -301,6 +301,16 @@ select {
   padding: 0 10px;
 }
 
+input[type="number"] {
+  background: #fffdf8;
+  border: 1px solid #d8d0bc;
+  border-radius: 8px;
+  color: #1a1c1f;
+  min-height: 38px;
+  padding: 0 10px;
+  width: 100%;
+}
+
 .run-panel {
   align-items: center;
   display: flex;
@@ -362,6 +372,33 @@ select {
   display: grid;
   gap: 8px;
   min-height: 145px;
+}
+
+.options-panel {
+  display: grid;
+  gap: 4px;
+}
+
+.option-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.option-field {
+  color: #45483f;
+  display: grid;
+  font-size: 0.76rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.option-field input[type="checkbox"] {
+  accent-color: #247c75;
+  height: 22px;
+  justify-self: start;
+  margin: 8px 0;
+  width: 22px;
 }
 
 .job-row {
@@ -436,6 +473,11 @@ select {
   gap: 8px;
   justify-content: center;
   min-height: 90px;
+}
+
+.empty-state.compact {
+  justify-content: flex-start;
+  min-height: 38px;
 }
 
 .empty-state svg {
@@ -646,6 +688,10 @@ select {
 
   .stem-row {
     grid-template-columns: 130px minmax(190px, 1fr);
+  }
+
+  .option-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stem-controls {

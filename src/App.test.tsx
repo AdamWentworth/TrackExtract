@@ -78,7 +78,20 @@ describe("TrackExtract app", () => {
     expect(screen.getByText("Models")).toBeInTheDocument();
     expect(screen.getByText("Queue")).toBeInTheDocument();
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
+    expect(screen.getByText("Render Options")).toBeInTheDocument();
     expect(screen.getByText("Export")).toBeInTheDocument();
+  });
+
+  it("renders editable model render options", async () => {
+    render(<App />);
+
+    expect(await screen.findByText("Render Options")).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("Auto")).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("1")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByDisplayValue("1"), { target: { value: "2" } });
+
+    expect(screen.getByDisplayValue("2")).toBeInTheDocument();
   });
 
   it("shows mocked bootstrap data after startup", async () => {
@@ -131,7 +144,7 @@ describe("TrackExtract app", () => {
 
     fireEvent.click(await screen.findByText("Drop audio here"));
 
-    expect(await screen.findByText("Artist - Browser Demo")).toBeInTheDocument();
+    expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
     expect(await screen.findByText("1 source file")).toBeInTheDocument();
   });
 
@@ -171,7 +184,7 @@ describe("TrackExtract app", () => {
 
     fireEvent.click(await screen.findByText("Clean Lead Vocal"));
     fireEvent.click(await screen.findByText("Drop audio here"));
-    await screen.findByText("Artist - Browser Demo");
+    expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
 
     const installButtons = screen.queryAllByText("Install");
     if (installButtons.length > 0) {

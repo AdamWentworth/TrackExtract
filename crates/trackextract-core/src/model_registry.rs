@@ -1,8 +1,9 @@
 use std::{collections::HashSet, fs, path::Path};
 
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Number, Value};
 
-use crate::error::Result;
+use crate::error::{Result, TrackExtractError};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -50,7 +51,7 @@ pub enum BackendKind {
     ExternalProcess,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelEntry {
     pub id: String,
@@ -76,6 +77,8 @@ pub struct ModelEntry {
     pub download_size_mb: Option<u32>,
     #[serde(default)]
     pub runtime: ModelRuntimeConfig,
+    #[serde(default)]
+    pub options: Vec<ModelOptionDefinition>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -89,6 +92,42 @@ pub struct ModelRuntimeConfig {
     pub demucs_mode: String,
     #[serde(default)]
     pub device: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelOptionDefinition {
+    pub id: String,
+    pub display_name: String,
+    #[serde(rename = "type")]
+    pub option_type: ModelOptionType,
+    pub default_value: Value,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub choices: Vec<ModelOptionChoice>,
+    #[serde(default)]
+    pub min: Option<f64>,
+    #[serde(default)]
+    pub max: Option<f64>,
+    #[serde(default)]
+    pub step: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum ModelOptionType {
+    Select,
+    Integer,
+    Number,
+    Boolean,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelOptionChoice {
+    pub value: String,
+    pub label: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -171,6 +210,78 @@ impl ModelRegistry {
             .cloned()
             .or_else(|| installed.into_iter().next())
     }
+}
+
+pub fn resolve_model_options(model: &ModelEntry, overrides: Option<Value>) -> Result<Value> {
+    let provided = overrides
+        .and_then(|value| value.as_object().cloned())
+        .unwrap_or_default();
+    let mut resolved = Map::new();
+
+    for option in &model.options {
+        let value = provided
+            .get(&option.id)
+            .cloned()
+            .unwrap_or_else(|| option.default_value.clone());
+        resolved.insert(option.id.clone(), validate_option_value(option, value)?);
+    }
+
+    Ok(Value::Object(resolved))
+}
+
+fn validate_option_value(option: &ModelOptionDefinition, value: Value) -> Result<Value> {
+    match option.option_type {
+        ModelOptionType::Select => {
+            let selected = value.as_str().ok_or_else(|| invalid_option(option))?;
+            if !option.choices.is_empty()
+                && !option.choices.iter().any(|choice| choice.value == selected)
+            {
+                return Err(invalid_option(option));
+            }
+            Ok(Value::String(selected.to_string()))
+        }
+        ModelOptionType::Integer => {
+            let integer = value
+                .as_i64()
+                .or_else(|| {
+                    value.as_f64().and_then(|number| {
+                        if number.fract() == 0.0 {
+                            Some(number as i64)
+                        } else {
+                            None
+                        }
+                    })
+                })
+                .ok_or_else(|| invalid_option(option))?;
+            validate_numeric_bounds(option, integer as f64)?;
+            Ok(Value::Number(Number::from(integer)))
+        }
+        ModelOptionType::Number => {
+            let number = value.as_f64().ok_or_else(|| invalid_option(option))?;
+            validate_numeric_bounds(option, number)?;
+            let number = Number::from_f64(number).ok_or_else(|| invalid_option(option))?;
+            Ok(Value::Number(number))
+        }
+        ModelOptionType::Boolean => value
+            .as_bool()
+            .map(Value::Bool)
+            .ok_or_else(|| invalid_option(option)),
+    }
+}
+
+fn validate_numeric_bounds(option: &ModelOptionDefinition, value: f64) -> Result<()> {
+    if option.min.is_some_and(|min| value < min) || option.max.is_some_and(|max| value > max) {
+        return Err(invalid_option(option));
+    }
+
+    Ok(())
+}
+
+fn invalid_option(option: &ModelOptionDefinition) -> TrackExtractError {
+    TrackExtractError::UserFacing(format!(
+        "{} has an invalid render option value",
+        option.display_name
+    ))
 }
 
 const DEPRECATED_BUNDLED_MODEL_IDS: &[&str] = &[
@@ -471,5 +582,95 @@ mod tests {
                 TaskType::VocalDenoise
             ]
         );
+    }
+
+    #[test]
+    fn resolves_model_option_defaults_and_overrides() {
+        let json = r#"[
+          {
+            "id": "demucs",
+            "displayName": "Demucs",
+            "backend": "pytorch-worker",
+            "tasks": ["vocals_instrumental"],
+            "stems": ["Vocals", "Instrumental"],
+            "sampleRate": 44100,
+            "quality": "balanced",
+            "version": "0.1.0",
+            "installed": true,
+            "path": "worker.py",
+            "options": [
+              {
+                "id": "device",
+                "displayName": "Device",
+                "type": "select",
+                "defaultValue": "auto",
+                "choices": [
+                  { "value": "auto", "label": "Auto" },
+                  { "value": "cpu", "label": "CPU" }
+                ]
+              },
+              {
+                "id": "demucsShifts",
+                "displayName": "Shifts",
+                "type": "integer",
+                "defaultValue": 1,
+                "min": 0,
+                "max": 4
+              }
+            ]
+          }
+        ]"#;
+        let registry = ModelRegistry::from_json_str(json).expect("registry");
+        let model = registry.find("demucs").expect("model");
+
+        let options = resolve_model_options(
+            &model,
+            Some(serde_json::json!({
+                "device": "cpu"
+            })),
+        )
+        .expect("options");
+
+        assert_eq!(options["device"], "cpu");
+        assert_eq!(options["demucsShifts"], 1);
+    }
+
+    #[test]
+    fn rejects_invalid_model_option_values() {
+        let json = r#"[
+          {
+            "id": "demucs",
+            "displayName": "Demucs",
+            "backend": "pytorch-worker",
+            "tasks": ["vocals_instrumental"],
+            "stems": ["Vocals", "Instrumental"],
+            "sampleRate": 44100,
+            "quality": "balanced",
+            "version": "0.1.0",
+            "installed": true,
+            "path": "worker.py",
+            "options": [
+              {
+                "id": "demucsOverlap",
+                "displayName": "Overlap",
+                "type": "number",
+                "defaultValue": 0.25,
+                "min": 0.05,
+                "max": 0.75
+              }
+            ]
+          }
+        ]"#;
+        let registry = ModelRegistry::from_json_str(json).expect("registry");
+        let model = registry.find("demucs").expect("model");
+
+        let result = resolve_model_options(
+            &model,
+            Some(serde_json::json!({
+                "demucsOverlap": 1.5
+            })),
+        );
+
+        assert!(result.is_err());
     }
 }

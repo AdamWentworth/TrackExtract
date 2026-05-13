@@ -30,6 +30,9 @@ def main() -> int:
     parser.add_argument("--model", required=True)
     parser.add_argument("--mode", required=True)
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--shifts", type=int, default=1)
+    parser.add_argument("--overlap", type=float, default=0.25)
+    parser.add_argument("--segment", type=float, default=None)
     args = parser.parse_args()
 
     log_path = Path(args.log_path)
@@ -60,6 +63,9 @@ def run(args: argparse.Namespace, log) -> int:
     log.write(f"Model: {args.model}\n")
     log.write(f"Mode: {args.mode}\n")
     log.write(f"Device: {args.device}\n\n")
+    log.write(f"Shifts: {args.shifts}\n")
+    log.write(f"Overlap: {args.overlap}\n")
+    log.write(f"Segment: {args.segment or 'model default'}\n\n")
 
     ensure_ffmpeg_on_path(log)
 
@@ -113,12 +119,12 @@ def separate_with_demucs(
         model,
         wav[None],
         device=device,
-        shifts=1,
+        shifts=max(args.shifts, 0),
         split=True,
-        overlap=0.25,
+        overlap=args.overlap,
         progress=False,
         num_workers=0,
-        segment=None,
+        segment=args.segment,
     )[0]
     sources *= ref.std()
     sources += ref.mean()

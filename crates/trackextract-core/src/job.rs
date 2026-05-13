@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
@@ -30,6 +31,7 @@ pub struct JobRecord {
     pub source_path: PathBuf,
     pub task: TaskType,
     pub model_id: String,
+    pub options: Value,
     pub state: JobState,
     pub progress: f32,
     pub status_message: String,
@@ -46,6 +48,7 @@ impl JobRecord {
         source: &AudioSource,
         task: TaskType,
         model_id: String,
+        options: Value,
     ) -> Self {
         let now = Utc::now();
         Self {
@@ -56,6 +59,7 @@ impl JobRecord {
             source_path: source.project_path.clone(),
             task,
             model_id,
+            options,
             state: JobState::Queued,
             progress: 0.0,
             status_message: "Queued".to_string(),
@@ -94,6 +98,7 @@ mod tests {
             source_path: PathBuf::from("source.wav"),
             task: TaskType::VocalsInstrumental,
             model_id: "stub".into(),
+            options: serde_json::json!({}),
             state: JobState::Queued,
             progress: 0.0,
             status_message: "Queued".into(),
@@ -169,6 +174,9 @@ mod tests {
             &source,
             TaskType::VocalCleanupChain,
             "model-id".into(),
+            serde_json::json!({
+                "device": "cpu"
+            }),
         );
 
         assert_eq!(job.project_id, "project-id");
@@ -177,6 +185,7 @@ mod tests {
         assert_eq!(job.source_path, source.project_path);
         assert_eq!(job.task, TaskType::VocalCleanupChain);
         assert_eq!(job.model_id, "model-id");
+        assert_eq!(job.options["device"], "cpu");
         assert_eq!(job.state, JobState::Queued);
         assert_eq!(job.progress, 0.0);
     }
@@ -190,6 +199,7 @@ mod tests {
             source_path: PathBuf::from("source.wav"),
             task: TaskType::VocalsInstrumental,
             model_id: "stub".into(),
+            options: serde_json::json!({}),
             state: JobState::Queued,
             progress: 0.0,
             status_message: "Queued".into(),

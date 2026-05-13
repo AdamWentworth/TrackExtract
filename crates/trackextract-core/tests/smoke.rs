@@ -39,7 +39,7 @@ fn import_stub_render_and_export_flow() {
     assert!(project.root_path.join("logs").is_dir());
 
     let job = engine
-        .enqueue_separation(TaskType::VocalsInstrumental, None, None)
+        .enqueue_separation(TaskType::VocalsInstrumental, None, None, None)
         .expect("enqueue");
     let (_prepared, request) = engine.prepare_job(&job.id).expect("prepare");
     engine.mark_job_running(&job.id).expect("running");

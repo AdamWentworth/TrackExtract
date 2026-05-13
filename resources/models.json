@@ -3,8 +3,13 @@
     "id": "demucs_htdemucs_vocals_instrumental",
     "displayName": "Demucs HTDemucs Vocals / Instrumental",
     "backend": "pytorch-worker",
-    "tasks": ["vocals_instrumental"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocals_instrumental"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "balanced",
     "version": "demucs-4.0.1/htdemucs",
@@ -19,14 +24,68 @@
       "demucsModel": "htdemucs",
       "demucsMode": "vocals",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_ft_vocals_instrumental",
     "displayName": "Demucs HTDemucs FT Vocals / Instrumental",
     "backend": "pytorch-worker",
-    "tasks": ["vocals_instrumental"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocals_instrumental"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "best",
     "version": "demucs-4.0.1/htdemucs_ft",
@@ -41,14 +100,72 @@
       "demucsModel": "htdemucs_ft",
       "demucsMode": "vocals",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_6s_full_split",
     "displayName": "Demucs HTDemucs 6 Stem Split",
     "backend": "pytorch-worker",
-    "tasks": ["full_stem_split"],
-    "stems": ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    "tasks": [
+      "full_stem_split"
+    ],
+    "stems": [
+      "Vocals",
+      "Drums",
+      "Bass",
+      "Guitar",
+      "Piano",
+      "Other"
+    ],
     "sampleRate": 44100,
     "quality": "experimental",
     "version": "demucs-4.0.1/htdemucs_6s",
@@ -63,14 +180,70 @@
       "demucsModel": "htdemucs_6s",
       "demucsMode": "full",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_ft_4stem_best_split",
     "displayName": "Demucs HTDemucs FT 4 Stem Best Split",
     "backend": "pytorch-worker",
-    "tasks": ["experimental_best_quality"],
-    "stems": ["Vocals", "Drums", "Bass", "Other"],
+    "tasks": [
+      "experimental_best_quality"
+    ],
+    "stems": [
+      "Vocals",
+      "Drums",
+      "Bass",
+      "Other"
+    ],
     "sampleRate": 44100,
     "quality": "best",
     "version": "demucs-4.0.1/htdemucs_ft",
@@ -85,14 +258,68 @@
       "demucsModel": "htdemucs_ft",
       "demucsMode": "full",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_drums_only",
     "displayName": "Demucs HTDemucs Drums / No Drums",
     "backend": "pytorch-worker",
-    "tasks": ["drums_only"],
-    "stems": ["Drums", "No Drums"],
+    "tasks": [
+      "drums_only"
+    ],
+    "stems": [
+      "Drums",
+      "No Drums"
+    ],
     "sampleRate": 44100,
     "quality": "balanced",
     "version": "demucs-4.0.1/htdemucs",
@@ -107,14 +334,68 @@
       "demucsModel": "htdemucs",
       "demucsMode": "drums",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_bass_only",
     "displayName": "Demucs HTDemucs Bass / No Bass",
     "backend": "pytorch-worker",
-    "tasks": ["bass_only"],
-    "stems": ["Bass", "No Bass"],
+    "tasks": [
+      "bass_only"
+    ],
+    "stems": [
+      "Bass",
+      "No Bass"
+    ],
     "sampleRate": 44100,
     "quality": "balanced",
     "version": "demucs-4.0.1/htdemucs",
@@ -129,14 +410,68 @@
       "demucsModel": "htdemucs",
       "demucsMode": "bass",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_6s_guitar_only",
     "displayName": "Demucs HTDemucs 6s Guitar / No Guitar",
     "backend": "pytorch-worker",
-    "tasks": ["guitar_only"],
-    "stems": ["Guitar", "No Guitar"],
+    "tasks": [
+      "guitar_only"
+    ],
+    "stems": [
+      "Guitar",
+      "No Guitar"
+    ],
     "sampleRate": 44100,
     "quality": "experimental",
     "version": "demucs-4.0.1/htdemucs_6s",
@@ -151,14 +486,68 @@
       "demucsModel": "htdemucs_6s",
       "demucsMode": "guitar",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "demucs_htdemucs_6s_piano_only",
     "displayName": "Demucs HTDemucs 6s Piano / No Piano",
     "backend": "pytorch-worker",
-    "tasks": ["piano_only"],
-    "stems": ["Piano", "No Piano"],
+    "tasks": [
+      "piano_only"
+    ],
+    "stems": [
+      "Piano",
+      "No Piano"
+    ],
     "sampleRate": 44100,
     "quality": "experimental",
     "version": "demucs-4.0.1/htdemucs_6s",
@@ -173,14 +562,68 @@
       "demucsModel": "htdemucs_6s",
       "demucsMode": "piano",
       "device": "auto"
-    }
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "onnx_uvr_mdxnet_9482",
     "displayName": "UVR MDX-NET 9482 ONNX",
     "backend": "onnx",
-    "tasks": ["vocals_instrumental"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocals_instrumental"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "fast",
     "version": "UVR_MDXNET_9482",
@@ -190,14 +633,82 @@
     "sourceUrl": "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
     "license": "MIT per UVR public model pack; verify before redistribution",
     "notes": "Real ONNX model candidate. TrackExtract needs the ONNX backend before this can run.",
-    "downloadSizeMb": 28
+    "downloadSizeMb": 28,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ]
   },
   {
     "id": "onnx_uvr_mdxnet_inst_hq_5",
     "displayName": "UVR MDX-NET Inst HQ 5 ONNX",
     "backend": "onnx",
-    "tasks": ["vocals_instrumental"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocals_instrumental"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "balanced",
     "version": "UVR-MDX-NET-Inst_HQ_5",
@@ -207,14 +718,84 @@
     "sourceUrl": "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
     "license": "MIT per UVR public model pack; verify before redistribution",
     "notes": "Real ONNX model candidate. TrackExtract needs the ONNX backend before this can run.",
-    "downloadSizeMb": 56
+    "downloadSizeMb": 56,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ]
   },
   {
     "id": "uvr_mdx23c_instvoc_hq",
     "displayName": "UVR MDX23C InstVoc HQ",
     "backend": "external-process",
-    "tasks": ["vocals_instrumental", "vocal_cleanup_chain", "experimental_best_quality"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocals_instrumental",
+      "vocal_cleanup_chain",
+      "experimental_best_quality"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "best",
     "version": "MDX23C-8KFFT-InstVoc_HQ",
@@ -224,14 +805,77 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "UVR public model pack; verify before redistribution",
     "notes": "High-quality music-backed vocal/instrumental extractor. Requires an MDX23C/audio-separator backend before it can run.",
-    "downloadSizeMb": 427
+    "downloadSizeMb": 427,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "onnx_uvr_mdxnet_karaoke_2",
     "displayName": "UVR MDX-NET Karaoke 2 ONNX",
     "backend": "onnx",
-    "tasks": ["layered_vocal_cleanup", "vocal_cleanup_chain"],
-    "stems": ["Lead Vocal", "Backing Vocals"],
+    "tasks": [
+      "layered_vocal_cleanup",
+      "vocal_cleanup_chain"
+    ],
+    "stems": [
+      "Lead Vocal",
+      "Backing Vocals"
+    ],
     "sampleRate": 44100,
     "quality": "balanced",
     "version": "UVR_MDXNET_KARA_2",
@@ -241,14 +885,83 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "UVR public model pack; verify before redistribution",
     "notes": "Useful for reducing layered or backing vocals after a vocal extraction pass. Needs the ONNX backend before it can run.",
-    "downloadSizeMb": 50
+    "downloadSizeMb": 50,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ]
   },
   {
     "id": "onnx_uvr_mdxnet_voc_ft",
     "displayName": "UVR MDX-NET Voc FT ONNX",
     "backend": "onnx",
-    "tasks": ["vocal_cleanup_chain", "vocals_instrumental"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocal_cleanup_chain",
+      "vocals_instrumental"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "best",
     "version": "UVR-MDX-NET-Voc_FT",
@@ -258,14 +971,83 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "UVR public model pack; verify before redistribution",
     "notes": "Vocal-focused MDX model often used as a refinement pass. Needs the ONNX backend before it can run.",
-    "downloadSizeMb": 63
+    "downloadSizeMb": 63,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ]
   },
   {
     "id": "onnx_reverb_hq_by_foxjoy",
     "displayName": "Reverb HQ By FoxJoy ONNX",
     "backend": "onnx",
-    "tasks": ["vocal_dereverb", "vocal_cleanup_chain"],
-    "stems": ["Dry Vocal", "Reverb"],
+    "tasks": [
+      "vocal_dereverb",
+      "vocal_cleanup_chain"
+    ],
+    "stems": [
+      "Dry Vocal",
+      "Reverb"
+    ],
     "sampleRate": 44100,
     "quality": "best",
     "version": "Reverb_HQ_By_FoxJoy",
@@ -275,14 +1057,83 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "UVR public model pack; verify before redistribution",
     "notes": "Dereverb model for drying extracted vocals. Needs the ONNX backend before it can run.",
-    "downloadSizeMb": 63
+    "downloadSizeMb": 63,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ]
   },
   {
     "id": "uvr_denoise",
     "displayName": "UVR DeNoise",
     "backend": "external-process",
-    "tasks": ["vocal_denoise", "vocal_cleanup_chain"],
-    "stems": ["Clean Vocal", "Noise"],
+    "tasks": [
+      "vocal_denoise",
+      "vocal_cleanup_chain"
+    ],
+    "stems": [
+      "Clean Vocal",
+      "Noise"
+    ],
     "sampleRate": 44100,
     "quality": "balanced",
     "version": "UVR-DeNoise",
@@ -292,14 +1143,77 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "UVR public model pack; verify before redistribution",
     "notes": "VR-style denoise model for the final vocal cleanup pass. Requires a VR/audio-separator backend before it can run.",
-    "downloadSizeMb": 121
+    "downloadSizeMb": 121,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ]
   },
   {
     "id": "catalog_roformer_vocals",
     "displayName": "RoFormer Vocals Catalog Source",
     "backend": "external-process",
-    "tasks": ["vocals_instrumental", "experimental_best_quality"],
-    "stems": ["Vocals", "Instrumental"],
+    "tasks": [
+      "vocals_instrumental",
+      "experimental_best_quality"
+    ],
+    "stems": [
+      "Vocals",
+      "Instrumental"
+    ],
     "sampleRate": 44100,
     "quality": "best",
     "version": "catalog",
@@ -308,6 +1222,63 @@
     "downloadUrl": "https://huggingface.co/AEmotionStudio/roformer-models",
     "sourceUrl": "https://huggingface.co/AEmotionStudio/roformer-models",
     "license": "MIT per Hugging Face model card",
-    "notes": "Real RoFormer model collection source. Needs a dedicated RoFormer backend or conversion path."
+    "notes": "Real RoFormer model collection source. Needs a dedicated RoFormer backend or conversion path.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ]
   }
 ]

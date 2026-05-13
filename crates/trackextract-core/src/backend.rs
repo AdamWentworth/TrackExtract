@@ -13,6 +13,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::{
     audio::{decode_audio_file, write_wav},
@@ -38,6 +39,7 @@ pub struct SeparationRequest {
     pub logs_dir: PathBuf,
     pub model: ModelEntry,
     pub task: TaskType,
+    pub options: Value,
 }
 
 #[derive(Debug, Clone)]
@@ -279,6 +281,10 @@ impl PythonWorkerBackend {
             .ok()
             .filter(|device| !device.trim().is_empty())
             .unwrap_or_else(|| {
+                if let Some(device) = option_string(&request.options, "device") {
+                    return device;
+                }
+
                 if request.model.runtime.device.is_empty() {
                     "auto".to_string()
                 } else {
@@ -339,8 +345,26 @@ impl SeparationBackend for PythonWorkerBackend {
             .arg(Self::demucs_mode(&request))
             .arg("--device")
             .arg(Self::device(&request))
+            .arg("--shifts")
+            .arg(
+                option_u64(&request.options, "demucsShifts")
+                    .unwrap_or(1)
+                    .to_string(),
+            )
+            .arg("--overlap")
+            .arg(
+                option_f64(&request.options, "demucsOverlap")
+                    .unwrap_or(0.25)
+                    .to_string(),
+            )
             .stdout(Stdio::null())
             .stderr(Stdio::null());
+
+        if let Some(segment) =
+            option_f64(&request.options, "demucsSegmentSeconds").filter(|segment| *segment > 0.0)
+        {
+            command.arg("--segment").arg(segment.to_string());
+        }
 
         Self::report(&request, progress, 0.08, "Starting Demucs separation");
 
@@ -444,6 +468,28 @@ fn task_arg(task: &TaskType) -> &'static str {
     }
 }
 
+fn option_string(options: &Value, key: &str) -> Option<String> {
+    options
+        .as_object()
+        .and_then(|values| values.get(key))
+        .and_then(Value::as_str)
+        .map(ToString::to_string)
+}
+
+fn option_u64(options: &Value, key: &str) -> Option<u64> {
+    options
+        .as_object()
+        .and_then(|values| values.get(key))
+        .and_then(Value::as_u64)
+}
+
+fn option_f64(options: &Value, key: &str) -> Option<f64> {
+    options
+        .as_object()
+        .and_then(|values| values.get(key))
+        .and_then(Value::as_f64)
+}
+
 fn candidate_roots() -> Vec<PathBuf> {
     let mut roots = Vec::new();
 
@@ -535,8 +581,10 @@ mod tests {
                 notes: String::new(),
                 download_size_mb: None,
                 runtime: ModelRuntimeConfig::default(),
+                options: Vec::new(),
             },
             task: TaskType::VocalsInstrumental,
+            options: serde_json::json!({}),
         };
 
         let backend = StubSeparationBackend;

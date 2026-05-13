@@ -68,6 +68,38 @@
           "device": { "type": "string" }
         },
         "additionalProperties": true
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "displayName", "type", "defaultValue"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "displayName": { "type": "string", "minLength": 1 },
+            "type": {
+              "type": "string",
+              "enum": ["select", "integer", "number", "boolean"]
+            },
+            "defaultValue": {},
+            "description": { "type": "string" },
+            "choices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["value", "label"],
+                "properties": {
+                  "value": { "type": "string" },
+                  "label": { "type": "string" }
+                }
+              }
+            },
+            "min": { "type": "number" },
+            "max": { "type": "number" },
+            "step": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
       }
     }
   }

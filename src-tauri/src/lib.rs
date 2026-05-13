@@ -171,11 +171,12 @@ fn enqueue_separation(
     task: TaskType,
     model_id: Option<String>,
     source_id: Option<String>,
+    options: Option<serde_json::Value>,
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
 ) -> Result<JobRecord, String> {
     let job = lock_engine(&state)?
-        .enqueue_separation(task, model_id, source_id)
+        .enqueue_separation(task, model_id, source_id, options)
         .map_err(command_error)?;
 
     app.emit("job_state_changed", &job)

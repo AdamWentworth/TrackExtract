@@ -47,6 +47,25 @@ type JobState =
   | "cancelled";
 
 type BackendKind = "stub" | "onnx" | "pytorch-worker" | "external-process";
+type ModelOptionType = "select" | "integer" | "number" | "boolean";
+type RenderOptionValue = string | number | boolean;
+
+interface ModelOptionChoice {
+  value: string;
+  label: string;
+}
+
+interface ModelOptionDefinition {
+  id: string;
+  displayName: string;
+  type: ModelOptionType;
+  defaultValue: RenderOptionValue;
+  description?: string;
+  choices?: ModelOptionChoice[];
+  min?: number;
+  max?: number;
+  step?: number;
+}
 
 interface ModelEntry {
   id: string;
@@ -64,6 +83,7 @@ interface ModelEntry {
   license?: string;
   notes?: string;
   downloadSizeMb?: number;
+  options?: ModelOptionDefinition[];
 }
 
 interface AudioSource {
@@ -106,6 +126,7 @@ interface JobRecord {
   sourcePath: string;
   task: TaskType;
   modelId: string;
+  options: Record<string, RenderOptionValue>;
   state: JobState;
   progress: number;
   statusMessage: string;
@@ -203,6 +224,7 @@ function App() {
   const [selectedModelId, setSelectedModelId] = useState<string>("");
   const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
+  const [renderOptions, setRenderOptions] = useState<Record<string, RenderOptionValue>>({});
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [modelInstallProgress, setModelInstallProgress] = useState<Record<string, ModelDownloadProgress>>({});
@@ -423,10 +445,16 @@ function App() {
     [models, task],
   );
   const selectedModel = compatibleModels.find((model) => model.id === selectedModelId);
+  const selectedModelOptions = selectedModel?.options ?? [];
   const runningJob = jobs.find((job) => job.state === "running" || job.state === "preparing");
   const latestJob = jobs[0];
+  const selectedSource = project?.originalFiles.find((source) => source.id === selectedSourceId) ?? project?.originalFiles[0];
   const soloActive = Object.values(previewState).some((state) => state.solo);
   const selectedModelRunnable = selectedModel ? isRunnableModel(selectedModel) : false;
+
+  useEffect(() => {
+    setRenderOptions(selectedModel ? defaultRenderOptions(selectedModel) : {});
+  }, [selectedModel?.id]);
 
   async function chooseFiles() {
     if (!isTauriRuntime()) {
@@ -492,6 +520,7 @@ function App() {
         task,
         modelId: selectedModel.id,
         sourceId: selectedSourceId || null,
+        options: renderOptions,
       });
       mergeJob(queued);
       const completed = await command<JobRecord>("start_job", { jobId: queued.id });
@@ -598,6 +627,13 @@ function App() {
     }
   }
 
+  function setRenderOption(option: ModelOptionDefinition, value: RenderOptionValue) {
+    setRenderOptions((existing) => ({
+      ...existing,
+      [option.id]: coerceRenderOptionValue(option, value),
+    }));
+  }
+
   function setStemPreview(id: string, patch: Partial<PreviewState>) {
     setPreviewState((existing) => {
       const current = existing[id] ?? { muted: false, solo: false, volume: 1 };
@@ -628,7 +664,7 @@ function App() {
       </header>
 
       <section className="workspace">
-        <aside className="rail model-rail">
+        <aside className="rail">
           <section className="panel import-panel">
             <div className="panel-heading">
               <Upload aria-hidden />
@@ -724,6 +760,31 @@ function App() {
             </div>
           </section>
 
+          <section className="panel options-panel">
+            <div className="panel-heading">
+              <SlidersHorizontal aria-hidden />
+              <h2>Render Options</h2>
+            </div>
+            {selectedModelOptions.length === 0 ? (
+              <div className="empty-state compact">
+                <span>Default render settings</span>
+              </div>
+            ) : (
+              <div className="option-grid">
+                {selectedModelOptions.map((option) => (
+                  <label className="option-field" key={option.id} title={option.description}>
+                    <span>{option.displayName}</span>
+                    <RenderOptionControl
+                      option={option}
+                      value={renderOptions[option.id] ?? option.defaultValue}
+                      onChange={(value) => setRenderOption(option, value)}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section className="panel queue-panel">
             {jobs.length === 0 ? (
               <div className="empty-state">
@@ -776,7 +837,7 @@ function App() {
           </section>
         </section>
 
-        <aside className="rail">
+        <aside className="rail model-rail">
           <section className="panel model-panel">
             <div className="panel-heading with-action">
               <span>
@@ -868,21 +929,37 @@ function App() {
 
           <section className="panel details-panel">
             <div className="panel-heading">
-              <AlertTriangle aria-hidden />
-              <h2>Session</h2>
+              <FolderOpen aria-hidden />
+              <h2>Project</h2>
             </div>
             <dl>
               <div>
-                <dt>Projects</dt>
-                <dd>{boot?.projectRoot ?? "Loading"}</dd>
+                <dt>Name</dt>
+                <dd>{project?.name ?? "No project"}</dd>
               </div>
               <div>
-                <dt>Registry</dt>
-                <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
+                <dt>Source</dt>
+                <dd>{selectedSource?.originalName ?? "None"}</dd>
+              </div>
+              <div>
+                <dt>Audio</dt>
+                <dd>{selectedSource ? formatAudioSummary(selectedSource) : "Waiting for import"}</dd>
+              </div>
+              <div>
+                <dt>Stems</dt>
+                <dd>{project?.stems.length ?? 0}</dd>
               </div>
               <div>
                 <dt>Latest job</dt>
                 <dd>{latestJob ? latestJob.state : "None"}</dd>
+              </div>
+              <div>
+                <dt>Folder</dt>
+                <dd>{project?.rootPath ?? boot?.projectRoot ?? "Loading"}</dd>
+              </div>
+              <div>
+                <dt>Registry</dt>
+                <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
               </div>
             </dl>
             {logEntries.length > 0 ? (
@@ -896,6 +973,49 @@ function App() {
         </aside>
       </section>
     </main>
+  );
+}
+
+function RenderOptionControl({
+  option,
+  value,
+  onChange,
+}: {
+  option: ModelOptionDefinition;
+  value: RenderOptionValue;
+  onChange: (value: RenderOptionValue) => void;
+}) {
+  if (option.type === "select") {
+    return (
+      <select value={String(value)} onChange={(event) => onChange(event.currentTarget.value)}>
+        {(option.choices ?? []).map((choice) => (
+          <option key={choice.value} value={choice.value}>
+            {choice.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  if (option.type === "boolean") {
+    return (
+      <input
+        checked={Boolean(value)}
+        onChange={(event) => onChange(event.currentTarget.checked)}
+        type="checkbox"
+      />
+    );
+  }
+
+  return (
+    <input
+      max={option.max}
+      min={option.min}
+      onChange={(event) => onChange(Number(event.currentTarget.value))}
+      step={option.step ?? (option.type === "integer" ? 1 : 0.01)}
+      type="number"
+      value={Number(value)}
+    />
   );
 }
 
@@ -1003,6 +1123,63 @@ function formatTask(value: TaskType) {
   return TASKS.find((task) => task.value === value)?.label ?? value;
 }
 
+function defaultRenderOptions(model: ModelEntry) {
+  return Object.fromEntries(
+    (model.options ?? []).map((option) => [
+      option.id,
+      coerceRenderOptionValue(option, option.defaultValue),
+    ]),
+  ) as Record<string, RenderOptionValue>;
+}
+
+function coerceRenderOptionValue(option: ModelOptionDefinition, value: RenderOptionValue) {
+  if (option.type === "boolean") {
+    return Boolean(value);
+  }
+
+  if (option.type === "integer") {
+    return clampOptionNumber(option, Math.round(Number(value)));
+  }
+
+  if (option.type === "number") {
+    return clampOptionNumber(option, Number(value));
+  }
+
+  const selected = String(value);
+  const choices = option.choices ?? [];
+  return choices.length > 0 && !choices.some((choice) => choice.value === selected)
+    ? String(option.defaultValue)
+    : selected;
+}
+
+function clampOptionNumber(option: ModelOptionDefinition, value: number) {
+  const fallback = Number(option.defaultValue);
+  let next = Number.isFinite(value) ? value : fallback;
+
+  if (typeof option.min === "number") {
+    next = Math.max(option.min, next);
+  }
+
+  if (typeof option.max === "number") {
+    next = Math.min(option.max, next);
+  }
+
+  return next;
+}
+
+function formatAudioSummary(source: AudioSource) {
+  const sampleRate = source.sampleRate ? `${(source.sampleRate / 1000).toFixed(1)} kHz` : "Unknown rate";
+  const channels = source.channels ? `${source.channels} ch` : "Unknown channels";
+  const duration = typeof source.durationSeconds === "number" ? formatDuration(source.durationSeconds) : "Unknown length";
+  return `${sampleRate} · ${channels} · ${duration}`;
+}
+
+function formatDuration(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.round(seconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${remainingSeconds}`;
+}
+
 function isRunnableModel(model: ModelEntry) {
   return model.installed && (model.backend === "pytorch-worker" || model.backend === "stub");
 }
@@ -1033,6 +1210,47 @@ function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
   return "Source available";
 }
 
+const mockDemucsOptions: ModelOptionDefinition[] = [
+  {
+    id: "device",
+    displayName: "Device",
+    type: "select",
+    defaultValue: "auto",
+    choices: [
+      { value: "auto", label: "Auto" },
+      { value: "cuda", label: "CUDA" },
+      { value: "cpu", label: "CPU" },
+    ],
+  },
+  {
+    id: "demucsShifts",
+    displayName: "Shifts",
+    type: "integer",
+    defaultValue: 1,
+    min: 0,
+    max: 4,
+    step: 1,
+  },
+  {
+    id: "demucsOverlap",
+    displayName: "Overlap",
+    type: "number",
+    defaultValue: 0.25,
+    min: 0.05,
+    max: 0.75,
+    step: 0.05,
+  },
+  {
+    id: "demucsSegmentSeconds",
+    displayName: "Segment",
+    type: "integer",
+    defaultValue: 0,
+    min: 0,
+    max: 30,
+    step: 1,
+  },
+];
+
 const mockModels: ModelEntry[] = [
   {
     id: "demucs_htdemucs_vocals_instrumental",
@@ -1048,6 +1266,7 @@ const mockModels: ModelEntry[] = [
     downloadUrl: "https://pypi.org/project/demucs/",
     sourceUrl: "https://github.com/facebookresearch/demucs",
     license: "MIT",
+    options: mockDemucsOptions,
   },
   {
     id: "demucs_htdemucs_6s_full_split",
@@ -1063,6 +1282,7 @@ const mockModels: ModelEntry[] = [
     downloadUrl: "https://pypi.org/project/demucs/",
     sourceUrl: "https://github.com/facebookresearch/demucs",
     license: "MIT",
+    options: mockDemucsOptions,
   },
   {
     id: "onnx_uvr_mdxnet_9482",
@@ -1212,7 +1432,7 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
         throw new Error(`${model?.displayName ?? "Selected model"} is not installed.`);
       }
 
-      const job = createMockJob(mockProject, task, model.id);
+      const job = createMockJob(mockProject, task, model.id, (args?.options as Record<string, RenderOptionValue> | undefined) ?? {});
       mockJobs = [job, ...mockJobs];
       mockProject.jobs = [job.id, ...mockProject.jobs];
       return job as T;
@@ -1324,7 +1544,12 @@ function createMockProject(paths: string[]): ProjectSession {
   };
 }
 
-function createMockJob(project: ProjectSession, task: TaskType, modelId: string): JobRecord {
+function createMockJob(
+  project: ProjectSession,
+  task: TaskType,
+  modelId: string,
+  options: Record<string, RenderOptionValue> = {},
+): JobRecord {
   const now = new Date().toISOString();
   const source = project.originalFiles[0];
 
@@ -1336,6 +1561,7 @@ function createMockJob(project: ProjectSession, task: TaskType, modelId: string)
     sourcePath: source?.projectPath ?? `${project.rootPath}/original/mock.wav`,
     task,
     modelId,
+    options,
     state: "queued",
     progress: 0,
     statusMessage: "Queued in browser mock mode",

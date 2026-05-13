@@ -11,7 +11,7 @@ use crate::{
     error::{Result, TrackExtractError},
     job::{JobRecord, JobState},
     model_installer::ModelInstallRequest,
-    model_registry::{ModelEntry, ModelRegistry, TaskType},
+    model_registry::{resolve_model_options, ModelEntry, ModelRegistry, TaskType},
     project::ProjectSession,
 };
 
@@ -165,6 +165,7 @@ impl Engine {
         task: TaskType,
         model_id: Option<String>,
         source_id: Option<String>,
+        options: Option<serde_json::Value>,
     ) -> Result<JobRecord> {
         let project = self
             .current_project
@@ -210,7 +211,8 @@ impl Engine {
             )));
         }
 
-        let job = JobRecord::new(project, &source, task, model.id.clone());
+        let resolved_options = resolve_model_options(&model, options)?;
+        let job = JobRecord::new(project, &source, task, model.id.clone(), resolved_options);
         project.add_job(&job.id)?;
         self.jobs.push(job.clone());
         Ok(job)
@@ -243,6 +245,7 @@ impl Engine {
             logs_dir: project.logs_dir(),
             model,
             task: job.task.clone(),
+            options: job.options.clone(),
         };
 
         Ok((job.clone(), request))
@@ -600,7 +603,12 @@ mod tests {
             .import_audio_files(vec![source.clone()])
             .expect("first import");
         engine
-            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .enqueue_separation(
+                TaskType::VocalsInstrumental,
+                Some("demucs".into()),
+                None,
+                None,
+            )
             .expect("enqueue");
 
         let project = engine
@@ -617,7 +625,12 @@ mod tests {
         let mut engine = engine_in_temp(&temp);
 
         let error = engine
-            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .enqueue_separation(
+                TaskType::VocalsInstrumental,
+                Some("demucs".into()),
+                None,
+                None,
+            )
             .expect_err("no project");
 
         assert!(matches!(error, TrackExtractError::NoProject));
@@ -632,10 +645,15 @@ mod tests {
         engine.import_audio_files(vec![source]).expect("import");
 
         let missing = engine
-            .enqueue_separation(TaskType::VocalsInstrumental, Some("missing".into()), None)
+            .enqueue_separation(
+                TaskType::VocalsInstrumental,
+                Some("missing".into()),
+                None,
+                None,
+            )
             .expect_err("missing model");
         let unsupported = engine
-            .enqueue_separation(TaskType::VocalDenoise, Some("demucs".into()), None)
+            .enqueue_separation(TaskType::VocalDenoise, Some("demucs".into()), None, None)
             .expect_err("unsupported task");
 
         assert!(matches!(missing, TrackExtractError::ModelUnavailable(_)));
@@ -653,7 +671,12 @@ mod tests {
         let mut engine = engine_in_temp(&temp);
         engine.import_audio_files(vec![source]).expect("import");
         let job = engine
-            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .enqueue_separation(
+                TaskType::VocalsInstrumental,
+                Some("demucs".into()),
+                None,
+                None,
+            )
             .expect("enqueue");
 
         let (prepared, request) = engine.prepare_job(&job.id).expect("prepare");
@@ -685,7 +708,12 @@ mod tests {
         let mut engine = engine_in_temp(&temp);
         let project = engine.import_audio_files(vec![source]).expect("import");
         let job = engine
-            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .enqueue_separation(
+                TaskType::VocalsInstrumental,
+                Some("demucs".into()),
+                None,
+                None,
+            )
             .expect("enqueue");
         let vocal_path = project.stems_dir().join("Song - Vocals.wav");
         let instrumental_path = project.stems_dir().join("Song - Instrumental.wav");
@@ -724,7 +752,12 @@ mod tests {
         let mut engine = engine_in_temp(&temp);
         let project = engine.import_audio_files(vec![source]).expect("import");
         let job = engine
-            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .enqueue_separation(
+                TaskType::VocalsInstrumental,
+                Some("demucs".into()),
+                None,
+                None,
+            )
             .expect("enqueue");
         let vocal_path = project.stems_dir().join("Song - Vocals.wav");
         let instrumental_path = project.stems_dir().join("Song - Instrumental.wav");

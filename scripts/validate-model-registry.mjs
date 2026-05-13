@@ -20,6 +20,7 @@ const taskTypes = new Set([
 ]);
 
 const backendKinds = new Set(["stub", "onnx", "pytorch-worker", "external-process"]);
+const optionTypes = new Set(["select", "integer", "number", "boolean"]);
 const deprecatedIds = new Set([
   "stub_full_stem_split",
   "stub_vocals_instrumental",
@@ -105,6 +106,10 @@ if (!Array.isArray(registry)) {
       errors.push(`${label}: downloadSizeMb must be a positive integer when present.`);
     }
 
+    if (model.options !== undefined) {
+      validateOptions(label, model.options);
+    }
+
     if (model.path && isUnsafeRelativePath(model.path)) {
       errors.push(`${label}: path must not be absolute or escape app data: ${model.path}`);
     }
@@ -159,4 +164,73 @@ function isUnsafeRelativePath(value) {
 function fail(message) {
   console.error(`model-registry: ${message}`);
   process.exit(1);
+}
+
+function validateOptions(label, options) {
+  if (!Array.isArray(options)) {
+    errors.push(`${label}: options must be an array when present.`);
+    return;
+  }
+
+  const optionIds = new Set();
+  for (const [index, option] of options.entries()) {
+    const optionLabel = `${label}.options[${index}]`;
+    if (typeof option.id !== "string" || option.id.trim() === "") {
+      errors.push(`${optionLabel}: id must be a non-empty string.`);
+    } else if (optionIds.has(option.id)) {
+      errors.push(`${label}: duplicate option id "${option.id}".`);
+    } else {
+      optionIds.add(option.id);
+    }
+
+    if (typeof option.displayName !== "string" || option.displayName.trim() === "") {
+      errors.push(`${optionLabel}: displayName must be a non-empty string.`);
+    }
+
+    if (!optionTypes.has(option.type)) {
+      errors.push(`${optionLabel}: unsupported option type "${option.type}".`);
+      continue;
+    }
+
+    if (!("defaultValue" in option)) {
+      errors.push(`${optionLabel}: missing defaultValue.`);
+    }
+
+    if (option.type === "select") {
+      if (!Array.isArray(option.choices) || option.choices.length === 0) {
+        errors.push(`${optionLabel}: select options require choices.`);
+      } else if (!option.choices.some((choice) => choice.value === option.defaultValue)) {
+        errors.push(`${optionLabel}: defaultValue must match a select choice.`);
+      }
+    }
+
+    if (option.type === "integer" && !Number.isInteger(option.defaultValue)) {
+      errors.push(`${optionLabel}: integer defaultValue must be an integer.`);
+    }
+
+    if (option.type === "number" && typeof option.defaultValue !== "number") {
+      errors.push(`${optionLabel}: number defaultValue must be numeric.`);
+    }
+
+    if (option.type === "boolean" && typeof option.defaultValue !== "boolean") {
+      errors.push(`${optionLabel}: boolean defaultValue must be boolean.`);
+    }
+
+    if (option.min !== undefined && typeof option.min !== "number") {
+      errors.push(`${optionLabel}: min must be numeric when present.`);
+    }
+
+    if (option.max !== undefined && typeof option.max !== "number") {
+      errors.push(`${optionLabel}: max must be numeric when present.`);
+    }
+
+    if (typeof option.defaultValue === "number") {
+      if (typeof option.min === "number" && option.defaultValue < option.min) {
+        errors.push(`${optionLabel}: defaultValue is below min.`);
+      }
+      if (typeof option.max === "number" && option.defaultValue > option.max) {
+        errors.push(`${optionLabel}: defaultValue is above max.`);
+      }
+    }
+  }
 }
