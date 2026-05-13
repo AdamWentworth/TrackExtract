@@ -76,8 +76,8 @@ describe("TrackExtract app", () => {
     expect(await screen.findByText("TrackExtract")).toBeInTheDocument();
     expect(screen.getByText("Import")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Workflow" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Model Library" })).toBeInTheDocument();
-    expect(screen.getByText("All models")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Model Setup" })).toBeInTheDocument();
+    expect(screen.getByText("Manage models")).toBeInTheDocument();
     expect(screen.getByText("Queue")).toBeInTheDocument();
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
     expect(screen.getByText("Render Options")).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe("TrackExtract app", () => {
 
     fireEvent.click(await screen.findByText("Full 6-Stem Split"));
 
-    expect(await screen.findByText("Demucs HTDemucs 6 Stem Split")).toBeInTheDocument();
+    expect((await screen.findAllByText("Demucs HTDemucs 6 Stem Split")).length).toBeGreaterThan(0);
   });
 
   it("shows layered vocal cleanup as part of the cleanup workflow", async () => {
@@ -165,15 +165,19 @@ describe("TrackExtract app", () => {
     expect(await library.findByText("Demucs HTDemucs Vocals / Instrumental")).toBeInTheDocument();
   });
 
-  it("browses and filters the full model registry without opening the manager", async () => {
+  it("keeps the full model registry inside the model manager", async () => {
     render(<App />);
 
-    expect(await screen.findByText("UVR MDX-NET 9482 ONNX")).toBeInTheDocument();
-
-    fireEvent.change(await screen.findByLabelText("Search model registry"), { target: { value: "denoise" } });
-
-    expect(await screen.findByText("UVR DeNoise")).toBeInTheDocument();
+    await screen.findByText("Manage models");
     expect(screen.queryByText("UVR MDX-NET 9482 ONNX")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Manage models"));
+    const dialog = await screen.findByRole("dialog", { name: "Model Library" });
+    const library = within(dialog);
+    fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "denoise" } });
+
+    expect(await library.findByText("UVR DeNoise")).toBeInTheDocument();
+    expect(library.queryByText("UVR MDX-NET 9482 ONNX")).not.toBeInTheDocument();
   });
 
   it("imports browser mock audio from the drop-zone button", async () => {

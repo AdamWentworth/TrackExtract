@@ -146,26 +146,14 @@ h2 {
   padding: 14px;
 }
 
-.model-rail .model-panel,
-.model-rail .model-registry-panel {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
+.model-rail .model-summary-panel,
 .model-rail .export-panel,
 .model-rail .details-panel {
   flex: 0 0 auto;
 }
 
-.model-rail .model-registry-panel {
-  min-height: 430px;
-}
-
 .model-rail .details-panel {
-  max-height: 170px;
+  max-height: 240px;
   overflow-y: auto;
 }
 
@@ -562,47 +550,9 @@ input[type="number"] {
   gap: 8px;
 }
 
-.model-registry-panel {
+.model-summary-panel {
+  display: grid;
   gap: 10px;
-}
-
-.rail-library-tools {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.compact-field {
-  color: #45483f;
-  display: grid;
-  font-size: 0.76rem;
-  font-weight: 800;
-  gap: 5px;
-}
-
-.registry-tabs {
-  background: #f1eadb;
-  border: 1px solid #e3dac5;
-  border-radius: 8px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: 3px;
-}
-
-.registry-tab {
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  color: #4e5148;
-  font-size: 0.78rem;
-  font-weight: 800;
-  min-height: 30px;
-}
-
-.registry-tab.is-selected {
-  background: #fffdf8;
-  box-shadow: 0 1px 3px rgba(34, 32, 26, 0.12);
-  color: #1d403d;
 }
 
 .model-summary-strip {
@@ -623,94 +573,43 @@ input[type="number"] {
   white-space: nowrap;
 }
 
-.inline-model-list {
-  align-content: start;
-  display: grid;
-  flex: 1 1 auto;
-  gap: 6px;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 3px;
-  scrollbar-gutter: stable;
-}
-
-.inline-model-row {
-  align-items: stretch;
+.selected-model-card {
   background: #fbf7ed;
   border: 1px solid #e3dac5;
   border-radius: 8px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 58px;
-  overflow: hidden;
-}
-
-.inline-model-row.is-selected {
-  border-color: #247c75;
-  box-shadow: inset 0 0 0 1px #247c75;
-}
-
-.inline-model-main {
-  background: transparent;
-  border: 0;
-  color: #24211d;
-  display: grid;
-  gap: 2px;
-  align-content: center;
-  justify-items: start;
+  gap: 5px;
   min-width: 0;
-  padding: 8px 9px;
-  text-align: left;
+  padding: 10px;
 }
 
-.inline-model-main strong,
-.inline-model-main small {
+.selected-model-card strong,
+.selected-model-card small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: 100%;
 }
 
-.inline-model-main small {
+.selected-model-card small {
   color: #6b7068;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
 }
 
-.inline-model-actions {
-  align-items: center;
-  background: #f1eadb;
-  border-left: 1px solid #e3dac5;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  justify-content: center;
-  min-width: 44px;
-  padding: 6px;
+.summary-label {
+  color: #6b7068;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.inline-model-actions .model-install,
-.inline-model-actions .model-link {
-  border: 0;
-  border-radius: 6px;
-  min-height: 28px;
+.compact-step-list {
+  max-height: 170px;
+  overflow-y: auto;
+  padding-right: 3px;
 }
 
-.inline-model-actions > svg {
-  color: #247c75;
-  height: 17px;
-  width: 17px;
-}
-
-.inline-model-actions > svg[aria-label="Missing"] {
-  color: #bd6958;
-}
-
-.inline-model-actions > svg[aria-label="Available to install"] {
-  color: #247c75;
-}
-
-.inline-model-actions > svg[aria-label="Backend pending"] {
-  color: #a28549;
+.compact-step-row {
+  padding: 8px;
 }
 
 .model-status-pill {
@@ -1072,6 +971,7 @@ input[type="number"] {
   border-radius: 8px;
   display: grid;
   gap: 10px;
+  grid-template-areas: "title tasks meta status actions";
   grid-template-columns: minmax(230px, 1.25fr) minmax(220px, 1fr) minmax(150px, 0.65fr) minmax(150px, 0.65fr) minmax(230px, auto);
   min-height: 58px;
   padding: 8px 10px;
@@ -1106,6 +1006,7 @@ input[type="number"] {
   border: 0;
   color: #24211d;
   display: grid;
+  grid-area: title;
   gap: 1px;
   justify-items: start;
   min-width: 0;
@@ -1133,6 +1034,7 @@ input[type="number"] {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  grid-area: tasks;
 }
 
 .library-task-list span {
@@ -1146,13 +1048,19 @@ input[type="number"] {
 
 .library-model-meta {
   display: grid;
+  grid-area: meta;
   gap: 1px;
   min-width: 0;
 }
 
 .library-model-status {
   display: flex;
+  grid-area: status;
   justify-content: flex-start;
+}
+
+.library-model-actions {
+  grid-area: actions;
 }
 
 .library-model-actions .secondary-action {
@@ -1190,16 +1098,6 @@ input[type="number"] {
     overflow: visible;
   }
 
-  .rail.model-rail .model-panel {
-    max-height: 380px;
-    min-height: 260px;
-  }
-
-  .rail.model-rail .model-registry-panel {
-    max-height: 380px;
-    min-height: 260px;
-  }
-
   .model-list {
     max-height: none;
   }
@@ -1214,5 +1112,70 @@ input[type="number"] {
 
   .stem-controls {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1180px) {
+  .model-manager {
+    height: calc(100vh - 28px);
+    min-height: 0;
+    width: calc(100vw - 28px);
+  }
+
+  .model-library-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .model-manager-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .model-manager-toolbar input {
+    grid-column: 1 / -1;
+  }
+
+  .model-library-header {
+    display: none;
+  }
+
+  .manager-model-row {
+    align-items: start;
+    grid-template-areas: "title actions";
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .library-task-list,
+  .library-model-meta,
+  .library-model-status {
+    display: none;
+  }
+
+  .library-model-actions {
+    align-self: start;
+  }
+}
+
+@media (max-width: 860px) {
+  .model-library-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .model-manager-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .model-manager-toolbar input {
+    grid-column: auto;
+  }
+
+  .manager-model-row {
+    grid-template-areas:
+      "title"
+      "actions";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .library-model-actions {
+    justify-content: flex-start;
   }
 }
