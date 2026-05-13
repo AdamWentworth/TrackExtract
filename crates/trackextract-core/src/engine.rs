@@ -10,6 +10,7 @@ use crate::{
     backend::{SeparationOutput, SeparationRequest},
     error::{Result, TrackExtractError},
     job::{JobRecord, JobState},
+    model_installer::ModelInstallRequest,
     model_registry::{ModelEntry, ModelRegistry, TaskType},
     project::ProjectSession,
 };
@@ -60,6 +61,11 @@ impl Engine {
         if registry.sync_with_bundled(&bundled_registry) {
             registry.save(&model_registry_path)?;
         }
+        let mut registry_changed = false;
+        refresh_managed_download_status(&mut registry.models, &app_data_dir, &mut registry_changed);
+        if registry_changed {
+            registry.save(&model_registry_path)?;
+        }
         fs::create_dir_all(&project_root)?;
         let current_project = load_latest_project_session(&project_root);
 
@@ -86,6 +92,57 @@ impl Engine {
 
     pub fn list_models(&self) -> Vec<ModelEntry> {
         self.registry.models.clone()
+    }
+
+    pub fn prepare_model_install(&self, model_id: &str) -> Result<ModelInstallRequest> {
+        let model = self
+            .registry
+            .find(model_id)
+            .ok_or_else(|| TrackExtractError::ModelUnavailable(model_id.to_string()))?;
+
+        if model.download_url.trim().is_empty() {
+            return Err(TrackExtractError::ModelUnavailable(format!(
+                "{} does not have a managed download yet",
+                model.display_name
+            )));
+        }
+
+        let destination_path = self.managed_model_path(&model).ok_or_else(|| {
+            TrackExtractError::ModelUnavailable(format!(
+                "{} does not have a managed local install path yet",
+                model.display_name
+            ))
+        })?;
+        let temp_path = destination_path.with_extension(format!(
+            "{}download",
+            destination_path
+                .extension()
+                .and_then(|extension| extension.to_str())
+                .map(|extension| format!("{extension}."))
+                .unwrap_or_default()
+        ));
+
+        Ok(ModelInstallRequest {
+            model_id: model.id,
+            display_name: model.display_name,
+            download_url: model.download_url,
+            destination_path,
+            temp_path,
+            expected_size_mb: model.download_size_mb,
+        })
+    }
+
+    pub fn complete_model_install(&mut self, model_id: &str) -> Result<ModelEntry> {
+        let model = self
+            .registry
+            .models
+            .iter_mut()
+            .find(|model| model.id == model_id)
+            .ok_or_else(|| TrackExtractError::ModelUnavailable(model_id.to_string()))?;
+        model.installed = true;
+        let model = model.clone();
+        self.registry.save(&self.model_registry_path)?;
+        Ok(model)
     }
 
     pub fn current_project(&self) -> Option<ProjectSession> {
@@ -274,6 +331,47 @@ impl Engine {
             .find(|job| job.id == job_id)
             .ok_or_else(|| TrackExtractError::JobNotFound(job_id.to_string()))
     }
+
+    fn managed_model_path(&self, model: &ModelEntry) -> Option<PathBuf> {
+        managed_model_path(&self.app_data_dir, model)
+    }
+}
+
+fn refresh_managed_download_status(
+    models: &mut [ModelEntry],
+    app_data_dir: &Path,
+    changed: &mut bool,
+) {
+    for model in models {
+        let Some(path) = managed_model_path(app_data_dir, model) else {
+            continue;
+        };
+        let installed = path.is_file();
+        if model.installed != installed {
+            model.installed = installed;
+            *changed = true;
+        }
+    }
+}
+
+fn managed_model_path(app_data_dir: &Path, model: &ModelEntry) -> Option<PathBuf> {
+    let path = Path::new(&model.path);
+    if !is_managed_download_path(path) {
+        return None;
+    }
+
+    Some(app_data_dir.join(path))
+}
+
+fn is_managed_download_path(path: &Path) -> bool {
+    !path.is_absolute()
+        && path.components().all(|component| {
+            matches!(
+                component,
+                std::path::Component::Normal(_) | std::path::Component::CurDir
+            )
+        })
+        && path.starts_with("models")
 }
 
 fn default_project_root() -> Result<PathBuf> {

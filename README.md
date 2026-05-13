@@ -14,6 +14,7 @@ This repository currently implements the first Tauri + React + Rust skeleton plu
 - Job queue with queued, preparing, running, complete, failed, and cancelled states.
 - Experimental Demucs/PyTorch worker backend for real vocals/instrumental, source-isolation, best-quality four-stem, and six-stem renders.
 - Curated model registry entries with source links, license notes, and missing/not-yet-supported ONNX candidates.
+- Managed model installer for downloadable catalog entries, with app-data storage and progress events.
 - Stem preview and export flows wired to Rust commands.
 
 The MVP does not include real-time separation, a DAW plugin, cloud processing, account logic, payments, or a production model downloader.
@@ -117,6 +118,8 @@ Installed Demucs worker entries are included for real development renders:
 - `demucs_htdemucs_6s_guitar_only` and `demucs_htdemucs_6s_piano_only` provide experimental isolated source plus inverse stems.
 
 Missing ONNX and RoFormer rows are real catalog candidates, not fake placeholders. They link to model sources such as sherpa-onnx/UVR ONNX releases and Hugging Face RoFormer collections, but they remain unavailable until TrackExtract has a compatible ONNX or RoFormer backend.
+
+Downloadable entries with paths under `models/` can be installed from the UI. TrackExtract downloads those files into the local app-data directory, updates the editable local registry, and emits progress through `model_download_progress`. Installed ONNX files are tracked separately from runtime support, so the UI can show a downloaded model as installed while still marking the ONNX runner as pending.
 
 Useful public model sources:
 

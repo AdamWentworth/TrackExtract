@@ -127,6 +127,14 @@ interface BackendProgress {
   message: string;
 }
 
+interface ModelDownloadProgress {
+  modelId: string;
+  progress: number;
+  bytesDownloaded: number;
+  totalBytes: number | null;
+  message: string;
+}
+
 interface PreviewState {
   muted: boolean;
   solo: boolean;
@@ -189,6 +197,7 @@ function App() {
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [modelInstallProgress, setModelInstallProgress] = useState<Record<string, ModelDownloadProgress>>({});
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -262,12 +271,24 @@ function App() {
       const unlistenLog = await listenTo<string>("log_entry", (event) => {
         setLogEntries((entries) => [event.payload, ...entries].slice(0, 6));
       });
+      const unlistenModelProgress = await listenTo<ModelDownloadProgress>("model_download_progress", (event) => {
+        setModelInstallProgress((existing) => ({
+          ...existing,
+          [event.payload.modelId]: event.payload,
+        }));
+        setStatus(event.payload.message);
+      });
+      const unlistenModelsUpdated = await listenTo<ModelEntry[]>("models_updated", (event) => {
+        setModels(event.payload);
+      });
 
       cleanup = () => {
         unlistenProgress();
         unlistenJob();
         unlistenProject();
         unlistenLog();
+        unlistenModelProgress();
+        unlistenModelsUpdated();
       };
     }
 
@@ -397,6 +418,7 @@ function App() {
   const runningJob = jobs.find((job) => job.state === "running" || job.state === "preparing");
   const latestJob = jobs[0];
   const soloActive = Object.values(previewState).some((state) => state.solo);
+  const selectedModelRunnable = selectedModel ? isRunnableModel(selectedModel) : false;
 
   async function chooseFiles() {
     if (!isTauriRuntime()) {
@@ -439,12 +461,17 @@ function App() {
 
   async function runSeparation() {
     if (!project || !selectedModel) {
-      setError("Import an audio file and choose an installed model first.");
+      setError("Import an audio file and choose a runnable model first.");
       return;
     }
 
     if (!selectedModel.installed) {
       setError(`${selectedModel.displayName} is not installed yet.`);
+      return;
+    }
+
+    if (!isRunnableModel(selectedModel)) {
+      setError(`${selectedModel.displayName} is installed, but the ${selectedModel.backend} runner is not implemented yet.`);
       return;
     }
 
@@ -530,6 +557,36 @@ function App() {
       }
     } catch (caught) {
       setError(String(caught));
+    }
+  }
+
+  async function installModel(model: ModelEntry) {
+    setError(null);
+    setStatus(`Installing ${model.displayName}`);
+    setModelInstallProgress((existing) => ({
+      ...existing,
+      [model.id]: {
+        modelId: model.id,
+        progress: 0,
+        bytesDownloaded: 0,
+        totalBytes: model.downloadSizeMb ? model.downloadSizeMb * 1024 * 1024 : null,
+        message: `Installing ${model.displayName}`,
+      },
+    }));
+
+    try {
+      const installed = await command<ModelEntry>("install_model", { modelId: model.id });
+      setModels((existing) => existing.map((candidate) => (candidate.id === installed.id ? installed : candidate)));
+      setStatus(`${installed.displayName} installed`);
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Model install failed");
+    } finally {
+      setModelInstallProgress((existing) => {
+        const next = { ...existing };
+        delete next[model.id];
+        return next;
+      });
     }
   }
 
@@ -648,7 +705,7 @@ function App() {
                 className="primary-action"
                 type="button"
                 onClick={runSeparation}
-                disabled={!project || !selectedModel?.installed || isBusy}
+                disabled={!project || !selectedModelRunnable || isBusy}
               >
                 {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
                 Run separation
@@ -736,19 +793,43 @@ function App() {
                         {model.downloadSizeMb ? ` · ${model.downloadSizeMb} MB` : ""}
                       </small>
                       {model.license ? <small>{model.license}</small> : null}
+                      <small>{modelStatusText(model, modelInstallProgress[model.id])}</small>
                     </span>
-                    {model.installed ? <CheckCircle2 aria-label="Installed" /> : <X aria-label="Missing" />}
+                    {model.installed ? (
+                      isRunnableModel(model) ? (
+                        <CheckCircle2 aria-label="Installed" />
+                      ) : (
+                        <AlertTriangle aria-label="Backend pending" />
+                      )
+                    ) : (
+                      <X aria-label="Missing" />
+                    )}
                   </button>
-                  {model.sourceUrl || model.downloadUrl ? (
-                    <button
-                      className="model-link"
-                      type="button"
-                      onClick={() => openModelSource(model)}
-                      title="Open model source"
-                    >
-                      <ExternalLink aria-hidden />
-                    </button>
-                  ) : null}
+                  <span className="model-actions">
+                    {isInstallableModel(model) ? (
+                      <button
+                        className="model-install"
+                        type="button"
+                        onClick={() => installModel(model)}
+                        disabled={Boolean(modelInstallProgress[model.id])}
+                      >
+                        <Download aria-hidden />
+                        {modelInstallProgress[model.id]
+                          ? `${Math.round(modelInstallProgress[model.id].progress * 100)}%`
+                          : "Install"}
+                      </button>
+                    ) : null}
+                    {model.sourceUrl || model.downloadUrl ? (
+                      <button
+                        className="model-link"
+                        type="button"
+                        onClick={() => openModelSource(model)}
+                        title="Open model source"
+                      >
+                        <ExternalLink aria-hidden />
+                      </button>
+                    ) : null}
+                  </span>
                 </article>
               ))}
             </div>
@@ -914,6 +995,36 @@ function formatTask(value: TaskType) {
   return TASKS.find((task) => task.value === value)?.label ?? value;
 }
 
+function isRunnableModel(model: ModelEntry) {
+  return model.installed && (model.backend === "pytorch-worker" || model.backend === "stub");
+}
+
+function isInstallableModel(model: ModelEntry) {
+  return !model.installed && Boolean(model.downloadUrl) && model.path.startsWith("models/");
+}
+
+function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
+  if (progress) {
+    return progress.totalBytes
+      ? `${progress.message} · ${Math.round(progress.progress * 100)}%`
+      : progress.message;
+  }
+
+  if (isRunnableModel(model)) {
+    return "Ready";
+  }
+
+  if (model.installed) {
+    return "Installed · backend pending";
+  }
+
+  if (isInstallableModel(model)) {
+    return "Available to install";
+  }
+
+  return "Source available";
+}
+
 const mockModels: ModelEntry[] = [
   {
     id: "demucs_htdemucs_vocals_instrumental",
@@ -982,6 +1093,16 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
 
     case "list_models":
       return mockModels as T;
+
+    case "install_model": {
+      const modelId = args?.modelId as string;
+      const model = mockModels.find((candidate) => candidate.id === modelId);
+      if (!model) {
+        throw new Error("Mock model was not found.");
+      }
+      model.installed = true;
+      return model as T;
+    }
 
     case "import_audio_files":
       mockProject = createMockProject((args?.paths as string[] | undefined) ?? []);

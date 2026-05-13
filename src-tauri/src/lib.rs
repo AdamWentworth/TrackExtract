@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env,
     fs::File,
     io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
@@ -15,8 +15,9 @@ use std::{
 
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
 use trackextract_core::{
-    BackendKind, BackendProgress, BootstrapState, Engine, JobRecord, ModelEntry, ProjectSession,
-    PythonWorkerBackend, SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError,
+    download_model_file, BackendKind, BackendProgress, BootstrapState, Engine, JobRecord,
+    ModelDownloadProgress, ModelEntry, ProjectSession, PythonWorkerBackend, SeparationBackend,
+    StubSeparationBackend, TaskType, TrackExtractError,
 };
 
 const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
@@ -24,6 +25,7 @@ const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
 struct RuntimeState {
     engine: Mutex<Engine>,
     cancellations: Mutex<HashMap<String, Arc<AtomicBool>>>,
+    model_installs: Mutex<HashSet<String>>,
     media_server: MediaServer,
 }
 
@@ -34,6 +36,7 @@ impl RuntimeState {
         Ok(Self {
             engine: Mutex::new(Engine::bootstrap(BUNDLED_MODELS)?),
             cancellations: Mutex::new(HashMap::new()),
+            model_installs: Mutex::new(HashSet::new()),
             media_server,
         })
     }
@@ -55,6 +58,13 @@ fn lock_cancellations(
         .map_err(|_| "TrackExtract cancellation state is unavailable".to_string())
 }
 
+fn lock_model_installs(runtime: &RuntimeState) -> Result<MutexGuard<'_, HashSet<String>>, String> {
+    runtime
+        .model_installs
+        .lock()
+        .map_err(|_| "TrackExtract model installer state is unavailable".to_string())
+}
+
 fn command_error(error: TrackExtractError) -> String {
     error.to_string()
 }
@@ -67,6 +77,77 @@ fn bootstrap_app(state: State<'_, Arc<RuntimeState>>) -> Result<BootstrapState, 
 #[tauri::command]
 fn list_models(state: State<'_, Arc<RuntimeState>>) -> Result<Vec<ModelEntry>, String> {
     Ok(lock_engine(&state)?.list_models())
+}
+
+#[tauri::command]
+async fn install_model(
+    model_id: String,
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<ModelEntry, String> {
+    let runtime = state.inner().clone();
+    {
+        let mut installs = lock_model_installs(&runtime)?;
+        if !installs.insert(model_id.clone()) {
+            return Err("That model is already installing".to_string());
+        }
+    }
+
+    let result = install_model_inner(model_id.clone(), runtime.clone(), app).await;
+    if let Ok(mut installs) = lock_model_installs(&runtime) {
+        installs.remove(&model_id);
+    }
+    result
+}
+
+async fn install_model_inner(
+    model_id: String,
+    runtime: Arc<RuntimeState>,
+    app: AppHandle,
+) -> Result<ModelEntry, String> {
+    let request = {
+        let engine = lock_engine(&runtime)?;
+        engine
+            .prepare_model_install(&model_id)
+            .map_err(command_error)?
+    };
+
+    let runtime_for_install = runtime.clone();
+    let app_for_install = app.clone();
+    let model_id_for_install = model_id.clone();
+    let destination = tauri::async_runtime::spawn_blocking(move || {
+        let progress_handler = |progress: ModelDownloadProgress| {
+            let _ = app_for_install.emit("model_download_progress", &progress);
+        };
+
+        download_model_file(request, &progress_handler, Arc::new(AtomicBool::new(false)))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+    .map_err(command_error)?;
+
+    let (model, models) = {
+        let mut engine = lock_engine(&runtime_for_install)?;
+        let model = engine
+            .complete_model_install(&model_id_for_install)
+            .map_err(command_error)?;
+        let models = engine.list_models();
+        (model, models)
+    };
+
+    app.emit("models_updated", &models)
+        .map_err(|error| error.to_string())?;
+    app.emit(
+        "log_entry",
+        format!(
+            "Installed {} at {}",
+            model.display_name,
+            destination.display()
+        ),
+    )
+    .map_err(|error| error.to_string())?;
+
+    Ok(model)
 }
 
 #[tauri::command]
@@ -604,6 +685,7 @@ pub fn run() {
             bootstrap_app,
             import_audio_files,
             list_models,
+            install_model,
             enqueue_separation,
             start_job,
             cancel_job,

@@ -236,7 +236,7 @@ h2 {
   border: 1px solid #e3dac5;
   border-radius: 8px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 40px;
+  grid-template-columns: minmax(0, 1fr) auto;
   overflow: hidden;
 }
 
@@ -498,23 +498,44 @@ select {
   color: #bd6958;
 }
 
-.model-link {
+.model-select svg[aria-label="Backend pending"] {
+  color: #a28549;
+}
+
+.model-actions {
+  align-self: stretch;
+  display: flex;
+}
+
+.model-link,
+.model-install {
   align-items: center;
   background: #f1eadb;
   border: 0;
   border-left: 1px solid #e3dac5;
   color: #5b665a;
   display: flex;
+  gap: 5px;
   justify-content: center;
+  min-width: 40px;
+  padding: 0 10px;
 }
 
-.model-link:hover {
+.model-link:hover,
+.model-install:hover {
   color: #247c75;
 }
 
-.model-link svg {
+.model-link svg,
+.model-install svg {
   height: 16px;
   width: 16px;
+}
+
+.model-install {
+  color: #1d403d;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .export-panel .primary-action {
