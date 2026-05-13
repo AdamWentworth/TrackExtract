@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
@@ -88,5 +88,17 @@ describe("TrackExtract app", () => {
     await waitFor(() => {
       expect(mockInvoke).not.toHaveBeenCalled();
     });
+  });
+
+  it("shows downloadable vocal cleanup models and marks them backend-pending after install", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Clean Lead Vocal"));
+    expect(await screen.findByText("UVR MDX23C InstVoc HQ")).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByText("Install")[0]);
+
+    expect(await screen.findByText("UVR MDX23C InstVoc HQ installed")).toBeInTheDocument();
+    expect(await screen.findByText("Installed · backend pending")).toBeInTheDocument();
   });
 });

@@ -84,6 +84,18 @@ npm test
 cargo test
 ```
 
+For the broader local suite, use:
+
+```bash
+npm run test:all
+```
+
+That runs model-registry validation, frontend tests, the production frontend build, Rust formatting checks, and Rust tests. Network checks for model download URLs are kept opt-in so local tests are not flaky:
+
+```bash
+TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
+```
+
 ## Project Output
 
 A project uses predictable DAW-friendly folders:

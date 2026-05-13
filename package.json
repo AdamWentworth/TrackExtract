@@ -10,7 +10,13 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev:clean": "bash scripts/tauri-dev-clean-env.sh",
-    "test": "vitest run"
+    "test": "npm run test:frontend",
+    "test:all": "bash scripts/test-all.sh",
+    "test:build": "npm run build",
+    "test:frontend": "vitest run",
+    "test:models": "node scripts/validate-model-registry.mjs",
+    "test:models:network": "node scripts/check-model-urls.mjs",
+    "test:rust": "bash scripts/test-rust.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
