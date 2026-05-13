@@ -75,8 +75,9 @@ describe("TrackExtract app", () => {
 
     expect(await screen.findByText("TrackExtract")).toBeInTheDocument();
     expect(screen.getByText("Import")).toBeInTheDocument();
-    expect(screen.getByText("Workflow")).toBeInTheDocument();
-    expect(screen.getByText("Workflow Details")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Workflow" })).toBeInTheDocument();
+    expect(screen.getByText("Model Registry")).toBeInTheDocument();
+    expect(screen.getByText("All models")).toBeInTheDocument();
     expect(screen.getByText("Queue")).toBeInTheDocument();
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
     expect(screen.getByText("Render Options")).toBeInTheDocument();
@@ -141,7 +142,18 @@ describe("TrackExtract app", () => {
     fireEvent.click(await screen.findByText("Model manager"));
     fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "denoise" } });
 
+    expect((await screen.findAllByText("UVR DeNoise")).length).toBeGreaterThan(0);
+  });
+
+  it("browses and filters the full model registry without opening the manager", async () => {
+    render(<App />);
+
+    expect(await screen.findByText("UVR MDX-NET 9482 ONNX")).toBeInTheDocument();
+
+    fireEvent.change(await screen.findByLabelText("Search model registry"), { target: { value: "denoise" } });
+
     expect(await screen.findByText("UVR DeNoise")).toBeInTheDocument();
+    expect(screen.queryByText("UVR MDX-NET 9482 ONNX")).not.toBeInTheDocument();
   });
 
   it("imports browser mock audio from the drop-zone button", async () => {

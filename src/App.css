@@ -146,7 +146,8 @@ h2 {
   padding: 14px;
 }
 
-.model-rail .model-panel {
+.model-rail .model-panel,
+.model-rail .model-registry-panel {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -552,6 +553,129 @@ input[type="number"] {
   gap: 8px;
 }
 
+.model-registry-panel {
+  gap: 10px;
+}
+
+.registry-tabs {
+  background: #f1eadb;
+  border: 1px solid #e3dac5;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 3px;
+}
+
+.registry-tab {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #4e5148;
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-height: 30px;
+}
+
+.registry-tab.is-selected {
+  background: #fffdf8;
+  box-shadow: 0 1px 3px rgba(34, 32, 26, 0.12);
+  color: #1d403d;
+}
+
+.model-summary-strip {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.model-summary-strip span {
+  background: #f4f8f7;
+  border: 1px solid #d9e5e2;
+  border-radius: 999px;
+  color: #345a56;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 5px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.inline-model-list {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 3px;
+  scrollbar-gutter: stable;
+}
+
+.inline-model-row {
+  align-items: stretch;
+  background: #fbf7ed;
+  border: 1px solid #e3dac5;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.inline-model-row.is-selected {
+  border-color: #247c75;
+  box-shadow: inset 0 0 0 1px #247c75;
+}
+
+.inline-model-main {
+  background: transparent;
+  border: 0;
+  color: #24211d;
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  min-width: 0;
+  padding: 9px;
+  text-align: left;
+}
+
+.inline-model-main strong,
+.inline-model-main small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.inline-model-main small {
+  color: #6b7068;
+  font-size: 0.72rem;
+}
+
+.inline-model-actions {
+  align-items: center;
+  background: #f1eadb;
+  border-left: 1px solid #e3dac5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  min-width: 44px;
+  padding: 6px;
+}
+
+.inline-model-actions > svg {
+  color: #247c75;
+  height: 17px;
+  width: 17px;
+}
+
+.inline-model-actions > svg[aria-label="Missing"] {
+  color: #bd6958;
+}
+
+.inline-model-actions > svg[aria-label="Backend pending"] {
+  color: #a28549;
+}
+
 .workflow-step-row {
   align-items: start;
   background: #fbf7ed;
@@ -864,6 +988,11 @@ input[type="number"] {
   }
 
   .rail.model-rail .model-panel {
+    max-height: 380px;
+    min-height: 260px;
+  }
+
+  .rail.model-rail .model-registry-panel {
     max-height: 380px;
     min-height: 260px;
   }

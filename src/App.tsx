@@ -51,6 +51,7 @@ type BackendKind = "stub" | "onnx" | "pytorch-worker" | "external-process";
 type ModelOptionType = "select" | "integer" | "number" | "boolean";
 type RenderOptionValue = string | number | boolean;
 type WorkflowKind = "preset" | "custom" | "template";
+type ModelPanelView = "library" | "workflow";
 
 interface ModelOptionChoice {
   value: string;
@@ -254,6 +255,7 @@ function App() {
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [modelInstallProgress, setModelInstallProgress] = useState<Record<string, ModelDownloadProgress>>({});
   const [modelManagerOpen, setModelManagerOpen] = useState(false);
+  const [modelPanelView, setModelPanelView] = useState<ModelPanelView>("library");
   const [modelFilter, setModelFilter] = useState("");
   const [customWorkflowName, setCustomWorkflowName] = useState("");
   const [status, setStatus] = useState("Ready");
@@ -490,12 +492,25 @@ function App() {
   const filteredModels = useMemo(() => {
     const query = modelFilter.trim().toLowerCase();
     return models.filter((model) => {
-      const matchesQuery = !query || [model.displayName, model.backend, model.quality, model.version, model.notes]
+      const matchesQuery = !query || [
+        model.displayName,
+        model.backend,
+        model.quality,
+        model.version,
+        model.notes,
+        model.tasks.map(formatTask).join(" "),
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query));
       return matchesQuery;
     });
   }, [modelFilter, models]);
+  const modelCounts = useMemo(() => ({
+    total: models.length,
+    runnable: models.filter(isRunnableModel).length,
+    installable: models.filter(isInstallableModel).length,
+    pending: models.filter((model) => model.installed && !isRunnableModel(model)).length,
+  }), [models]);
 
   useEffect(() => {
     if (!selectedWorkflowStep) {
@@ -987,42 +1002,140 @@ function App() {
         </section>
 
         <aside className="rail model-rail">
-          <section className="panel workflow-details-panel">
+          <section className="panel model-registry-panel">
             <div className="panel-heading with-action">
               <span>
-                <ListMusic aria-hidden />
-                <h2>Workflow Details</h2>
+                <Database aria-hidden />
+                <h2>Model Registry</h2>
               </span>
               <button className="icon-button" type="button" onClick={() => setModelManagerOpen(true)} title="Open model manager">
                 <Database aria-hidden />
               </button>
             </div>
-            <div className="workflow-step-list">
-              {(selectedWorkflow?.steps ?? [{
-                id: "ad_hoc",
-                displayName: "Ad hoc step",
-                task,
-                modelId: selectedModelId,
-                options: renderOptions,
-              }]).map((step, index) => {
-                const stepModel = models.find((model) => model.id === step.modelId);
-                return (
-                  <article className="workflow-step-row" key={step.id}>
-                    <span>{index + 1}</span>
-                    <div>
-                      <strong>{step.displayName}</strong>
-                      <small>{formatTask(step.task)}</small>
-                      <small>{stepModel?.displayName ?? step.modelId}</small>
-                      {stepModel ? <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small> : null}
-                    </div>
-                  </article>
-                );
-              })}
+
+            <div className="registry-tabs" role="tablist" aria-label="Model registry view">
+              <button
+                aria-selected={modelPanelView === "library"}
+                className={modelPanelView === "library" ? "registry-tab is-selected" : "registry-tab"}
+                onClick={() => setModelPanelView("library")}
+                role="tab"
+                type="button"
+              >
+                All models
+              </button>
+              <button
+                aria-selected={modelPanelView === "workflow"}
+                className={modelPanelView === "workflow" ? "registry-tab is-selected" : "registry-tab"}
+                onClick={() => setModelPanelView("workflow")}
+                role="tab"
+                type="button"
+              >
+                Workflow
+              </button>
             </div>
-            <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
-              <Database aria-hidden />
-              Manage models
-            </button>
+
+            {modelPanelView === "library" ? (
+              <>
+                <input
+                  aria-label="Search model registry"
+                  onChange={(event) => setModelFilter(event.currentTarget.value)}
+                  placeholder="Search all models"
+                  type="search"
+                  value={modelFilter}
+                />
+                <div className="model-summary-strip" aria-label="Model registry summary">
+                  <span>{modelCounts.total} total</span>
+                  <span>{modelCounts.runnable} runnable</span>
+                  <span>{modelCounts.installable} installable</span>
+                  <span>{modelCounts.pending} pending</span>
+                </div>
+                <div className="inline-model-list">
+                  {filteredModels.length === 0 ? (
+                    <div className="empty-state compact">
+                      <span>No models match this search.</span>
+                    </div>
+                  ) : (
+                    filteredModels.map((model) => (
+                      <article
+                        className={selectedModelId === model.id ? "inline-model-row is-selected" : "inline-model-row"}
+                        key={model.id}
+                      >
+                        <button className="inline-model-main" type="button" onClick={() => useModelFromManager(model)}>
+                          <strong>{model.displayName}</strong>
+                          <small>
+                            {model.backend} · {model.quality} · {formatTask(model.tasks[0])}
+                          </small>
+                          <small>{modelStatusText(model, modelInstallProgress[model.id])}</small>
+                        </button>
+                        <div className="inline-model-actions">
+                          {isInstallableModel(model) ? (
+                            <button
+                              className="model-install"
+                              type="button"
+                              onClick={() => installModel(model)}
+                              disabled={Boolean(modelInstallProgress[model.id])}
+                              title={`Install ${model.displayName}`}
+                            >
+                              <Download aria-hidden />
+                              {modelInstallProgress[model.id]
+                                ? `${Math.round(modelInstallProgress[model.id].progress * 100)}%`
+                                : "Install"}
+                            </button>
+                          ) : null}
+                          {model.sourceUrl || model.downloadUrl ? (
+                            <button className="model-link" type="button" onClick={() => openModelSource(model)} title="Open model source">
+                              <ExternalLink aria-hidden />
+                            </button>
+                          ) : null}
+                          {model.installed ? (
+                            isRunnableModel(model) ? (
+                              <CheckCircle2 aria-label="Installed" />
+                            ) : (
+                              <AlertTriangle aria-label="Backend pending" />
+                            )
+                          ) : (
+                            <X aria-label="Missing" />
+                          )}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
+                <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
+                  <Database aria-hidden />
+                  Manage models
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="workflow-step-list">
+                  {(selectedWorkflow?.steps ?? [{
+                    id: "ad_hoc",
+                    displayName: "Ad hoc step",
+                    task,
+                    modelId: selectedModelId,
+                    options: renderOptions,
+                  }]).map((step, index) => {
+                    const stepModel = models.find((model) => model.id === step.modelId);
+                    return (
+                      <article className="workflow-step-row" key={step.id}>
+                        <span>{index + 1}</span>
+                        <div>
+                          <strong>{step.displayName}</strong>
+                          <small>{formatTask(step.task)}</small>
+                          <small>{stepModel?.displayName ?? step.modelId}</small>
+                          {stepModel ? <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small> : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+                <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
+                  <Database aria-hidden />
+                  Manage models
+                </button>
+              </>
+            )}
           </section>
 
           <section className="panel export-panel">
