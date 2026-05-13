@@ -308,8 +308,9 @@ function App() {
       compatible.find((model) => model.installed && model.backend !== "stub") ??
       compatible.find((model) => model.installed) ??
       compatible[0];
+    const selected = compatible.find((model) => model.id === selectedModelId);
 
-    if (preferred && !compatible.some((model) => model.id === selectedModelId)) {
+    if (preferred && (!selected || (selected.backend === "stub" && preferred.backend !== "stub"))) {
       setSelectedModelId(preferred.id);
     }
   }, [models, selectedModelId, task]);
