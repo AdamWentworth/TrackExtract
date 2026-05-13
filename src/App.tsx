@@ -128,6 +128,11 @@ interface PreviewState {
   volume: number;
 }
 
+interface PreviewClip {
+  url: string;
+  durationSeconds: number;
+}
+
 const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
   { value: "vocals_instrumental", label: "Vocals / Instrumental", short: "Vocal split" },
   { value: "full_stem_split", label: "Full Stem Split", short: "6 stems" },
@@ -183,7 +188,7 @@ function App() {
   const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
-  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const [previewClips, setPreviewClips] = useState<Record<string, PreviewClip>>({});
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -214,7 +219,7 @@ function App() {
       setSelectedSourceId(imported.originalFiles[0]?.id ?? "");
       setSelectedStemIds([]);
       setPreviewState({});
-      setPreviewUrls({});
+      setPreviewClips({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
@@ -336,7 +341,7 @@ function App() {
       return next;
     });
 
-    setPreviewUrls((existing) => {
+    setPreviewClips((existing) => {
       const ids = new Set(project.stems.map((stem) => stem.id));
       return Object.fromEntries(Object.entries(existing).filter(([id]) => ids.has(id)));
     });
@@ -350,19 +355,25 @@ function App() {
     let cancelled = false;
 
     for (const stem of project.stems) {
-      if (previewUrls[stem.id]) {
+      if (previewClips[stem.id]) {
         continue;
       }
 
       command<string>("create_stem_preview", { path: stem.path })
         .then((url) => {
           if (!cancelled) {
-            setPreviewUrls((existing) => ({ ...existing, [stem.id]: url }));
+            setPreviewClips((existing) => ({
+              ...existing,
+              [stem.id]: { durationSeconds: 12, url },
+            }));
           }
         })
         .catch(() => {
           if (!cancelled) {
-            setPreviewUrls((existing) => ({ ...existing, [stem.id]: audioSrc(stem.path) }));
+            setPreviewClips((existing) => ({
+              ...existing,
+              [stem.id]: { durationSeconds: 0, url: audioSrc(stem.path) },
+            }));
           }
         });
     }
@@ -370,7 +381,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [project, previewUrls]);
+  }, [project, previewClips]);
 
   const compatibleModels = useMemo(
     () => models.filter((model) => model.tasks.includes(task)),
@@ -667,7 +678,7 @@ function App() {
                     soloActive={soloActive}
                     state={previewState[stem.id] ?? { muted: false, solo: false, volume: 1 }}
                     stem={stem}
-                    previewUrl={previewUrls[stem.id]}
+                    previewClip={previewClips[stem.id]}
                     onSelect={() => toggleStemSelection(stem.id)}
                     onUpdate={(patch) => setStemPreview(stem.id, patch)}
                   />
@@ -769,19 +780,20 @@ function StemPreview({
   selected,
   onSelect,
   onUpdate,
-  previewUrl,
+  previewClip,
 }: {
   stem: StemFile;
   state: PreviewState;
   soloActive: boolean;
   selected: boolean;
-  previewUrl?: string;
+  previewClip?: PreviewClip;
   onSelect: () => void;
   onUpdate: (patch: Partial<PreviewState>) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isAudible = !state.muted && (!soloActive || state.solo);
-  const source = previewUrl ?? (isTauriRuntime() ? undefined : audioSrc(stem.path));
+  const fullSource = audioSrc(stem.path);
+  const fallbackSource = previewClip?.url;
 
   useEffect(() => {
     if (audioRef.current) {
@@ -791,7 +803,7 @@ function StemPreview({
 
   useEffect(() => {
     audioRef.current?.load();
-  }, [source]);
+  }, [fullSource, fallbackSource]);
 
   return (
     <article className="stem-row">
@@ -799,9 +811,15 @@ function StemPreview({
         <input type="checkbox" checked={selected} onChange={onSelect} />
         <span>{stem.label}</span>
       </label>
-      <audio ref={audioRef} controls muted={!isAudible} preload="metadata">
-        {source ? <source src={source} type="audio/wav" /> : null}
-      </audio>
+      <div className="stem-audio">
+        <audio ref={audioRef} controls muted={!isAudible} preload="metadata">
+          <source src={fullSource} type="audio/wav" />
+          {fallbackSource ? <source src={fallbackSource} type="audio/wav" /> : null}
+        </audio>
+        {previewClip?.durationSeconds ? (
+          <span>{previewClip.durationSeconds}s fallback preview; exported file is full length</span>
+        ) : null}
+      </div>
       <div className="stem-controls">
         <button
           className={state.solo ? "toggle is-on" : "toggle"}

@@ -419,10 +419,21 @@ select {
   gap: 8px;
 }
 
-.stem-row audio {
+.stem-audio {
+  display: grid;
+  gap: 4px;
+}
+
+.stem-audio audio {
   height: 34px;
   max-width: 100%;
   width: 100%;
+}
+
+.stem-audio span {
+  color: #6b7068;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .toggle {
