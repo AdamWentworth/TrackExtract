@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
@@ -128,11 +128,6 @@ interface PreviewState {
   volume: number;
 }
 
-interface PreviewClip {
-  url: string;
-  durationSeconds: number;
-}
-
 const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
   { value: "vocals_instrumental", label: "Vocals / Instrumental", short: "Vocal split" },
   { value: "full_stem_split", label: "Full Stem Split", short: "6 stems" },
@@ -174,8 +169,10 @@ async function listenTo<T>(
   return listen<T>(eventName, handler);
 }
 
-function audioSrc(path: string) {
-  return isTauriRuntime() ? convertFileSrc(path) : mockPreviewAudioUrl(path);
+function stemMediaSrc(path: string) {
+  return isTauriRuntime()
+    ? `trackextract-media://localhost/${encodeURIComponent(path)}`
+    : mockPreviewAudioUrl(path);
 }
 
 function App() {
@@ -188,7 +185,6 @@ function App() {
   const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
-  const [previewClips, setPreviewClips] = useState<Record<string, PreviewClip>>({});
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -219,7 +215,6 @@ function App() {
       setSelectedSourceId(imported.originalFiles[0]?.id ?? "");
       setSelectedStemIds([]);
       setPreviewState({});
-      setPreviewClips({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
@@ -341,47 +336,7 @@ function App() {
       return next;
     });
 
-    setPreviewClips((existing) => {
-      const ids = new Set(project.stems.map((stem) => stem.id));
-      return Object.fromEntries(Object.entries(existing).filter(([id]) => ids.has(id)));
-    });
   }, [project]);
-
-  useEffect(() => {
-    if (!project || !isTauriRuntime()) {
-      return;
-    }
-
-    let cancelled = false;
-
-    for (const stem of project.stems) {
-      if (previewClips[stem.id]) {
-        continue;
-      }
-
-      command<string>("create_stem_preview", { path: stem.path })
-        .then((url) => {
-          if (!cancelled) {
-            setPreviewClips((existing) => ({
-              ...existing,
-              [stem.id]: { durationSeconds: 12, url },
-            }));
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setPreviewClips((existing) => ({
-              ...existing,
-              [stem.id]: { durationSeconds: 0, url: audioSrc(stem.path) },
-            }));
-          }
-        });
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [project, previewClips]);
 
   const compatibleModels = useMemo(
     () => models.filter((model) => model.tasks.includes(task)),
@@ -678,7 +633,6 @@ function App() {
                     soloActive={soloActive}
                     state={previewState[stem.id] ?? { muted: false, solo: false, volume: 1 }}
                     stem={stem}
-                    previewClip={previewClips[stem.id]}
                     onSelect={() => toggleStemSelection(stem.id)}
                     onUpdate={(patch) => setStemPreview(stem.id, patch)}
                   />
@@ -780,20 +734,17 @@ function StemPreview({
   selected,
   onSelect,
   onUpdate,
-  previewClip,
 }: {
   stem: StemFile;
   state: PreviewState;
   soloActive: boolean;
   selected: boolean;
-  previewClip?: PreviewClip;
   onSelect: () => void;
   onUpdate: (patch: Partial<PreviewState>) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isAudible = !state.muted && (!soloActive || state.solo);
-  const fullSource = audioSrc(stem.path);
-  const fallbackSource = previewClip?.url;
+  const source = stemMediaSrc(stem.path);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -803,7 +754,7 @@ function StemPreview({
 
   useEffect(() => {
     audioRef.current?.load();
-  }, [fullSource, fallbackSource]);
+  }, [source]);
 
   return (
     <article className="stem-row">
@@ -813,12 +764,8 @@ function StemPreview({
       </label>
       <div className="stem-audio">
         <audio ref={audioRef} controls muted={!isAudible} preload="metadata">
-          <source src={fullSource} type="audio/wav" />
-          {fallbackSource ? <source src={fallbackSource} type="audio/wav" /> : null}
+          <source src={source} type="audio/wav" />
         </audio>
-        {previewClip?.durationSeconds ? (
-          <span>{previewClip.durationSeconds}s fallback preview; exported file is full length</span>
-        ) : null}
       </div>
       <div className="stem-controls">
         <button

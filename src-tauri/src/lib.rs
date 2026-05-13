@@ -1,8 +1,9 @@
 use std::{
     collections::HashMap,
     env,
-    io::Read,
-    path::PathBuf,
+    fs::File,
+    io::{Read, Seek, SeekFrom},
+    path::{Path, PathBuf},
     process::Command,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -10,8 +11,11 @@ use std::{
     },
 };
 
-use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
-use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
+use tauri::{
+    http::{header, Response, StatusCode},
+    path::BaseDirectory,
+    plugin, AppHandle, Emitter, Manager, Runtime, State,
+};
 use trackextract_core::{
     BackendKind, BackendProgress, BootstrapState, Engine, JobRecord, ModelEntry, ProjectSession,
     PythonWorkerBackend, SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError,
@@ -236,106 +240,8 @@ fn export_stems(
 }
 
 #[tauri::command]
-fn create_stem_preview(path: String) -> Result<String, String> {
-    wav_preview_data_uri(&PathBuf::from(path), 12).map_err(|error| error.to_string())
-}
-
-#[tauri::command]
 fn reveal_path(path: String) -> Result<(), String> {
     open_path(&PathBuf::from(path))
-}
-
-fn wav_preview_data_uri(path: &PathBuf, seconds: u32) -> Result<String, TrackExtractError> {
-    let mut reader = hound::WavReader::open(path)?;
-    let spec = reader.spec();
-
-    if spec.channels == 0 || spec.sample_rate == 0 {
-        return Err(TrackExtractError::UserFacing(
-            "Preview WAV has invalid channel or sample-rate metadata".to_string(),
-        ));
-    }
-
-    let max_samples = spec.sample_rate as usize * seconds as usize * spec.channels as usize;
-    let samples = preview_samples_i16(&mut reader, max_samples)?;
-    let wav = build_pcm16_wav(&samples, spec.channels, spec.sample_rate)?;
-
-    Ok(format!("data:audio/wav;base64,{}", BASE64.encode(wav)))
-}
-
-fn preview_samples_i16<R: Read>(
-    reader: &mut hound::WavReader<R>,
-    max_samples: usize,
-) -> Result<Vec<i16>, TrackExtractError> {
-    let spec = reader.spec();
-
-    match (spec.sample_format, spec.bits_per_sample) {
-        (hound::SampleFormat::Int, 1..=16) => reader
-            .samples::<i16>()
-            .take(max_samples)
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(TrackExtractError::from),
-        (hound::SampleFormat::Int, _) => reader
-            .samples::<i32>()
-            .take(max_samples)
-            .map(|sample| {
-                let sample = sample?;
-                let shift = spec.bits_per_sample.saturating_sub(16);
-                Ok((sample >> shift) as i16)
-            })
-            .collect(),
-        (hound::SampleFormat::Float, _) => reader
-            .samples::<f32>()
-            .take(max_samples)
-            .map(|sample| {
-                let sample = sample?;
-                Ok((sample.clamp(-1.0, 1.0) * i16::MAX as f32) as i16)
-            })
-            .collect(),
-    }
-}
-
-fn build_pcm16_wav(
-    samples: &[i16],
-    channels: u16,
-    sample_rate: u32,
-) -> Result<Vec<u8>, TrackExtractError> {
-    let data_len = samples
-        .len()
-        .checked_mul(2)
-        .ok_or_else(|| TrackExtractError::UserFacing("Preview clip is too large".to_string()))?;
-    let riff_len = 36usize
-        .checked_add(data_len)
-        .ok_or_else(|| TrackExtractError::UserFacing("Preview clip is too large".to_string()))?;
-
-    if riff_len > u32::MAX as usize {
-        return Err(TrackExtractError::UserFacing(
-            "Preview clip is too large".to_string(),
-        ));
-    }
-
-    let block_align = channels * 2;
-    let byte_rate = sample_rate * block_align as u32;
-    let mut output = Vec::with_capacity(44 + data_len);
-
-    output.extend_from_slice(b"RIFF");
-    output.extend_from_slice(&(riff_len as u32).to_le_bytes());
-    output.extend_from_slice(b"WAVE");
-    output.extend_from_slice(b"fmt ");
-    output.extend_from_slice(&16u32.to_le_bytes());
-    output.extend_from_slice(&1u16.to_le_bytes());
-    output.extend_from_slice(&channels.to_le_bytes());
-    output.extend_from_slice(&sample_rate.to_le_bytes());
-    output.extend_from_slice(&byte_rate.to_le_bytes());
-    output.extend_from_slice(&block_align.to_le_bytes());
-    output.extend_from_slice(&16u16.to_le_bytes());
-    output.extend_from_slice(b"data");
-    output.extend_from_slice(&(data_len as u32).to_le_bytes());
-
-    for sample in samples {
-        output.extend_from_slice(&sample.to_le_bytes());
-    }
-
-    Ok(output)
 }
 
 fn open_path(path: &PathBuf) -> Result<(), String> {
@@ -364,12 +270,163 @@ fn open_path(path: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
+fn media_protocol<R: Runtime>() -> plugin::TauriPlugin<R> {
+    plugin::Builder::new("trackextract-media")
+        .register_uri_scheme_protocol("trackextract-media", |_ctx, request| {
+            match stream_stem_response(request) {
+                Ok(response) => response,
+                Err(error) => Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .header(header::CONTENT_TYPE, "text/plain")
+                    .body(error.into_bytes())
+                    .expect("error response"),
+            }
+        })
+        .build()
+}
+
+fn stream_stem_response(
+    request: tauri::http::Request<Vec<u8>>,
+) -> Result<Response<Vec<u8>>, String> {
+    let encoded_path = request.uri().path().trim_start_matches('/');
+    let path = PathBuf::from(percent_decode(encoded_path)?);
+    let canonical_path = path.canonicalize().map_err(|error| error.to_string())?;
+
+    if !is_trackextract_stem_path(&canonical_path) {
+        return Err("Requested media path is outside TrackExtract project stems".to_string());
+    }
+
+    let mut file = File::open(&canonical_path).map_err(|error| error.to_string())?;
+    let len = file
+        .seek(SeekFrom::End(0))
+        .map_err(|error| error.to_string())?;
+    file.seek(SeekFrom::Start(0))
+        .map_err(|error| error.to_string())?;
+
+    let mut response = Response::builder()
+        .header(header::CONTENT_TYPE, "audio/wav")
+        .header(header::ACCEPT_RANGES, "bytes");
+
+    if let Some(range) = request.headers().get(header::RANGE) {
+        let range = range
+            .to_str()
+            .map_err(|_| "Range header is not valid UTF-8".to_string())?;
+        let (start, end) = parse_byte_range(range, len)?;
+        let bytes_to_read = end + 1 - start;
+        let mut body = vec![0; bytes_to_read as usize];
+        file.seek(SeekFrom::Start(start))
+            .map_err(|error| error.to_string())?;
+        file.read_exact(&mut body)
+            .map_err(|error| error.to_string())?;
+
+        response = response
+            .status(StatusCode::PARTIAL_CONTENT)
+            .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{len}"))
+            .header(header::CONTENT_LENGTH, bytes_to_read);
+        response.body(body).map_err(|error| error.to_string())
+    } else {
+        let mut body = Vec::with_capacity(len as usize);
+        file.read_to_end(&mut body)
+            .map_err(|error| error.to_string())?;
+
+        response = response.header(header::CONTENT_LENGTH, len);
+        response.body(body).map_err(|error| error.to_string())
+    }
+}
+
+fn is_trackextract_stem_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("wav"))
+        && path
+            .components()
+            .any(|component| component.as_os_str() == "TrackExtract Projects")
+        && path
+            .parent()
+            .and_then(|parent| parent.file_name())
+            .is_some_and(|name| name == "stems")
+}
+
+fn parse_byte_range(range: &str, len: u64) -> Result<(u64, u64), String> {
+    let range = range
+        .strip_prefix("bytes=")
+        .ok_or_else(|| "Only byte ranges are supported".to_string())?;
+    let (start, end) = range
+        .split_once('-')
+        .ok_or_else(|| "Byte range is malformed".to_string())?;
+
+    if len == 0 {
+        return Err("Cannot range-read an empty file".to_string());
+    }
+
+    let (start, end) = if start.is_empty() {
+        let suffix = end
+            .parse::<u64>()
+            .map_err(|_| "Byte range suffix is malformed".to_string())?;
+        let start = len.saturating_sub(suffix);
+        (start, len - 1)
+    } else {
+        let start = start
+            .parse::<u64>()
+            .map_err(|_| "Byte range start is malformed".to_string())?;
+        let end = if end.is_empty() {
+            len - 1
+        } else {
+            end.parse::<u64>()
+                .map_err(|_| "Byte range end is malformed".to_string())?
+        };
+        (start, end.min(len - 1))
+    };
+
+    if start > end || start >= len {
+        Err("Byte range is not satisfiable".to_string())
+    } else {
+        Ok((start, end))
+    }
+}
+
+fn percent_decode(input: &str) -> Result<String, String> {
+    let bytes = input.as_bytes();
+    let mut output = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+
+    while index < bytes.len() {
+        if bytes[index] == b'%' {
+            let high = bytes
+                .get(index + 1)
+                .and_then(|byte| hex_value(*byte))
+                .ok_or_else(|| "Percent-encoded path is malformed".to_string())?;
+            let low = bytes
+                .get(index + 2)
+                .and_then(|byte| hex_value(*byte))
+                .ok_or_else(|| "Percent-encoded path is malformed".to_string())?;
+            output.push((high << 4) | low);
+            index += 3;
+        } else {
+            output.push(bytes[index]);
+            index += 1;
+        }
+    }
+
+    String::from_utf8(output).map_err(|_| "Media path is not valid UTF-8".to_string())
+}
+
+fn hex_value(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let runtime = RuntimeState::new().expect("failed to initialize TrackExtract runtime");
 
     tauri::Builder::default()
         .manage(Arc::new(runtime))
+        .plugin(media_protocol())
         .setup(|app| {
             if let Ok(worker_path) = app
                 .path()
@@ -393,7 +450,6 @@ pub fn run() {
             get_project,
             get_jobs,
             export_stems,
-            create_stem_preview,
             reveal_path
         ])
         .run(tauri::generate_context!())
