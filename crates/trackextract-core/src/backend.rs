@@ -37,7 +37,9 @@ pub struct SeparationRequest {
     pub source_path: PathBuf,
     pub stems_dir: PathBuf,
     pub logs_dir: PathBuf,
+    pub app_data_dir: PathBuf,
     pub model: ModelEntry,
+    pub model_path: Option<PathBuf>,
     pub task: TaskType,
     pub options: Value,
 }
@@ -439,6 +441,292 @@ impl SeparationBackend for PythonWorkerBackend {
     }
 }
 
+#[derive(Debug, Default)]
+pub struct AudioSeparatorBackend;
+
+impl AudioSeparatorBackend {
+    fn report(
+        request: &SeparationRequest,
+        progress: &(dyn Fn(BackendProgress) + Send + Sync),
+        amount: f32,
+        message: impl Into<String>,
+    ) {
+        progress(BackendProgress {
+            job_id: request.job_id.clone(),
+            progress: amount,
+            message: message.into(),
+        });
+    }
+
+    fn resolve_python() -> PathBuf {
+        if let Ok(path) = env::var("TRACKEXTRACT_AUDIO_SEPARATOR_PYTHON") {
+            return PathBuf::from(path);
+        }
+
+        if let Ok(path) = env::var("TRACKEXTRACT_PYTHON") {
+            return PathBuf::from(path);
+        }
+
+        for root in candidate_roots() {
+            for relative in [
+                ".venv-audio-separator/bin/python",
+                ".venv-audio-separator/Scripts/python.exe",
+                ".venv/bin/python",
+                ".venv/Scripts/python.exe",
+            ] {
+                let candidate = root.join(relative);
+                if candidate.exists() {
+                    return candidate;
+                }
+            }
+        }
+
+        PathBuf::from("python3")
+    }
+
+    fn resolve_worker_script(request: &SeparationRequest) -> Result<PathBuf> {
+        if let Ok(path) = env::var("TRACKEXTRACT_AUDIO_SEPARATOR_WORKER") {
+            let path = PathBuf::from(path);
+            if path.exists() {
+                return Ok(path);
+            }
+        }
+
+        let configured = if !request.model.runtime.worker_script.is_empty() {
+            request.model.runtime.worker_script.as_str()
+        } else {
+            "workers/audio_separator_worker.py"
+        };
+
+        let configured_path = PathBuf::from(configured);
+        if configured_path.is_absolute() && configured_path.exists() {
+            return Ok(configured_path);
+        }
+
+        for root in candidate_roots() {
+            let candidate = root.join(&configured_path);
+            if candidate.exists() {
+                return Ok(candidate);
+            }
+        }
+
+        Err(TrackExtractError::UserFacing(format!(
+            "Audio Separator worker script was not found at {configured}. Run from the TrackExtract repo or set TRACKEXTRACT_AUDIO_SEPARATOR_WORKER."
+        )))
+    }
+
+    fn model_path(request: &SeparationRequest) -> Result<PathBuf> {
+        let model_path = request.model_path.clone().ok_or_else(|| {
+            TrackExtractError::ModelUnavailable(format!(
+                "{} does not have an installed local model file",
+                request.model.display_name
+            ))
+        })?;
+
+        if !model_path.is_file() {
+            return Err(TrackExtractError::ModelUnavailable(format!(
+                "{} was expected at {}, but the file is missing",
+                request.model.display_name,
+                model_path.display()
+            )));
+        }
+
+        let extension = model_path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .unwrap_or_default()
+            .to_ascii_lowercase();
+        if extension == "th" {
+            return Err(TrackExtractError::ModelUnavailable(format!(
+                "{} is a raw Demucs weight asset and needs a YAML model definition before it can run",
+                request.model.display_name
+            )));
+        }
+
+        Ok(model_path)
+    }
+
+    fn device(request: &SeparationRequest) -> String {
+        option_string(&request.options, "device")
+            .filter(|device| !device.trim().is_empty())
+            .or_else(|| {
+                if request.model.runtime.device.is_empty() {
+                    None
+                } else {
+                    Some(request.model.runtime.device.clone())
+                }
+            })
+            .unwrap_or_else(|| "auto".to_string())
+    }
+}
+
+impl SeparationBackend for AudioSeparatorBackend {
+    fn kind(&self) -> BackendKind {
+        BackendKind::ExternalProcess
+    }
+
+    fn run(
+        &self,
+        request: SeparationRequest,
+        progress: &(dyn Fn(BackendProgress) + Send + Sync),
+        cancel_token: Arc<AtomicBool>,
+    ) -> Result<SeparationOutput> {
+        fs::create_dir_all(&request.stems_dir)?;
+        fs::create_dir_all(&request.logs_dir)?;
+
+        let python = Self::resolve_python();
+        let worker_script = Self::resolve_worker_script(&request)?;
+        let model_path = Self::model_path(&request)?;
+        let model_file_dir = model_path
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| request.app_data_dir.join("models"));
+        let model_filename = model_path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .ok_or_else(|| {
+                TrackExtractError::ModelUnavailable(format!(
+                    "{} has an invalid model filename",
+                    request.model.display_name
+                ))
+            })?
+            .to_string();
+
+        let log_path = request.logs_dir.join(format!("{}.log", request.job_id));
+        let result_path = request
+            .logs_dir
+            .join(format!("{}.audio-separator-result.json", request.job_id));
+        let stems_json = serde_json::to_string(&request.model.stems)?;
+
+        Self::report(&request, progress, 0.03, "Preparing Audio Separator worker");
+
+        let mut command = Command::new(&python);
+        command
+            .arg(worker_script)
+            .arg("--input")
+            .arg(&request.source_path)
+            .arg("--output-dir")
+            .arg(&request.stems_dir)
+            .arg("--model-file-dir")
+            .arg(model_file_dir)
+            .arg("--model-filename")
+            .arg(model_filename)
+            .arg("--result-json")
+            .arg(&result_path)
+            .arg("--log-path")
+            .arg(&log_path)
+            .arg("--project-name")
+            .arg(&request.project_name)
+            .arg("--job-id")
+            .arg(&request.job_id)
+            .arg("--task")
+            .arg(task_arg(&request.task))
+            .arg("--stems-json")
+            .arg(stems_json)
+            .arg("--sample-rate")
+            .arg(request.model.sample_rate.to_string())
+            .arg("--device")
+            .arg(Self::device(&request))
+            .arg("--mdx-segment-size")
+            .arg(
+                option_u64(&request.options, "mdxSegmentSize")
+                    .or_else(|| option_u64(&request.options, "chunkSize"))
+                    .unwrap_or(256)
+                    .to_string(),
+            )
+            .arg("--mdx-overlap")
+            .arg(
+                option_f64(&request.options, "mdxOverlap")
+                    .or_else(|| option_f64(&request.options, "overlap"))
+                    .unwrap_or(0.25)
+                    .to_string(),
+            )
+            .arg("--batch-size")
+            .arg(
+                option_u64(&request.options, "batchSize")
+                    .unwrap_or(1)
+                    .to_string(),
+            )
+            .stdout(Stdio::null())
+            .stderr(Stdio::null());
+
+        if option_bool(&request.options, "enableDenoisePass").unwrap_or(false) {
+            command.arg("--enable-denoise-pass");
+        }
+
+        Self::report(&request, progress, 0.08, "Starting Audio Separator");
+
+        let mut child = command.spawn().map_err(|error| {
+            TrackExtractError::UserFacing(format!(
+                "Could not start Audio Separator worker with {}: {error}. Run scripts/setup-audio-separator-worker.sh or set TRACKEXTRACT_AUDIO_SEPARATOR_PYTHON.",
+                python.display()
+            ))
+        })?;
+
+        let started = Instant::now();
+        let mut last_reported_second = 0;
+        let status = loop {
+            if cancel_token.load(Ordering::Relaxed) {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(TrackExtractError::Cancelled);
+            }
+
+            if let Some(status) = child.try_wait()? {
+                break status;
+            }
+
+            let elapsed = started.elapsed().as_secs();
+            if elapsed / 2 > last_reported_second {
+                last_reported_second = elapsed / 2;
+                let progress_amount = (0.12 + (elapsed as f32 / 240.0) * 0.76).min(0.88);
+                Self::report(
+                    &request,
+                    progress,
+                    progress_amount,
+                    if elapsed < 30 {
+                        "Running Audio Separator model"
+                    } else {
+                        "Still separating audio with Audio Separator"
+                    },
+                );
+            }
+
+            thread::sleep(Duration::from_millis(250));
+        };
+
+        if !status.success() {
+            let detail = read_log_tail(&log_path).unwrap_or_else(|| {
+                format!(
+                    "Worker exited with status {status}. Check that audio-separator is installed in {}.",
+                    python.display()
+                )
+            });
+            return Err(TrackExtractError::UserFacing(format!(
+                "Audio Separator failed: {detail}"
+            )));
+        }
+
+        Self::report(&request, progress, 0.94, "Collecting generated stems");
+
+        let result_json = fs::read_to_string(&result_path).map_err(|error| {
+            TrackExtractError::UserFacing(format!(
+                "Audio Separator finished but did not write a result file: {error}"
+            ))
+        })?;
+        let worker_result: WorkerResult = serde_json::from_str(&result_json)?;
+        let stems = worker_result
+            .stems
+            .into_iter()
+            .map(|stem| StemFile::new(stem.label, PathBuf::from(stem.path), request.job_id.clone()))
+            .collect::<Vec<_>>();
+
+        Self::report(&request, progress, 1.0, "Audio Separator complete");
+
+        Ok(SeparationOutput { stems, log_path })
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct WorkerResult {
@@ -488,6 +776,13 @@ fn option_f64(options: &Value, key: &str) -> Option<f64> {
         .as_object()
         .and_then(|values| values.get(key))
         .and_then(Value::as_f64)
+}
+
+fn option_bool(options: &Value, key: &str) -> Option<bool> {
+    options
+        .as_object()
+        .and_then(|values| values.get(key))
+        .and_then(Value::as_bool)
 }
 
 fn candidate_roots() -> Vec<PathBuf> {
@@ -564,6 +859,7 @@ mod tests {
             source_path: input,
             stems_dir: temp.path().join("stems"),
             logs_dir: temp.path().join("logs"),
+            app_data_dir: temp.path().join("app-data"),
             model: ModelEntry {
                 id: "stub".into(),
                 display_name: "Stub".into(),
@@ -583,6 +879,7 @@ mod tests {
                 runtime: ModelRuntimeConfig::default(),
                 options: Vec::new(),
             },
+            model_path: None,
             task: TaskType::VocalsInstrumental,
             options: serde_json::json!({}),
         };
@@ -598,6 +895,106 @@ mod tests {
             assert_eq!(reader.spec().sample_rate, 44_100);
             assert_eq!(reader.spec().bits_per_sample, 16);
             assert_eq!(reader.spec().sample_format, hound::SampleFormat::Int);
+        }
+    }
+
+    #[test]
+    fn audio_separator_backend_reads_worker_result() {
+        let temp = tempdir().expect("tempdir");
+        let input = temp.path().join("input.wav");
+        let model_path = temp.path().join("app-data/models/onnx/test.onnx");
+        let worker_path = temp.path().join("fake_audio_separator_worker.py");
+        write_test_wav(&input);
+        fs::create_dir_all(model_path.parent().unwrap()).expect("model dir");
+        fs::write(&model_path, b"fake model").expect("model file");
+        fs::write(
+            &worker_path,
+            r#"#!/usr/bin/env python3
+import argparse
+import json
+import wave
+from pathlib import Path
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--output-dir", required=True)
+parser.add_argument("--result-json", required=True)
+parser.add_argument("--log-path", required=True)
+parser.add_argument("--project-name", required=True)
+parser.add_argument("--stems-json", required=True)
+parser.add_argument("--input")
+parser.add_argument("--model-file-dir")
+parser.add_argument("--model-filename")
+parser.add_argument("--job-id")
+parser.add_argument("--task")
+parser.add_argument("--sample-rate")
+parser.add_argument("--device")
+parser.add_argument("--mdx-segment-size")
+parser.add_argument("--mdx-overlap")
+parser.add_argument("--batch-size")
+parser.add_argument("--enable-denoise-pass", action="store_true")
+args = parser.parse_args()
+
+output_dir = Path(args.output_dir)
+output_dir.mkdir(parents=True, exist_ok=True)
+stems = []
+for label in json.loads(args.stems_json):
+    path = output_dir / f"{args.project_name} - {label}.wav"
+    with wave.open(str(path), "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(44100)
+        wav.writeframes(b"\x00\x00" * 64)
+    stems.append({"label": label, "path": str(path)})
+Path(args.log_path).write_text("ok\n", encoding="utf-8")
+Path(args.result_json).write_text(json.dumps({"stems": stems}), encoding="utf-8")
+"#,
+        )
+        .expect("worker");
+
+        let request = SeparationRequest {
+            job_id: "job".into(),
+            project_name: "Artist - Song".into(),
+            source_path: input,
+            stems_dir: temp.path().join("stems"),
+            logs_dir: temp.path().join("logs"),
+            app_data_dir: temp.path().join("app-data"),
+            model: ModelEntry {
+                id: "onnx".into(),
+                display_name: "ONNX".into(),
+                backend: BackendKind::Onnx,
+                tasks: vec![TaskType::VocalsInstrumental],
+                stems: vec!["Vocals".into(), "Instrumental".into()],
+                sample_rate: 44_100,
+                quality: "balanced".into(),
+                version: "1".into(),
+                installed: true,
+                path: "models/onnx/test.onnx".into(),
+                download_url: String::new(),
+                source_url: String::new(),
+                license: String::new(),
+                notes: String::new(),
+                download_size_mb: None,
+                runtime: ModelRuntimeConfig {
+                    worker_script: worker_path.display().to_string(),
+                    ..ModelRuntimeConfig::default()
+                },
+                options: Vec::new(),
+            },
+            model_path: Some(model_path),
+            task: TaskType::VocalsInstrumental,
+            options: serde_json::json!({ "device": "cpu" }),
+        };
+
+        let backend = AudioSeparatorBackend;
+        let output = backend
+            .run(request, &|_| {}, Arc::new(AtomicBool::new(false)))
+            .expect("audio separator run");
+
+        assert_eq!(output.stems.len(), 2);
+        assert_eq!(output.stems[0].label, "Vocals");
+        assert_eq!(output.stems[1].label, "Instrumental");
+        for stem in output.stems {
+            assert!(stem.path.is_file());
         }
     }
 }

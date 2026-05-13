@@ -292,15 +292,18 @@ impl Engine {
             .current_project
             .as_ref()
             .ok_or(TrackExtractError::NoProject)?;
-        let job = self
+        let job_index = self
             .jobs
-            .iter_mut()
-            .find(|job| job.id == job_id)
+            .iter()
+            .position(|job| job.id == job_id)
             .ok_or_else(|| TrackExtractError::JobNotFound(job_id.to_string()))?;
+        let model_id = self.jobs[job_index].model_id.clone();
         let model = self
             .registry
-            .find(&job.model_id)
-            .ok_or_else(|| TrackExtractError::ModelUnavailable(job.model_id.clone()))?;
+            .find(&model_id)
+            .ok_or_else(|| TrackExtractError::ModelUnavailable(model_id.clone()))?;
+        let model_path = self.local_model_path(&model);
+        let job = &mut self.jobs[job_index];
 
         job.set_state(JobState::Preparing, "Preparing source audio");
         job.progress = 0.0;
@@ -312,6 +315,8 @@ impl Engine {
             source_path: job.source_path.clone(),
             stems_dir: project.stems_dir(),
             logs_dir: project.logs_dir(),
+            app_data_dir: self.app_data_dir.clone(),
+            model_path,
             model,
             task: job.task.clone(),
             options: job.options.clone(),
@@ -406,6 +411,19 @@ impl Engine {
 
     fn managed_model_path(&self, model: &ModelEntry) -> Option<PathBuf> {
         managed_model_path(&self.app_data_dir, model)
+    }
+
+    fn local_model_path(&self, model: &ModelEntry) -> Option<PathBuf> {
+        self.managed_model_path(model)
+            .filter(|path| path.is_file())
+            .or_else(|| {
+                let path = Path::new(&model.path);
+                if path.is_absolute() && path.is_file() {
+                    Some(path.to_path_buf())
+                } else {
+                    None
+                }
+            })
     }
 }
 

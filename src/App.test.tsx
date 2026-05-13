@@ -106,7 +106,7 @@ describe("TrackExtract app", () => {
     });
   });
 
-  it("shows downloadable vocal cleanup models and marks them backend-pending after install", async () => {
+  it("shows downloadable vocal cleanup models and marks them ready after install", async () => {
     render(<App />);
 
     fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
@@ -126,7 +126,9 @@ describe("TrackExtract app", () => {
     fireEvent.click(within(mdx23cRow as HTMLElement).getByText("Install"));
 
     expect(await screen.findByText("UVR MDX23C InstVoc HQ installed")).toBeInTheDocument();
-    expect((await screen.findAllByText("Installed · backend pending")).length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(within(mdx23cRow as HTMLElement).getByText("Ready")).toBeInTheDocument();
+    });
   });
 
   it("selects full stem workflow models", async () => {
@@ -231,21 +233,27 @@ describe("TrackExtract app", () => {
     expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
   });
 
-  it("keeps backend-pending installed models from running separation", async () => {
+  it("keeps raw Demucs weight assets marked as needing model definitions", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
-    fireEvent.click(await screen.findByText("Drop audio here"));
-    expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
-
     fireEvent.click(await screen.findByText("Model library"));
-    const installButtons = screen.queryAllByText("Install");
-    if (installButtons.length > 0) {
-      fireEvent.click(installButtons[0]);
-      await screen.findByText(/installed$/);
-    }
+    const dialog = await screen.findByRole("dialog", { name: "Model Library" });
+    const library = within(dialog);
+    fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "ebf34a2d" } });
 
-    await waitFor(() => expect(screen.getByText("Run workflow")).toBeDisabled());
+    const demucsWeightTitle = (await library.findAllByText("ebf34a2d"))
+      .find((element) => element.closest("article"));
+    if (!demucsWeightTitle) {
+      throw new Error("Expected ebf34a2d row in the model library.");
+    }
+    const demucsWeightRow = demucsWeightTitle.closest("article");
+    expect(demucsWeightRow).not.toBeNull();
+    fireEvent.click(within(demucsWeightRow as HTMLElement).getByText("Install"));
+
+    expect(await screen.findByText("ebf34a2d installed")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(within(demucsWeightRow as HTMLElement).getByText("Installed · needs model definition")).toBeInTheDocument();
+    });
   });
 
   it("saves the current setup as a custom workflow", async () => {

@@ -2,7 +2,7 @@
 
 TrackExtract is a local-first desktop prototype for AI stem separation by Phlosion. It is aimed at producers, engineers, DJs, remixers, and creators who need a cleaner workflow than dependency-heavy command-line wrappers: import audio, choose a curated separation task, run an offline job, preview stems, and export DAW-ready files.
 
-This repository currently implements the first Tauri + React + Rust skeleton plus an isolated Demucs worker path for real local stem separation. The shipped model registry now exposes real Demucs presets first; the internal stub backend is kept only for automated tests and development harnesses.
+This repository currently implements the first Tauri + React + Rust skeleton plus isolated worker paths for real local stem separation. Demucs handles the initial built-in presets, and the Audio Separator worker can run installed UVR/RoFormer/MDX/VR-style `.onnx`, `.pth`, and `.ckpt` model files from the managed catalog. The internal stub backend is kept only for automated tests and development harnesses.
 
 ## Current Prototype Scope
 
@@ -13,6 +13,7 @@ This repository currently implements the first Tauri + React + Rust skeleton plu
 - JSON model registry copied into app data on first launch.
 - Job queue with queued, preparing, running, complete, failed, and cancelled states.
 - Experimental Demucs/PyTorch worker backend for real vocals/instrumental, source-isolation, best-quality four-stem, and six-stem renders.
+- Experimental Audio Separator worker backend for downloaded public UVR and compatible catalog files.
 - Expanded model registry with Demucs runtime presets, downloadable public UVR model files, MVSEP catalog references, source links, license notes, and not-yet-supported backend candidates.
 - Managed model installer for downloadable catalog entries, with app-data storage and progress events.
 - Stem preview and export flows wired to Rust commands.
@@ -33,6 +34,7 @@ React/Tauri UI
      -> logging/progress events
      -> backend selection
         -> PythonWorkerBackend
+        -> AudioSeparatorBackend   (experimental worker for UVR-compatible files)
         -> OnnxRuntimeBackend       (future)
         -> StubSeparationBackend    (internal tests/dev only)
 ```
@@ -62,6 +64,14 @@ scripts/setup-demucs-worker.sh
 ```
 
 TrackExtract auto-detects `.venv-demucs/bin/python` when launched from this repo. To force a specific Python environment, set `TRACKEXTRACT_PYTHON`. To force a Demucs device, set `TRACKEXTRACT_DEMUCS_DEVICE` to values such as `cpu` or `cuda`.
+
+To enable downloaded UVR/RoFormer/MDX/VR catalog files, create the Audio Separator sidecar environment:
+
+```bash
+scripts/setup-audio-separator-worker.sh
+```
+
+TrackExtract auto-detects `.venv-audio-separator/bin/python` when launched from this repo. For NVIDIA CUDA support, recreate that environment with `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu`; for Windows DirectML, use `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml`. You can force a specific environment with `TRACKEXTRACT_AUDIO_SEPARATOR_PYTHON`.
 
 For browser-only UI iteration with mock project/job data:
 
@@ -136,9 +146,9 @@ Installed Demucs worker entries are included for real development renders:
 
 The bundled catalog now includes the public UVR single-model release model files as managed downloads, excluding YAML/config sidecars that are not useful as standalone choices in the UI. It also includes MVSEP separation and restoration algorithms as source references so producers can discover RoFormer, SCNet, MDX, drum, guitar, piano, wind, string, percussion, dereverb, denoise, and restoration options without leaving the model manager. ASR, TTS, MIDI extraction, mastering, and music-generation entries from MVSEP are intentionally not modeled as runnable TrackExtract separation tasks yet.
 
-Missing ONNX, RoFormer, MDX23C, VR, and MVSEP rows are real catalog candidates, not fake placeholders. They link to model sources, but they remain unavailable until TrackExtract has a compatible ONNX Runtime, RoFormer/audio-separator, or external worker backend.
+Missing ONNX, RoFormer, MDX23C, and VR rows are real catalog candidates, not fake placeholders. Downloadable `.onnx`, `.pth`, and `.ckpt` entries can run through the experimental Audio Separator worker after setup. Raw `.th` Demucs weights are still cataloged, but they need matching YAML model definitions before TrackExtract can run them. MVSEP rows without direct model files remain source references until a local compatible model or service adapter exists.
 
-Downloadable entries with paths under `models/` can be installed from the UI. TrackExtract downloads those files into the local app-data directory, updates the editable local registry, and emits progress through `model_download_progress`. Installed ONNX files are tracked separately from runtime support, so the UI can show a downloaded model as installed while still marking the ONNX runner as pending.
+Downloadable entries with paths under `models/` can be installed from the UI. TrackExtract downloads those files into the local app-data directory, updates the editable local registry, and emits progress through `model_download_progress`. Installed Audio Separator-compatible files become runnable in the app; unsupported installed assets stay visible with an honest "needs model definition" state.
 
 Useful public model sources:
 
@@ -151,10 +161,10 @@ Useful public model sources:
 
 ## Roadmap
 
-1. Real ONNX Runtime backend with CPU first.
-2. Hardware execution-provider selection for CUDA, DirectML or Windows ML, CoreML, and OpenVINO where practical.
-3. Package/manage the Demucs sidecar more cleanly for end users.
-4. Curated RoFormer, MDX, and SCNet-compatible model support.
+1. Package/manage the Demucs and Audio Separator sidecars more cleanly for end users.
+2. Real native ONNX Runtime backend with CPU first.
+3. Hardware execution-provider selection for CUDA, DirectML or Windows ML, CoreML, and OpenVINO where practical.
+4. Curated RoFormer, MDX, VR, and SCNet-compatible workflows.
 5. Better batch processing, cancellation, and resumable jobs.
 6. DAW export templates for Ableton, Logic, Pro Tools, Reaper, and FL Studio.
 7. Future VST3/AU bridge plugin that talks to the same offline TrackExtract engine.

@@ -220,7 +220,7 @@ const MODEL_STATUS_FILTERS: Array<{ value: ModelStatusFilter; label: string }> =
   { value: "all", label: "All statuses" },
   { value: "runnable", label: "Runnable" },
   { value: "installable", label: "Installable" },
-  { value: "pending", label: "Backend pending" },
+  { value: "pending", label: "Needs definition" },
   { value: "missing", label: "Catalog only" },
 ];
 const MODEL_BACKEND_FILTERS: Array<{ value: ModelBackendFilter; label: string }> = [
@@ -605,7 +605,7 @@ function App() {
     }
 
     if (!isRunnableModel(selectedModel)) {
-      setError(`${selectedModel.displayName} is installed, but the ${selectedModel.backend} runner is not implemented yet.`);
+      setError(`${selectedModel.displayName} is installed, but this model asset is not runnable in TrackExtract yet.`);
       return;
     }
 
@@ -1243,7 +1243,7 @@ function ModelManager({
           <span><strong>{counts.total}</strong>Total</span>
           <span><strong>{counts.runnable}</strong>Runnable</span>
           <span><strong>{counts.installable}</strong>Installable</span>
-          <span><strong>{counts.pending}</strong>Backend pending</span>
+          <span><strong>{counts.pending}</strong>Needs definition</span>
           <span><strong>{counts.missing}</strong>Catalog only</span>
         </div>
 
@@ -1518,7 +1518,7 @@ function ModelStatusIcon({ model }: { model: ModelEntry }) {
   }
 
   if (model.installed) {
-    return <AlertTriangle aria-label="Backend pending" />;
+    return <AlertTriangle aria-label="Needs model definition" />;
   }
 
   if (isInstallableModel(model)) {
@@ -1617,7 +1617,20 @@ function slugify(value: string) {
 }
 
 function isRunnableModel(model: ModelEntry) {
-  return model.installed && (model.backend === "pytorch-worker" || model.backend === "stub");
+  return model.installed && (
+    model.backend === "pytorch-worker" ||
+    model.backend === "stub" ||
+    isAudioSeparatorRunnableModel(model)
+  );
+}
+
+function isAudioSeparatorRunnableModel(model: ModelEntry) {
+  const path = model.path.toLowerCase();
+  return (
+    (model.backend === "onnx" || model.backend === "external-process") &&
+    model.path.startsWith("models/") &&
+    (path.endsWith(".onnx") || path.endsWith(".pth") || path.endsWith(".ckpt"))
+  );
 }
 
 function isInstallableModel(model: ModelEntry) {
@@ -1735,7 +1748,7 @@ function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
   }
 
   if (model.installed) {
-    return "Installed · backend pending";
+    return "Installed · needs model definition";
   }
 
   if (isInstallableModel(model)) {

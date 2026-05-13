@@ -633,7 +633,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 121,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -712,7 +712,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -791,7 +791,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -870,7 +870,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -949,7 +949,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1028,7 +1028,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1107,7 +1107,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1186,7 +1186,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1265,7 +1265,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 214,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1344,7 +1344,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 121,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1423,7 +1423,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 121,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1502,7 +1502,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 121,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1582,7 +1582,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 121,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1662,7 +1662,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 121,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1741,7 +1741,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 525,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1820,7 +1820,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 525,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1899,7 +1899,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 525,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -1981,7 +1981,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 143,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -2063,7 +2063,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 160,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Raw Demucs weight asset from the public UVR pack. TrackExtract can download it, but it requires a matching YAML model definition before it can run.",
     "options": [
       {
         "id": "device",
@@ -2145,7 +2145,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 160,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Raw Demucs weight asset from the public UVR pack. TrackExtract can download it, but it requires a matching YAML model definition before it can run.",
     "options": [
       {
         "id": "device",
@@ -2224,7 +2224,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2309,7 +2309,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2394,7 +2394,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2479,7 +2479,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2564,7 +2564,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2650,7 +2650,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2735,7 +2735,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2820,7 +2820,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2905,7 +2905,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 21,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -2991,7 +2991,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -3076,7 +3076,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -3162,7 +3162,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 175,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3242,7 +3242,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 871,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3322,7 +3322,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 871,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3402,7 +3402,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 1502,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3482,7 +3482,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 1640,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3562,7 +3562,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 1640,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3641,7 +3641,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3720,7 +3720,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3799,7 +3799,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3878,7 +3878,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 31,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -3958,7 +3958,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 142,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4038,7 +4038,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 610,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4118,7 +4118,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 610,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4198,7 +4198,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 375,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4278,7 +4278,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 962,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4443,7 +4443,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 214,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4523,7 +4523,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 122,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4603,7 +4603,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 122,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4683,7 +4683,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 214,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4843,7 +4843,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 18,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires an audio-separator or PyTorch-compatible backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
     "options": [
       {
         "id": "device",
@@ -4922,7 +4922,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 57,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5007,7 +5007,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5092,7 +5092,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5177,7 +5177,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5263,7 +5263,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5349,7 +5349,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5435,7 +5435,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5521,7 +5521,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 57,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5606,7 +5606,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 51,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5691,7 +5691,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5776,7 +5776,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -5861,7 +5861,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -6117,7 +6117,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 29,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",
@@ -6288,7 +6288,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 64,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but requires the ONNX Runtime backend before it can run.",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
     "options": [
       {
         "id": "device",

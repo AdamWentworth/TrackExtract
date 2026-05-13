@@ -9,8 +9,8 @@ pub mod project;
 pub mod workflow_registry;
 
 pub use backend::{
-    BackendProgress, PythonWorkerBackend, SeparationBackend, SeparationOutput, SeparationRequest,
-    StubSeparationBackend,
+    AudioSeparatorBackend, BackendProgress, PythonWorkerBackend, SeparationBackend,
+    SeparationOutput, SeparationRequest, StubSeparationBackend,
 };
 pub use engine::{BootstrapState, Engine};
 pub use error::{Result, TrackExtractError};

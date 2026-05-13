@@ -15,9 +15,9 @@ use std::{
 
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
 use trackextract_core::{
-    download_model_file, BackendKind, BackendProgress, BootstrapState, Engine, JobRecord,
-    ModelDownloadProgress, ModelEntry, ProjectSession, PythonWorkerBackend, SeparationBackend,
-    StubSeparationBackend, TaskType, TrackExtractError, WorkflowEntry,
+    download_model_file, AudioSeparatorBackend, BackendKind, BackendProgress, BootstrapState,
+    Engine, JobRecord, ModelDownloadProgress, ModelEntry, ProjectSession, PythonWorkerBackend,
+    SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError, WorkflowEntry,
 };
 
 const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
@@ -265,12 +265,10 @@ async fn start_job(
                 let backend = PythonWorkerBackend;
                 backend.run(request, &progress_handler, cancel_token)
             }
-            BackendKind::Onnx => Err(TrackExtractError::ModelUnavailable(
-                "ONNX Runtime backend is not implemented in this prototype yet".to_string(),
-            )),
-            BackendKind::ExternalProcess => Err(TrackExtractError::ModelUnavailable(
-                "External process backend is not implemented in this prototype yet".to_string(),
-            )),
+            BackendKind::Onnx | BackendKind::ExternalProcess => {
+                let backend = AudioSeparatorBackend;
+                backend.run(request, &progress_handler, cancel_token)
+            }
         }
     })
     .await
