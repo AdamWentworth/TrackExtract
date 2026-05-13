@@ -35,7 +35,11 @@
             "bass_only",
             "guitar_only",
             "piano_only",
-            "experimental_best_quality"
+            "experimental_best_quality",
+            "vocal_cleanup_chain",
+            "layered_vocal_cleanup",
+            "vocal_dereverb",
+            "vocal_denoise"
           ]
         },
         "minItems": 1

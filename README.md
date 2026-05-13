@@ -116,6 +116,11 @@ Installed Demucs worker entries are included for real development renders:
 - `demucs_htdemucs_ft_4stem_best_split` uses fine-tuned `htdemucs_ft` for vocals, drums, bass, and other.
 - `demucs_htdemucs_drums_only` and `demucs_htdemucs_bass_only` provide isolated source plus inverse stems.
 - `demucs_htdemucs_6s_guitar_only` and `demucs_htdemucs_6s_piano_only` provide experimental isolated source plus inverse stems.
+- `uvr_mdx23c_instvoc_hq` catalogs MDX23C InstVoc HQ for high-quality vocal/instrumental extraction.
+- `onnx_uvr_mdxnet_karaoke_2` catalogs UVR MDX-NET Karaoke 2 for layered/backing vocal cleanup.
+- `onnx_uvr_mdxnet_voc_ft` catalogs UVR MDX-NET Voc FT for vocal-focused refinement.
+- `onnx_reverb_hq_by_foxjoy` catalogs Reverb HQ By FoxJoy for vocal dereverb.
+- `uvr_denoise` catalogs UVR DeNoise for final vocal cleanup.
 
 Missing ONNX and RoFormer rows are real catalog candidates, not fake placeholders. They link to model sources such as sherpa-onnx/UVR ONNX releases and Hugging Face RoFormer collections, but they remain unavailable until TrackExtract has a compatible ONNX or RoFormer backend.
 

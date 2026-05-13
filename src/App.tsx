@@ -32,7 +32,11 @@ type TaskType =
   | "bass_only"
   | "guitar_only"
   | "piano_only"
-  | "experimental_best_quality";
+  | "experimental_best_quality"
+  | "vocal_cleanup_chain"
+  | "layered_vocal_cleanup"
+  | "vocal_dereverb"
+  | "vocal_denoise";
 
 type JobState =
   | "queued"
@@ -153,6 +157,10 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
     label: "Experimental / Best Quality",
     short: "Best",
   },
+  { value: "vocal_cleanup_chain", label: "Clean Lead Vocal", short: "Chain" },
+  { value: "layered_vocal_cleanup", label: "Remove Layered Vocals", short: "Karaoke" },
+  { value: "vocal_dereverb", label: "Dereverb Vocal", short: "Dry" },
+  { value: "vocal_denoise", label: "Denoise Vocal", short: "Clean" },
 ];
 
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
@@ -1071,6 +1079,54 @@ const mockModels: ModelEntry[] = [
     sourceUrl: "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
     license: "MIT per UVR public model pack; verify before redistribution",
     downloadSizeMb: 28,
+  },
+  {
+    id: "uvr_mdx23c_instvoc_hq",
+    displayName: "UVR MDX23C InstVoc HQ",
+    backend: "external-process",
+    tasks: ["vocals_instrumental", "vocal_cleanup_chain", "experimental_best_quality"],
+    stems: ["Vocals", "Instrumental"],
+    sampleRate: 44100,
+    quality: "best",
+    version: "MDX23C-8KFFT-InstVoc_HQ",
+    installed: false,
+    path: "models/audio-separator/MDX23C-8KFFT-InstVoc_HQ.ckpt",
+    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MDX23C-8KFFT-InstVoc_HQ.ckpt",
+    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    license: "UVR public model pack; verify before redistribution",
+    downloadSizeMb: 427,
+  },
+  {
+    id: "onnx_uvr_mdxnet_karaoke_2",
+    displayName: "UVR MDX-NET Karaoke 2 ONNX",
+    backend: "onnx",
+    tasks: ["layered_vocal_cleanup", "vocal_cleanup_chain"],
+    stems: ["Lead Vocal", "Backing Vocals"],
+    sampleRate: 44100,
+    quality: "balanced",
+    version: "UVR_MDXNET_KARA_2",
+    installed: false,
+    path: "models/onnx/UVR_MDXNET_KARA_2.onnx",
+    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_KARA_2.onnx",
+    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    license: "UVR public model pack; verify before redistribution",
+    downloadSizeMb: 50,
+  },
+  {
+    id: "onnx_reverb_hq_by_foxjoy",
+    displayName: "Reverb HQ By FoxJoy ONNX",
+    backend: "onnx",
+    tasks: ["vocal_dereverb", "vocal_cleanup_chain"],
+    stems: ["Dry Vocal", "Reverb"],
+    sampleRate: 44100,
+    quality: "best",
+    version: "Reverb_HQ_By_FoxJoy",
+    installed: false,
+    path: "models/onnx/Reverb_HQ_By_FoxJoy.onnx",
+    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/Reverb_HQ_By_FoxJoy.onnx",
+    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    license: "UVR public model pack; verify before redistribution",
+    downloadSizeMb: 63,
   },
 ];
 

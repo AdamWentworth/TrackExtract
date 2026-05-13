@@ -245,6 +245,10 @@ impl PythonWorkerBackend {
 
         match request.task {
             TaskType::FullStemSplit | TaskType::ExperimentalBestQuality => "htdemucs_6s",
+            TaskType::VocalCleanupChain
+            | TaskType::LayeredVocalCleanup
+            | TaskType::VocalDereverb
+            | TaskType::VocalDenoise => "htdemucs",
             _ => "htdemucs",
         }
         .to_string()
@@ -262,6 +266,10 @@ impl PythonWorkerBackend {
             TaskType::BassOnly => "bass",
             TaskType::GuitarOnly => "guitar",
             TaskType::PianoOnly => "piano",
+            TaskType::VocalCleanupChain
+            | TaskType::LayeredVocalCleanup
+            | TaskType::VocalDereverb
+            | TaskType::VocalDenoise => "vocals",
         }
         .to_string()
     }
@@ -429,6 +437,10 @@ fn task_arg(task: &TaskType) -> &'static str {
         TaskType::GuitarOnly => "guitar_only",
         TaskType::PianoOnly => "piano_only",
         TaskType::ExperimentalBestQuality => "experimental_best_quality",
+        TaskType::VocalCleanupChain => "vocal_cleanup_chain",
+        TaskType::LayeredVocalCleanup => "layered_vocal_cleanup",
+        TaskType::VocalDereverb => "vocal_dereverb",
+        TaskType::VocalDenoise => "vocal_denoise",
     }
 }
 

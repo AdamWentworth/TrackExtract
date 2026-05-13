@@ -14,6 +14,10 @@ pub enum TaskType {
     GuitarOnly,
     PianoOnly,
     ExperimentalBestQuality,
+    VocalCleanupChain,
+    LayeredVocalCleanup,
+    VocalDereverb,
+    VocalDenoise,
 }
 
 impl TaskType {
@@ -26,6 +30,10 @@ impl TaskType {
             Self::GuitarOnly => "Guitar Only",
             Self::PianoOnly => "Piano Only",
             Self::ExperimentalBestQuality => "Experimental / Best Quality",
+            Self::VocalCleanupChain => "Clean Lead Vocal",
+            Self::LayeredVocalCleanup => "Remove Layered Vocals",
+            Self::VocalDereverb => "Dereverb Vocal",
+            Self::VocalDenoise => "Denoise Vocal",
         }
     }
 }
