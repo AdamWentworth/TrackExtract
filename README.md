@@ -13,7 +13,7 @@ This repository currently implements the first Tauri + React + Rust skeleton plu
 - JSON model registry copied into app data on first launch.
 - Job queue with queued, preparing, running, complete, failed, and cancelled states.
 - Experimental Demucs/PyTorch worker backend for real vocals/instrumental, source-isolation, best-quality four-stem, and six-stem renders.
-- Curated model registry entries with source links, license notes, and missing/not-yet-supported ONNX candidates.
+- Expanded model registry with Demucs runtime presets, downloadable public UVR model files, MVSEP catalog references, source links, license notes, and not-yet-supported backend candidates.
 - Managed model installer for downloadable catalog entries, with app-data storage and progress events.
 - Stem preview and export flows wired to Rust commands.
 
@@ -134,13 +134,17 @@ Installed Demucs worker entries are included for real development renders:
 - `onnx_reverb_hq_by_foxjoy` catalogs Reverb HQ By FoxJoy for vocal dereverb.
 - `uvr_denoise` catalogs UVR DeNoise for final vocal cleanup.
 
-Missing ONNX and RoFormer rows are real catalog candidates, not fake placeholders. They link to model sources such as sherpa-onnx/UVR ONNX releases and Hugging Face RoFormer collections, but they remain unavailable until TrackExtract has a compatible ONNX or RoFormer backend.
+The bundled catalog now includes the public UVR single-model release model files as managed downloads, excluding YAML/config sidecars that are not useful as standalone choices in the UI. It also includes MVSEP separation and restoration algorithms as source references so producers can discover RoFormer, SCNet, MDX, drum, guitar, piano, wind, string, percussion, dereverb, denoise, and restoration options without leaving the model manager. ASR, TTS, MIDI extraction, mastering, and music-generation entries from MVSEP are intentionally not modeled as runnable TrackExtract separation tasks yet.
+
+Missing ONNX, RoFormer, MDX23C, VR, and MVSEP rows are real catalog candidates, not fake placeholders. They link to model sources, but they remain unavailable until TrackExtract has a compatible ONNX Runtime, RoFormer/audio-separator, or external worker backend.
 
 Downloadable entries with paths under `models/` can be installed from the UI. TrackExtract downloads those files into the local app-data directory, updates the editable local registry, and emits progress through `model_download_progress`. Installed ONNX files are tracked separately from runtime support, so the UI can show a downloaded model as installed while still marking the ONNX runner as pending.
 
 Useful public model sources:
 
 - Demucs: https://github.com/facebookresearch/demucs
+- Public UVR single-model release: https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models
+- MVSEP algorithm catalog: https://mvsep.com/en
 - UVR ONNX models via sherpa-onnx: https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html
 - Hugging Face source-separation models: https://huggingface.co/models?other=source-separation
 - RoFormer catalog source: https://huggingface.co/AEmotionStudio/roformer-models

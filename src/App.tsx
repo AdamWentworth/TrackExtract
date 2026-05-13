@@ -4,6 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import bundledModels from "../resources/models.json";
+import bundledWorkflows from "../resources/workflows.json";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -1673,19 +1675,48 @@ function modelMatchesFilters(
 }
 
 function compareModelsForLibrary(left: ModelEntry, right: ModelEntry) {
-  const statusOrder: Record<ModelStatusKey, number> = {
-    installable: 0,
-    runnable: 1,
-    pending: 2,
-    missing: 3,
-  };
-  const statusDelta = statusOrder[modelStatusKey(left)] - statusOrder[modelStatusKey(right)];
+  const rankDelta = modelLibraryRank(left) - modelLibraryRank(right);
 
-  if (statusDelta !== 0) {
-    return statusDelta;
+  if (rankDelta !== 0) {
+    return rankDelta;
   }
 
   return left.displayName.localeCompare(right.displayName);
+}
+
+function modelLibraryRank(model: ModelEntry) {
+  if (isRunnableModel(model)) {
+    return 0;
+  }
+
+  if (model.installed) {
+    return 1;
+  }
+
+  if (isCuratedModel(model)) {
+    return 2;
+  }
+
+  if (isInstallableModel(model)) {
+    return 3;
+  }
+
+  if (model.id.startsWith("catalog_")) {
+    return 4;
+  }
+
+  if (model.id.startsWith("mvsep_")) {
+    return 5;
+  }
+
+  return 6;
+}
+
+function isCuratedModel(model: ModelEntry) {
+  return model.id.startsWith("onnx_") ||
+    model.id === "uvr_mdx23c_instvoc_hq" ||
+    model.id === "uvr_denoise" ||
+    model.id === "catalog_roformer_vocals";
 }
 
 function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
@@ -1710,383 +1741,12 @@ function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
   return "Source available";
 }
 
-const mockDemucsOptions: ModelOptionDefinition[] = [
-  {
-    id: "device",
-    displayName: "Device",
-    type: "select",
-    defaultValue: "auto",
-    choices: [
-      { value: "auto", label: "Auto" },
-      { value: "cuda", label: "CUDA" },
-      { value: "cpu", label: "CPU" },
-    ],
-  },
-  {
-    id: "demucsShifts",
-    displayName: "Shifts",
-    type: "integer",
-    defaultValue: 1,
-    min: 0,
-    max: 4,
-    step: 1,
-  },
-  {
-    id: "demucsOverlap",
-    displayName: "Overlap",
-    type: "number",
-    defaultValue: 0.25,
-    min: 0.05,
-    max: 0.75,
-    step: 0.05,
-  },
-  {
-    id: "demucsSegmentSeconds",
-    displayName: "Segment",
-    type: "integer",
-    defaultValue: 0,
-    min: 0,
-    max: 30,
-    step: 1,
-  },
-];
+function cloneMockData<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
 
-const mockModels: ModelEntry[] = [
-  {
-    id: "demucs_htdemucs_vocals_instrumental",
-    displayName: "Demucs HTDemucs Vocals / Instrumental",
-    backend: "pytorch-worker",
-    tasks: ["vocals_instrumental"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "balanced",
-    version: "demucs-4.0.1/htdemucs",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_ft_vocals_instrumental",
-    displayName: "Demucs HTDemucs FT Vocals / Instrumental",
-    backend: "pytorch-worker",
-    tasks: ["vocals_instrumental"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "best",
-    version: "demucs-4.0.1/htdemucs_ft",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_6s_full_split",
-    displayName: "Demucs HTDemucs 6 Stem Split",
-    backend: "pytorch-worker",
-    tasks: ["full_stem_split"],
-    stems: ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
-    sampleRate: 44100,
-    quality: "experimental",
-    version: "demucs-4.0.1/htdemucs_6s",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_ft_4stem_best_split",
-    displayName: "Demucs HTDemucs FT 4 Stem Best Split",
-    backend: "pytorch-worker",
-    tasks: ["experimental_best_quality"],
-    stems: ["Vocals", "Drums", "Bass", "Other"],
-    sampleRate: 44100,
-    quality: "best",
-    version: "demucs-4.0.1/htdemucs_ft",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_drums_only",
-    displayName: "Demucs HTDemucs Drums / No Drums",
-    backend: "pytorch-worker",
-    tasks: ["drums_only"],
-    stems: ["Drums", "No Drums"],
-    sampleRate: 44100,
-    quality: "balanced",
-    version: "demucs-4.0.1/htdemucs",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_bass_only",
-    displayName: "Demucs HTDemucs Bass / No Bass",
-    backend: "pytorch-worker",
-    tasks: ["bass_only"],
-    stems: ["Bass", "No Bass"],
-    sampleRate: 44100,
-    quality: "balanced",
-    version: "demucs-4.0.1/htdemucs",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_6s_guitar_only",
-    displayName: "Demucs HTDemucs 6s Guitar / No Guitar",
-    backend: "pytorch-worker",
-    tasks: ["guitar_only"],
-    stems: ["Guitar", "No Guitar"],
-    sampleRate: 44100,
-    quality: "experimental",
-    version: "demucs-4.0.1/htdemucs_6s",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "demucs_htdemucs_6s_piano_only",
-    displayName: "Demucs HTDemucs 6s Piano / No Piano",
-    backend: "pytorch-worker",
-    tasks: ["piano_only"],
-    stems: ["Piano", "No Piano"],
-    sampleRate: 44100,
-    quality: "experimental",
-    version: "demucs-4.0.1/htdemucs_6s",
-    installed: true,
-    path: "workers/demucs_worker.py",
-    downloadUrl: "https://pypi.org/project/demucs/",
-    sourceUrl: "https://github.com/facebookresearch/demucs",
-    license: "MIT",
-    options: mockDemucsOptions,
-  },
-  {
-    id: "onnx_uvr_mdxnet_9482",
-    displayName: "UVR MDX-NET 9482 ONNX",
-    backend: "onnx",
-    tasks: ["vocals_instrumental"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "fast",
-    version: "UVR_MDXNET_9482",
-    installed: false,
-    path: "models/onnx/UVR_MDXNET_9482.onnx",
-    downloadUrl: "https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/UVR_MDXNET_9482.onnx",
-    sourceUrl: "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
-    license: "MIT per UVR public model pack; verify before redistribution",
-    downloadSizeMb: 28,
-  },
-  {
-    id: "onnx_uvr_mdxnet_inst_hq_5",
-    displayName: "UVR MDX-NET Inst HQ 5 ONNX",
-    backend: "onnx",
-    tasks: ["vocals_instrumental"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "balanced",
-    version: "UVR-MDX-NET-Inst_HQ_5",
-    installed: false,
-    path: "models/onnx/UVR-MDX-NET-Inst_HQ_5.onnx",
-    downloadUrl: "https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/UVR-MDX-NET-Inst_HQ_5.onnx",
-    sourceUrl: "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
-    license: "MIT per UVR public model pack; verify before redistribution",
-    downloadSizeMb: 56,
-  },
-  {
-    id: "uvr_mdx23c_instvoc_hq",
-    displayName: "UVR MDX23C InstVoc HQ",
-    backend: "external-process",
-    tasks: ["vocals_instrumental", "vocal_cleanup_chain", "experimental_best_quality"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "best",
-    version: "MDX23C-8KFFT-InstVoc_HQ",
-    installed: false,
-    path: "models/audio-separator/MDX23C-8KFFT-InstVoc_HQ.ckpt",
-    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MDX23C-8KFFT-InstVoc_HQ.ckpt",
-    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
-    license: "UVR public model pack; verify before redistribution",
-    downloadSizeMb: 427,
-  },
-  {
-    id: "onnx_uvr_mdxnet_karaoke_2",
-    displayName: "UVR MDX-NET Karaoke 2 ONNX",
-    backend: "onnx",
-    tasks: ["layered_vocal_cleanup", "vocal_cleanup_chain"],
-    stems: ["Lead Vocal", "Backing Vocals"],
-    sampleRate: 44100,
-    quality: "balanced",
-    version: "UVR_MDXNET_KARA_2",
-    installed: false,
-    path: "models/onnx/UVR_MDXNET_KARA_2.onnx",
-    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_KARA_2.onnx",
-    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
-    license: "UVR public model pack; verify before redistribution",
-    downloadSizeMb: 50,
-  },
-  {
-    id: "onnx_reverb_hq_by_foxjoy",
-    displayName: "Reverb HQ By FoxJoy ONNX",
-    backend: "onnx",
-    tasks: ["vocal_dereverb", "vocal_cleanup_chain"],
-    stems: ["Dry Vocal", "Reverb"],
-    sampleRate: 44100,
-    quality: "best",
-    version: "Reverb_HQ_By_FoxJoy",
-    installed: false,
-    path: "models/onnx/Reverb_HQ_By_FoxJoy.onnx",
-    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/Reverb_HQ_By_FoxJoy.onnx",
-    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
-    license: "UVR public model pack; verify before redistribution",
-    downloadSizeMb: 63,
-  },
-  {
-    id: "onnx_uvr_mdxnet_voc_ft",
-    displayName: "UVR MDX-NET Voc FT ONNX",
-    backend: "onnx",
-    tasks: ["vocal_cleanup_chain", "vocals_instrumental"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "best",
-    version: "UVR-MDX-NET-Voc_FT",
-    installed: false,
-    path: "models/onnx/UVR-MDX-NET-Voc_FT.onnx",
-    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Voc_FT.onnx",
-    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
-    license: "UVR public model pack; verify before redistribution",
-    downloadSizeMb: 63,
-  },
-  {
-    id: "uvr_denoise",
-    displayName: "UVR DeNoise",
-    backend: "external-process",
-    tasks: ["vocal_denoise", "vocal_cleanup_chain"],
-    stems: ["Clean Vocal", "Noise"],
-    sampleRate: 44100,
-    quality: "balanced",
-    version: "UVR-DeNoise",
-    installed: false,
-    path: "models/audio-separator/UVR-DeNoise.pth",
-    downloadUrl: "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-DeNoise.pth",
-    sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
-    license: "UVR public model pack; verify before redistribution",
-    downloadSizeMb: 121,
-  },
-  {
-    id: "catalog_roformer_vocals",
-    displayName: "RoFormer Vocals Catalog Source",
-    backend: "external-process",
-    tasks: ["vocals_instrumental", "experimental_best_quality"],
-    stems: ["Vocals", "Instrumental"],
-    sampleRate: 44100,
-    quality: "best",
-    version: "catalog",
-    installed: false,
-    path: "",
-    downloadUrl: "https://huggingface.co/AEmotionStudio/roformer-models",
-    sourceUrl: "https://huggingface.co/AEmotionStudio/roformer-models",
-    license: "MIT per Hugging Face model card",
-  },
-];
-
-let mockWorkflows: WorkflowEntry[] = [
-  {
-    id: "quick_vocal_split",
-    displayName: "Quick Vocal Split",
-    description: "Reliable vocal and instrumental separation using the installed balanced Demucs preset.",
-    kind: "preset",
-    task: "vocals_instrumental",
-    steps: [
-      {
-        id: "split",
-        displayName: "Split vocals",
-        task: "vocals_instrumental",
-        modelId: "demucs_htdemucs_vocals_instrumental",
-        options: {
-          device: "auto",
-          demucsShifts: 1,
-          demucsOverlap: 0.25,
-          demucsSegmentSeconds: 0,
-        },
-      },
-    ],
-  },
-  {
-    id: "full_6_stem_split",
-    displayName: "Full 6-Stem Split",
-    description: "Vocals, drums, bass, guitar, piano, and other from the experimental Demucs six-source model.",
-    kind: "preset",
-    task: "full_stem_split",
-    steps: [
-      {
-        id: "split",
-        displayName: "Render six stems",
-        task: "full_stem_split",
-        modelId: "demucs_htdemucs_6s_full_split",
-        options: {
-          device: "auto",
-          demucsShifts: 1,
-          demucsOverlap: 0.25,
-          demucsSegmentSeconds: 0,
-        },
-      },
-    ],
-  },
-  {
-    id: "clean_lead_vocal_uvr_chain",
-    displayName: "Clean Lead Vocal Chain",
-    description: "UVR-inspired vocal cleanup chain.",
-    kind: "preset",
-    task: "vocal_cleanup_chain",
-    steps: [
-      {
-        id: "instvoc",
-        displayName: "Extract vocal",
-        task: "vocal_cleanup_chain",
-        modelId: "uvr_mdx23c_instvoc_hq",
-        options: {
-          device: "auto",
-          chunkSize: 256,
-          overlap: 0.25,
-          batchSize: 1,
-        },
-      },
-      {
-        id: "karaoke",
-        displayName: "Reduce layered vocals",
-        task: "layered_vocal_cleanup",
-        modelId: "onnx_uvr_mdxnet_karaoke_2",
-        options: {
-          device: "auto",
-          mdxSegmentSize: 256,
-          mdxOverlap: 0.25,
-          batchSize: 1,
-          enableDenoisePass: false,
-        },
-      },
-    ],
-  },
-];
+const mockModels: ModelEntry[] = cloneMockData(bundledModels as ModelEntry[]);
+let mockWorkflows: WorkflowEntry[] = cloneMockData(bundledWorkflows as WorkflowEntry[]);
 
 let mockProject: ProjectSession | null = null;
 let mockJobs: JobRecord[] = [];

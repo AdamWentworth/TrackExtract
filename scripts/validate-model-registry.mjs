@@ -37,6 +37,25 @@ const requiredVocalCleanupModels = new Set([
   "uvr_denoise",
 ]);
 
+const requiredCatalogModels = new Set([
+  "uvr_onnx_uvr_mdxnet_1_9703",
+  "uvr_onnx_uvr_mdxnet_main",
+  "uvr_onnx_uvr_mdx_net_inst_main",
+  "uvr_onnx_uvr_mdx_net_crowd_hq_1",
+  "uvr_vr_uvr_de_echo_aggressive",
+  "uvr_vr_uvr_denoise_lite",
+  "uvr_ckpt_model_bs_roformer_ep_317_sdr_12_9755",
+  "uvr_ckpt_melband_roformer_instvoc_duality_v1",
+  "mvsep_bs_roformer_sw",
+  "mvsep_bs_polarformer_vocals",
+  "mvsep_melband_roformer_vocals",
+  "mvsep_scnet_vocals",
+  "mvsep_drumsep",
+  "mvsep_reverb_removal",
+  "mvsep_denoise_aufr33_gabox",
+  "mvsep_phantom_centre",
+]);
+
 const requiredFields = [
   "id",
   "displayName",
@@ -137,6 +156,30 @@ for (const modelId of requiredVocalCleanupModels) {
   if (!ids.has(modelId)) {
     errors.push(`Missing required vocal cleanup model "${modelId}".`);
   }
+}
+
+for (const modelId of requiredCatalogModels) {
+  if (!ids.has(modelId)) {
+    errors.push(`Missing required catalog model "${modelId}".`);
+  }
+}
+
+const publicUvrModelCount = registry.filter((model) =>
+  model.sourceUrl === "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models" &&
+  model.path?.startsWith("models/") &&
+  model.downloadUrl?.startsWith("https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/")
+).length;
+if (publicUvrModelCount < 72) {
+  errors.push(`Expected at least 72 public UVR downloadable model entries, found ${publicUvrModelCount}.`);
+}
+
+const mvsepCatalogCount = registry.filter((model) =>
+  model.sourceUrl === "https://mvsep.com/en" &&
+  model.path === "" &&
+  model.backend === "external-process"
+).length;
+if (mvsepCatalogCount < 95) {
+  errors.push(`Expected at least 95 MVSEP catalog entries, found ${mvsepCatalogCount}.`);
 }
 
 if (!registry.some((model) => model.tasks?.includes("vocal_cleanup_chain"))) {

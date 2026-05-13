@@ -568,8 +568,11 @@ input[type="number"] {
   color: #345a56;
   font-size: 0.7rem;
   font-weight: 800;
+  min-width: 0;
+  overflow: hidden;
   padding: 5px 8px;
   text-align: center;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -585,9 +588,9 @@ input[type="number"] {
 
 .selected-model-card strong,
 .selected-model-card small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .selected-model-card small {
@@ -599,6 +602,8 @@ input[type="number"] {
   color: #6b7068;
   font-size: 0.7rem;
   font-weight: 900;
+  min-width: 0;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
@@ -621,12 +626,15 @@ input[type="number"] {
   font-weight: 800;
   gap: 5px;
   justify-content: center;
+  max-width: 100%;
   min-height: 26px;
+  min-width: 0;
   padding: 4px 8px;
   white-space: nowrap;
 }
 
 .model-status-pill svg {
+  flex: 0 0 auto;
   height: 14px;
   width: 14px;
 }
@@ -683,6 +691,11 @@ input[type="number"] {
   display: grid;
   gap: 2px;
   min-width: 0;
+}
+
+.workflow-step-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .workflow-step-row small {
@@ -892,17 +905,20 @@ input[type="number"] {
   align-items: center;
   display: flex;
   gap: 8px;
+  min-width: 0;
 }
 
 .library-heading > span > span {
   align-items: start;
   display: grid;
   gap: 2px;
+  min-width: 0;
 }
 
 .library-heading small {
   color: #6b7068;
   font-size: 0.76rem;
+  overflow-wrap: anywhere;
 }
 
 .model-library-stats {
@@ -921,6 +937,8 @@ input[type="number"] {
   font-weight: 800;
   gap: 1px;
   min-height: 46px;
+  min-width: 0;
+  overflow: hidden;
   place-items: center;
   text-align: center;
 }
@@ -933,6 +951,12 @@ input[type="number"] {
 .model-manager-toolbar {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(150px, auto) minmax(170px, auto) minmax(160px, auto) auto auto;
+}
+
+.model-manager-toolbar input,
+.model-manager-toolbar select,
+.model-manager-toolbar button {
+  min-width: 0;
 }
 
 .model-manager-toolbar .secondary-action {
@@ -999,6 +1023,7 @@ input[type="number"] {
   flex-wrap: wrap;
   gap: 6px;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .library-model-title {
@@ -1018,6 +1043,7 @@ input[type="number"] {
 .library-model-title small,
 .library-model-meta strong,
 .library-model-meta small {
+  line-height: 1.25;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1035,6 +1061,7 @@ input[type="number"] {
   flex-wrap: wrap;
   gap: 4px;
   grid-area: tasks;
+  min-width: 0;
 }
 
 .library-task-list span {
@@ -1043,7 +1070,11 @@ input[type="number"] {
   color: #45483f;
   font-size: 0.68rem;
   font-weight: 800;
+  max-width: 100%;
+  overflow: hidden;
   padding: 3px 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .library-model-meta {
@@ -1057,15 +1088,21 @@ input[type="number"] {
   display: flex;
   grid-area: status;
   justify-content: flex-start;
+  min-width: 0;
 }
 
 .library-model-actions {
   grid-area: actions;
+  min-width: 0;
 }
 
 .library-model-actions .secondary-action {
   min-height: 30px;
   padding: 0 10px;
+}
+
+.library-model-actions .inline-action {
+  flex: 0 0 auto;
 }
 
 .manager-model-actions > svg {

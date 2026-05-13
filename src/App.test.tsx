@@ -111,10 +111,19 @@ describe("TrackExtract app", () => {
 
     fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
     fireEvent.click(await screen.findByText("Model library"));
-    fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "MDX23C" } });
-    expect((await screen.findAllByText("UVR MDX23C InstVoc HQ")).length).toBeGreaterThan(0);
+    const dialog = await screen.findByRole("dialog", { name: "Model Library" });
+    const library = within(dialog);
+    fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "MDX23C" } });
+    const mdx23cTitle = (await library.findAllByText("UVR MDX23C InstVoc HQ"))
+      .find((element) => element.closest("article"));
+    if (!mdx23cTitle) {
+      throw new Error("Expected UVR MDX23C row in the model library.");
+    }
+    expect(mdx23cTitle).toBeInTheDocument();
 
-    fireEvent.click(screen.getAllByText("Install")[0]);
+    const mdx23cRow = mdx23cTitle.closest("article");
+    expect(mdx23cRow).not.toBeNull();
+    fireEvent.click(within(mdx23cRow as HTMLElement).getByText("Install"));
 
     expect(await screen.findByText("UVR MDX23C InstVoc HQ installed")).toBeInTheDocument();
     expect((await screen.findAllByText("Installed · backend pending")).length).toBeGreaterThan(0);
