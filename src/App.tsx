@@ -183,6 +183,7 @@ function App() {
   const [selectedSourceId, setSelectedSourceId] = useState<string>("");
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -213,6 +214,7 @@ function App() {
       setSelectedSourceId(imported.originalFiles[0]?.id ?? "");
       setSelectedStemIds([]);
       setPreviewState({});
+      setPreviewUrls({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
@@ -333,7 +335,42 @@ function App() {
       }
       return next;
     });
+
+    setPreviewUrls((existing) => {
+      const ids = new Set(project.stems.map((stem) => stem.id));
+      return Object.fromEntries(Object.entries(existing).filter(([id]) => ids.has(id)));
+    });
   }, [project]);
+
+  useEffect(() => {
+    if (!project || !isTauriRuntime()) {
+      return;
+    }
+
+    let cancelled = false;
+
+    for (const stem of project.stems) {
+      if (previewUrls[stem.id]) {
+        continue;
+      }
+
+      command<string>("create_stem_preview", { path: stem.path })
+        .then((url) => {
+          if (!cancelled) {
+            setPreviewUrls((existing) => ({ ...existing, [stem.id]: url }));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setPreviewUrls((existing) => ({ ...existing, [stem.id]: audioSrc(stem.path) }));
+          }
+        });
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project, previewUrls]);
 
   const compatibleModels = useMemo(
     () => models.filter((model) => model.tasks.includes(task)),
@@ -630,6 +667,7 @@ function App() {
                     soloActive={soloActive}
                     state={previewState[stem.id] ?? { muted: false, solo: false, volume: 1 }}
                     stem={stem}
+                    previewUrl={previewUrls[stem.id]}
                     onSelect={() => toggleStemSelection(stem.id)}
                     onUpdate={(patch) => setStemPreview(stem.id, patch)}
                   />
@@ -731,16 +769,19 @@ function StemPreview({
   selected,
   onSelect,
   onUpdate,
+  previewUrl,
 }: {
   stem: StemFile;
   state: PreviewState;
   soloActive: boolean;
   selected: boolean;
+  previewUrl?: string;
   onSelect: () => void;
   onUpdate: (patch: Partial<PreviewState>) => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isAudible = !state.muted && (!soloActive || state.solo);
+  const source = previewUrl ?? (isTauriRuntime() ? undefined : audioSrc(stem.path));
 
   useEffect(() => {
     if (audioRef.current) {
@@ -748,13 +789,19 @@ function StemPreview({
     }
   }, [state.volume]);
 
+  useEffect(() => {
+    audioRef.current?.load();
+  }, [source]);
+
   return (
     <article className="stem-row">
       <label className="stem-select">
         <input type="checkbox" checked={selected} onChange={onSelect} />
         <span>{stem.label}</span>
       </label>
-      <audio ref={audioRef} controls muted={!isAudible} src={audioSrc(stem.path)} />
+      <audio ref={audioRef} controls muted={!isAudible} preload="metadata">
+        {source ? <source src={source} type="audio/wav" /> : null}
+      </audio>
       <div className="stem-controls">
         <button
           className={state.solo ? "toggle is-on" : "toggle"}
