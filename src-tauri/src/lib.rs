@@ -288,8 +288,7 @@ fn media_protocol<R: Runtime>() -> plugin::TauriPlugin<R> {
 fn stream_stem_response(
     request: tauri::http::Request<Vec<u8>>,
 ) -> Result<Response<Vec<u8>>, String> {
-    let encoded_path = request.uri().path().trim_start_matches('/');
-    let path = PathBuf::from(percent_decode(encoded_path)?);
+    let path = media_request_path(request.uri().path())?;
     let canonical_path = path.canonicalize().map_err(|error| error.to_string())?;
 
     if !is_trackextract_stem_path(&canonical_path) {
@@ -332,6 +331,12 @@ fn stream_stem_response(
         response = response.header(header::CONTENT_LENGTH, len);
         response.body(body).map_err(|error| error.to_string())
     }
+}
+
+fn media_request_path(uri_path: &str) -> Result<PathBuf, String> {
+    let decoded = percent_decode(uri_path)?;
+    let absolute_path = decoded.strip_prefix("//").unwrap_or(&decoded);
+    Ok(PathBuf::from(absolute_path))
 }
 
 fn is_trackextract_stem_path(path: &Path) -> bool {
