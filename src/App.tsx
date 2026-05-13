@@ -1525,7 +1525,11 @@ function ModelStatusIcon({ model }: { model: ModelEntry }) {
     return <Download aria-label="Available to install" />;
   }
 
-  return <X aria-label="Missing" />;
+  if (model.sourceUrl || model.downloadUrl) {
+    return <ExternalLink aria-label="Catalog reference" />;
+  }
+
+  return <X aria-label="Unavailable" />;
 }
 
 function ModelStatusPill({ model, progress }: { model: ModelEntry; progress?: ModelDownloadProgress }) {
@@ -1738,7 +1742,11 @@ function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
     return "Available to install";
   }
 
-  return "Source available";
+  if (model.sourceUrl || model.downloadUrl) {
+    return "Catalog reference";
+  }
+
+  return "Unavailable";
 }
 
 function cloneMockData<T>(value: T): T {

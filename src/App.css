@@ -658,9 +658,9 @@ input[type="number"] {
 }
 
 .model-status-missing {
-  background: #f6dfd8;
-  border-color: #e4b9ad;
-  color: #9f3e31;
+  background: #ebe6dc;
+  border-color: #d8cfbd;
+  color: #5b665a;
 }
 
 .workflow-step-row {
@@ -781,8 +781,12 @@ input[type="number"] {
   width: 18px;
 }
 
-.model-select svg[aria-label="Missing"] {
-  color: #bd6958;
+.model-select svg[aria-label="Catalog reference"] {
+  color: #5b665a;
+}
+
+.model-select svg[aria-label="Unavailable"] {
+  color: #9f3e31;
 }
 
 .model-select svg[aria-label="Backend pending"] {
@@ -1111,8 +1115,12 @@ input[type="number"] {
   width: 18px;
 }
 
-.manager-model-actions > svg[aria-label="Missing"] {
-  color: #bd6958;
+.manager-model-actions > svg[aria-label="Catalog reference"] {
+  color: #5b665a;
+}
+
+.manager-model-actions > svg[aria-label="Unavailable"] {
+  color: #9f3e31;
 }
 
 .manager-model-actions > svg[aria-label="Backend pending"] {
