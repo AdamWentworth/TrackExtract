@@ -206,4 +206,110 @@ mod tests {
         let events = progress.lock().expect("progress events");
         assert_eq!(events.last().expect("last event").progress, 1.0);
     }
+
+    #[test]
+    fn existing_destination_short_circuits_download() {
+        let temp = tempdir().expect("tempdir");
+        let destination = temp.path().join("models/onnx/existing.onnx");
+        std::fs::create_dir_all(destination.parent().expect("parent")).expect("dir");
+        std::fs::write(&destination, b"existing").expect("existing");
+        let request = ModelInstallRequest {
+            model_id: "existing".to_string(),
+            display_name: "Existing".to_string(),
+            download_url: "http://127.0.0.1:1/never".to_string(),
+            destination_path: destination.clone(),
+            temp_path: destination.with_extension("onnx.download"),
+            expected_size_mb: Some(1),
+        };
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let events_for_callback = events.clone();
+
+        let installed = download_model_file(
+            request,
+            &|event| events_for_callback.lock().expect("events").push(event),
+            Arc::new(AtomicBool::new(false)),
+        )
+        .expect("existing install");
+
+        assert_eq!(installed, destination);
+        assert_eq!(std::fs::read(&installed).expect("bytes"), b"existing");
+        assert_eq!(events.lock().expect("events").len(), 1);
+        assert_eq!(
+            events.lock().expect("events")[0].message,
+            "Model already installed"
+        );
+    }
+
+    #[test]
+    fn http_error_returns_user_facing_error() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("listener");
+        let url = format!("http://{}", listener.local_addr().expect("addr"));
+
+        thread::spawn(move || {
+            let (mut stream, _) = listener.accept().expect("accept");
+            let mut request = [0_u8; 1024];
+            let _ = stream.read(&mut request);
+            write!(
+                stream,
+                "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+            )
+            .expect("response");
+        });
+
+        let temp = tempdir().expect("tempdir");
+        let destination = temp.path().join("models/onnx/missing.onnx");
+        let request = ModelInstallRequest {
+            model_id: "missing".to_string(),
+            display_name: "Missing".to_string(),
+            download_url: url,
+            destination_path: destination,
+            temp_path: temp.path().join("models/onnx/missing.onnx.download"),
+            expected_size_mb: None,
+        };
+
+        let error = download_model_file(request, &|_| {}, Arc::new(AtomicBool::new(false)))
+            .expect_err("404 should fail");
+
+        assert!(
+            matches!(error, TrackExtractError::UserFacing(message) if message.contains("HTTP status"))
+        );
+    }
+
+    #[test]
+    fn pre_cancelled_download_removes_partial_temp_file() {
+        let body = vec![7_u8; 128 * 1024];
+        let listener = TcpListener::bind("127.0.0.1:0").expect("listener");
+        let url = format!("http://{}", listener.local_addr().expect("addr"));
+
+        thread::spawn(move || {
+            let (mut stream, _) = listener.accept().expect("accept");
+            let mut request = [0_u8; 1024];
+            let _ = stream.read(&mut request);
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                body.len()
+            )
+            .expect("headers");
+            stream.write_all(&body).expect("body");
+        });
+
+        let temp = tempdir().expect("tempdir");
+        let destination = temp.path().join("models/onnx/cancel.onnx");
+        let temp_path = destination.with_extension("onnx.download");
+        let request = ModelInstallRequest {
+            model_id: "cancel".to_string(),
+            display_name: "Cancel".to_string(),
+            download_url: url,
+            destination_path: destination,
+            temp_path: temp_path.clone(),
+            expected_size_mb: None,
+        };
+        let cancel_token = Arc::new(AtomicBool::new(true));
+
+        let error = download_model_file(request, &|_| {}, cancel_token).expect_err("cancelled");
+
+        assert!(matches!(error, TrackExtractError::Cancelled));
+        assert!(!temp_path.exists());
+    }
 }

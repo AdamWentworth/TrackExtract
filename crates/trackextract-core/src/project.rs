@@ -278,4 +278,171 @@ mod tests {
         assert!(session.session_path().is_file());
         assert_eq!(session.name, "Artist - Song");
     }
+
+    #[test]
+    fn sanitize_name_replaces_invalid_characters_and_trims_edges() {
+        assert_eq!(sanitize_name(" ../Bad:/Name?*<>| "), "Bad--Name");
+    }
+
+    #[test]
+    fn sanitize_name_falls_back_for_empty_names() {
+        assert_eq!(sanitize_name(" . - \n\t"), "Untitled Track");
+    }
+
+    #[test]
+    fn daw_friendly_stem_filename_sanitizes_project_and_stem_names() {
+        assert_eq!(
+            daw_friendly_stem_filename("Artist/Song", "Lead: Vocal?"),
+            "Artist-Song - Lead- Vocal.wav"
+        );
+    }
+
+    #[test]
+    fn project_creation_requires_at_least_one_source() {
+        let temp = tempfile::tempdir().expect("tempdir");
+
+        let error = ProjectSession::create(&temp.path().join("projects"), &[])
+            .expect_err("empty import should fail");
+
+        assert!(matches!(error, TrackExtractError::NoSourceAudio));
+    }
+
+    #[test]
+    fn project_creation_rejects_missing_source_file() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let missing = temp.path().join("missing.wav");
+
+        let error = ProjectSession::create(&temp.path().join("projects"), &[missing.clone()])
+            .expect_err("missing source should fail");
+
+        assert!(matches!(error, TrackExtractError::FileNotFound(path) if path == missing));
+    }
+
+    #[test]
+    fn project_creation_uses_unique_project_folder_names() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("Artist - Song.wav");
+        write_test_wav(&source);
+        let projects = temp.path().join("projects");
+
+        let first = ProjectSession::create(&projects, &[source.clone()]).expect("first project");
+        let second = ProjectSession::create(&projects, &[source]).expect("second project");
+
+        assert_eq!(first.name, "Artist - Song");
+        assert_eq!(second.name, "Artist - Song");
+        assert_ne!(first.root_path, second.root_path);
+        assert_eq!(second.root_path.file_name().unwrap(), "Artist - Song 2");
+    }
+
+    #[test]
+    fn duplicate_original_file_names_are_preserved_with_suffixes() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source_a_dir = temp.path().join("a");
+        let source_b_dir = temp.path().join("b");
+        fs::create_dir_all(&source_a_dir).expect("a dir");
+        fs::create_dir_all(&source_b_dir).expect("b dir");
+        let source_a = source_a_dir.join("Song.wav");
+        let source_b = source_b_dir.join("Song.wav");
+        write_test_wav(&source_a);
+        write_test_wav(&source_b);
+
+        let session = ProjectSession::create(&temp.path().join("projects"), &[source_a, source_b])
+            .expect("project");
+        let stored_names = session
+            .original_files
+            .iter()
+            .map(|source| {
+                source
+                    .project_path
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string()
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(stored_names, vec!["Song.wav", "Song 2.wav"]);
+    }
+
+    #[test]
+    fn project_session_loads_saved_json_roundtrip() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("Artist - Song.wav");
+        write_test_wav(&source);
+
+        let session =
+            ProjectSession::create(&temp.path().join("projects"), &[source]).expect("project");
+        let loaded = ProjectSession::load(&session.session_path()).expect("load session");
+
+        assert_eq!(loaded.id, session.id);
+        assert_eq!(loaded.name, session.name);
+        assert_eq!(loaded.original_files.len(), 1);
+    }
+
+    #[test]
+    fn add_job_is_idempotent_and_persists() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("Artist - Song.wav");
+        write_test_wav(&source);
+        let mut session =
+            ProjectSession::create(&temp.path().join("projects"), &[source]).expect("project");
+
+        session.add_job("job-1").expect("add job");
+        session.add_job("job-1").expect("add duplicate job");
+        let loaded = ProjectSession::load(&session.session_path()).expect("load");
+
+        assert_eq!(session.jobs, vec!["job-1"]);
+        assert_eq!(loaded.jobs, vec!["job-1"]);
+    }
+
+    #[test]
+    fn replace_job_stems_replaces_only_matching_job_stems() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("Artist - Song.wav");
+        write_test_wav(&source);
+        let mut session =
+            ProjectSession::create(&temp.path().join("projects"), &[source]).expect("project");
+        let other_stem = StemFile::new("Drums", session.stems_dir().join("drums.wav"), "job-2");
+        session.stems.push(StemFile::new(
+            "Vocals",
+            session.stems_dir().join("old-vocals.wav"),
+            "job-1",
+        ));
+        session.stems.push(other_stem.clone());
+
+        let new_stems = vec![StemFile::new(
+            "Vocals",
+            session.stems_dir().join("new-vocals.wav"),
+            "job-1",
+        )];
+        session
+            .replace_job_stems("job-1", new_stems)
+            .expect("replace stems");
+
+        assert_eq!(session.stems.len(), 2);
+        assert!(session
+            .stems
+            .iter()
+            .any(|stem| stem.path.ends_with("new-vocals.wav")));
+        assert!(session.stems.iter().any(|stem| stem.id == other_stem.id));
+        assert!(!session
+            .stems
+            .iter()
+            .any(|stem| stem.path.ends_with("old-vocals.wav")));
+    }
+
+    #[test]
+    fn wav_import_records_basic_audio_metadata() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("Artist - Song.wav");
+        write_test_wav(&source);
+
+        let session =
+            ProjectSession::create(&temp.path().join("projects"), &[source]).expect("project");
+        let imported = &session.original_files[0];
+
+        assert_eq!(imported.sample_rate, Some(44_100));
+        assert_eq!(imported.channels, Some(1));
+        assert!(imported.duration_seconds.unwrap_or_default() > 0.0);
+    }
 }

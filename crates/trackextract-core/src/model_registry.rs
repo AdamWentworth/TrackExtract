@@ -275,4 +275,201 @@ mod tests {
         );
         assert!(local.find("demucs").is_some());
     }
+
+    #[test]
+    fn installed_for_task_filters_by_task_and_install_state() {
+        let registry = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "installed",
+                "displayName": "Installed",
+                "backend": "onnx",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "balanced",
+                "version": "1",
+                "installed": true,
+                "path": "models/onnx/a.onnx"
+              },
+              {
+                "id": "missing",
+                "displayName": "Missing",
+                "backend": "onnx",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "balanced",
+                "version": "1",
+                "installed": false,
+                "path": "models/onnx/b.onnx"
+              },
+              {
+                "id": "other-task",
+                "displayName": "Other Task",
+                "backend": "onnx",
+                "tasks": ["vocal_denoise"],
+                "stems": ["Clean Vocal", "Noise"],
+                "sampleRate": 44100,
+                "quality": "balanced",
+                "version": "1",
+                "installed": true,
+                "path": "models/onnx/c.onnx"
+              }
+            ]"#,
+        )
+        .expect("registry");
+
+        let models = registry.installed_for_task(&TaskType::VocalsInstrumental);
+
+        assert_eq!(models.len(), 1);
+        assert_eq!(models[0].id, "installed");
+    }
+
+    #[test]
+    fn default_for_task_prefers_non_stub_models() {
+        let registry = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "stub",
+                "displayName": "Stub",
+                "backend": "stub",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "development",
+                "version": "1",
+                "installed": true,
+                "path": ""
+              },
+              {
+                "id": "demucs",
+                "displayName": "Demucs",
+                "backend": "pytorch-worker",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "balanced",
+                "version": "1",
+                "installed": true,
+                "path": "workers/demucs_worker.py"
+              }
+            ]"#,
+        )
+        .expect("registry");
+
+        let model = registry
+            .default_for_task(&TaskType::VocalsInstrumental)
+            .expect("default");
+
+        assert_eq!(model.id, "demucs");
+    }
+
+    #[test]
+    fn default_for_task_falls_back_to_stub_when_it_is_the_only_installed_model() {
+        let registry = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "stub",
+                "displayName": "Stub",
+                "backend": "stub",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "development",
+                "version": "1",
+                "installed": true,
+                "path": ""
+              }
+            ]"#,
+        )
+        .expect("registry");
+
+        let model = registry
+            .default_for_task(&TaskType::VocalsInstrumental)
+            .expect("default");
+
+        assert_eq!(model.id, "stub");
+    }
+
+    #[test]
+    fn find_returns_none_for_unknown_model_id() {
+        let registry = ModelRegistry::from_json_str("[]").expect("registry");
+
+        assert!(registry.find("missing").is_none());
+    }
+
+    #[test]
+    fn sync_updates_existing_bundled_entries() {
+        let mut local = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "demucs",
+                "displayName": "Old Name",
+                "backend": "pytorch-worker",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "balanced",
+                "version": "old",
+                "installed": true,
+                "path": "workers/demucs_worker.py"
+              }
+            ]"#,
+        )
+        .expect("local");
+        let bundled = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "demucs",
+                "displayName": "New Name",
+                "backend": "pytorch-worker",
+                "tasks": ["vocals_instrumental"],
+                "stems": ["Vocals", "Instrumental"],
+                "sampleRate": 44100,
+                "quality": "best",
+                "version": "new",
+                "installed": true,
+                "path": "workers/demucs_worker.py"
+              }
+            ]"#,
+        )
+        .expect("bundled");
+
+        assert!(local.sync_with_bundled(&bundled));
+        let model = local.find("demucs").expect("model");
+        assert_eq!(model.display_name, "New Name");
+        assert_eq!(model.quality, "best");
+    }
+
+    #[test]
+    fn parses_vocal_cleanup_task_types() {
+        let registry = ModelRegistry::from_json_str(
+            r#"[
+              {
+                "id": "cleanup",
+                "displayName": "Cleanup",
+                "backend": "onnx",
+                "tasks": ["vocal_cleanup_chain", "layered_vocal_cleanup", "vocal_dereverb", "vocal_denoise"],
+                "stems": ["Clean Vocal", "Noise"],
+                "sampleRate": 44100,
+                "quality": "best",
+                "version": "1",
+                "installed": false,
+                "path": "models/onnx/cleanup.onnx"
+              }
+            ]"#,
+        )
+        .expect("registry");
+
+        assert_eq!(
+            registry.models[0].tasks,
+            vec![
+                TaskType::VocalCleanupChain,
+                TaskType::LayeredVocalCleanup,
+                TaskType::VocalDereverb,
+                TaskType::VocalDenoise
+            ]
+        );
+    }
 }

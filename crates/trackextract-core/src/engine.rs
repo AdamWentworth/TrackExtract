@@ -406,3 +406,384 @@ fn load_latest_project_session(project_root: &Path) -> Option<ProjectSession> {
         .max_by_key(|(modified, _)| *modified)
         .and_then(|(_, path)| ProjectSession::load(&path).ok())
 }
+
+#[cfg(test)]
+mod tests {
+    use std::thread;
+
+    use crate::{
+        backend::SeparationOutput,
+        project::{StemFile, SESSION_SCHEMA_VERSION},
+    };
+
+    use super::*;
+
+    const TEST_MODELS: &str = r#"[
+      {
+        "id": "demucs",
+        "displayName": "Demucs",
+        "backend": "pytorch-worker",
+        "tasks": ["vocals_instrumental"],
+        "stems": ["Vocals", "Instrumental"],
+        "sampleRate": 44100,
+        "quality": "balanced",
+        "version": "1",
+        "installed": true,
+        "path": "workers/demucs_worker.py"
+      },
+      {
+        "id": "onnx_download",
+        "displayName": "ONNX Download",
+        "backend": "onnx",
+        "tasks": ["vocals_instrumental"],
+        "stems": ["Vocals", "Instrumental"],
+        "sampleRate": 44100,
+        "quality": "fast",
+        "version": "1",
+        "installed": false,
+        "path": "models/onnx/download.onnx",
+        "downloadUrl": "https://example.com/download.onnx",
+        "downloadSizeMb": 1
+      },
+      {
+        "id": "source_only",
+        "displayName": "Source Only",
+        "backend": "external-process",
+        "tasks": ["vocal_cleanup_chain"],
+        "stems": ["Vocals", "Instrumental"],
+        "sampleRate": 44100,
+        "quality": "best",
+        "version": "1",
+        "installed": false,
+        "path": "",
+        "downloadUrl": "https://example.com/catalog"
+      }
+    ]"#;
+
+    fn write_test_wav(path: &Path) {
+        let spec = hound::WavSpec {
+            channels: 1,
+            sample_rate: 44_100,
+            bits_per_sample: 32,
+            sample_format: hound::SampleFormat::Float,
+        };
+        let mut writer = hound::WavWriter::create(path, spec).expect("wav writer");
+        for index in 0..256 {
+            writer
+                .write_sample((index as f32 / 256.0) * 0.25)
+                .expect("sample");
+        }
+        writer.finalize().expect("finalize");
+    }
+
+    fn engine_in_temp(temp: &tempfile::TempDir) -> Engine {
+        Engine::bootstrap_with_paths(
+            TEST_MODELS,
+            temp.path().join("app-data"),
+            temp.path().join("projects"),
+        )
+        .expect("engine")
+    }
+
+    #[test]
+    fn bootstrap_copies_bundled_registry_to_app_data() {
+        let temp = tempfile::tempdir().expect("tempdir");
+
+        let engine = engine_in_temp(&temp);
+        let snapshot = engine.snapshot();
+
+        assert!(snapshot.model_registry_path.is_file());
+        assert_eq!(snapshot.models.len(), 3);
+    }
+
+    #[test]
+    fn bootstrap_marks_managed_model_installed_when_file_exists() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let model_path = temp
+            .path()
+            .join("app-data")
+            .join("models/onnx/download.onnx");
+        fs::create_dir_all(model_path.parent().unwrap()).expect("model dir");
+        fs::write(&model_path, b"model").expect("model file");
+
+        let engine = engine_in_temp(&temp);
+        let model = engine
+            .list_models()
+            .into_iter()
+            .find(|model| model.id == "onnx_download")
+            .expect("model");
+
+        assert!(model.installed);
+    }
+
+    #[test]
+    fn bootstrap_marks_managed_model_missing_when_file_is_absent() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let app_data = temp.path().join("app-data");
+        fs::create_dir_all(&app_data).expect("app data");
+        fs::write(
+            app_data.join("models.json"),
+            TEST_MODELS.replace("\"installed\": false", "\"installed\": true"),
+        )
+        .expect("local registry");
+
+        let engine =
+            Engine::bootstrap_with_paths(TEST_MODELS, app_data, temp.path().join("projects"))
+                .expect("engine");
+        let model = engine
+            .list_models()
+            .into_iter()
+            .find(|model| model.id == "onnx_download")
+            .expect("model");
+
+        assert!(!model.installed);
+    }
+
+    #[test]
+    fn prepare_model_install_resolves_app_data_destination_and_temp_path() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let engine = engine_in_temp(&temp);
+
+        let request = engine
+            .prepare_model_install("onnx_download")
+            .expect("install request");
+
+        assert_eq!(request.model_id, "onnx_download");
+        assert!(request
+            .destination_path
+            .ends_with("models/onnx/download.onnx"));
+        assert!(request
+            .destination_path
+            .starts_with(temp.path().join("app-data")));
+        assert!(request
+            .temp_path
+            .ends_with("models/onnx/download.onnx.download"));
+        assert_eq!(request.expected_size_mb, Some(1));
+    }
+
+    #[test]
+    fn prepare_model_install_rejects_catalog_only_entries() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let engine = engine_in_temp(&temp);
+
+        let error = engine
+            .prepare_model_install("source_only")
+            .expect_err("source-only entry");
+
+        assert!(matches!(error, TrackExtractError::ModelUnavailable(_)));
+    }
+
+    #[test]
+    fn complete_model_install_sets_installed_and_persists_registry() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let mut engine = engine_in_temp(&temp);
+
+        let model = engine
+            .complete_model_install("onnx_download")
+            .expect("complete install");
+        let reloaded = ModelRegistry::load(temp.path().join("app-data/models.json"))
+            .expect("registry")
+            .find("onnx_download")
+            .expect("model");
+
+        assert!(model.installed);
+        assert!(reloaded.installed);
+    }
+
+    #[test]
+    fn import_audio_creates_project_and_clears_existing_jobs() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("song.wav");
+        write_test_wav(&source);
+        let mut engine = engine_in_temp(&temp);
+        engine
+            .import_audio_files(vec![source.clone()])
+            .expect("first import");
+        engine
+            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .expect("enqueue");
+
+        let project = engine
+            .import_audio_files(vec![source])
+            .expect("second import");
+
+        assert_eq!(project.original_files.len(), 1);
+        assert!(engine.jobs().is_empty());
+    }
+
+    #[test]
+    fn enqueue_requires_a_current_project() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let mut engine = engine_in_temp(&temp);
+
+        let error = engine
+            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .expect_err("no project");
+
+        assert!(matches!(error, TrackExtractError::NoProject));
+    }
+
+    #[test]
+    fn enqueue_rejects_missing_or_unsupported_models() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("song.wav");
+        write_test_wav(&source);
+        let mut engine = engine_in_temp(&temp);
+        engine.import_audio_files(vec![source]).expect("import");
+
+        let missing = engine
+            .enqueue_separation(TaskType::VocalsInstrumental, Some("missing".into()), None)
+            .expect_err("missing model");
+        let unsupported = engine
+            .enqueue_separation(TaskType::VocalDenoise, Some("demucs".into()), None)
+            .expect_err("unsupported task");
+
+        assert!(matches!(missing, TrackExtractError::ModelUnavailable(_)));
+        assert!(matches!(
+            unsupported,
+            TrackExtractError::ModelUnavailable(_)
+        ));
+    }
+
+    #[test]
+    fn prepare_running_progress_fail_and_cancel_update_jobs() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("song.wav");
+        write_test_wav(&source);
+        let mut engine = engine_in_temp(&temp);
+        engine.import_audio_files(vec![source]).expect("import");
+        let job = engine
+            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .expect("enqueue");
+
+        let (prepared, request) = engine.prepare_job(&job.id).expect("prepare");
+        assert_eq!(prepared.state, JobState::Preparing);
+        assert_eq!(request.model.id, "demucs");
+
+        let running = engine.mark_job_running(&job.id).expect("running");
+        assert_eq!(running.state, JobState::Running);
+
+        let progress = engine
+            .update_job_progress(&job.id, 0.42, "Working")
+            .expect("progress");
+        assert_eq!(progress.progress, 0.42);
+        assert_eq!(progress.status_message, "Working");
+
+        let failed = engine.fail_job(&job.id, "Nope").expect("fail");
+        assert_eq!(failed.state, JobState::Failed);
+        assert_eq!(failed.error.as_deref(), Some("Nope"));
+
+        let cancelled = engine.cancel_job(&job.id).expect("cancel");
+        assert_eq!(cancelled.state, JobState::Cancelled);
+    }
+
+    #[test]
+    fn complete_job_updates_project_stems_and_export_selected_files() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("song.wav");
+        write_test_wav(&source);
+        let mut engine = engine_in_temp(&temp);
+        let project = engine.import_audio_files(vec![source]).expect("import");
+        let job = engine
+            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .expect("enqueue");
+        let vocal_path = project.stems_dir().join("Song - Vocals.wav");
+        let instrumental_path = project.stems_dir().join("Song - Instrumental.wav");
+        fs::write(&vocal_path, b"vocals").expect("vocal file");
+        fs::write(&instrumental_path, b"instrumental").expect("instrumental file");
+        let stems = vec![
+            StemFile::new("Vocals", vocal_path, job.id.clone()),
+            StemFile::new("Instrumental", instrumental_path, job.id.clone()),
+        ];
+
+        let completed = engine
+            .complete_job(
+                &job.id,
+                SeparationOutput {
+                    stems: stems.clone(),
+                    log_path: project.logs_dir().join("job.log"),
+                },
+            )
+            .expect("complete");
+        let export_dir = temp.path().join("export");
+        let exported = engine
+            .export_stems(&[stems[0].id.clone()], &export_dir)
+            .expect("export");
+
+        assert_eq!(completed.state, JobState::Complete);
+        assert_eq!(engine.current_project().unwrap().stems.len(), 2);
+        assert_eq!(exported.len(), 1);
+        assert!(exported[0].ends_with("Song - Vocals.wav"));
+    }
+
+    #[test]
+    fn export_without_ids_exports_all_stems() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source = temp.path().join("song.wav");
+        write_test_wav(&source);
+        let mut engine = engine_in_temp(&temp);
+        let project = engine.import_audio_files(vec![source]).expect("import");
+        let job = engine
+            .enqueue_separation(TaskType::VocalsInstrumental, Some("demucs".into()), None)
+            .expect("enqueue");
+        let vocal_path = project.stems_dir().join("Song - Vocals.wav");
+        let instrumental_path = project.stems_dir().join("Song - Instrumental.wav");
+        fs::write(&vocal_path, b"vocals").expect("vocal file");
+        fs::write(&instrumental_path, b"instrumental").expect("instrumental file");
+
+        engine
+            .complete_job(
+                &job.id,
+                SeparationOutput {
+                    stems: vec![
+                        StemFile::new("Vocals", vocal_path, job.id.clone()),
+                        StemFile::new("Instrumental", instrumental_path, job.id.clone()),
+                    ],
+                    log_path: project.logs_dir().join("job.log"),
+                },
+            )
+            .expect("complete");
+        let exported = engine
+            .export_stems(&[], &temp.path().join("export"))
+            .expect("export all");
+
+        assert_eq!(exported.len(), 2);
+    }
+
+    #[test]
+    fn bootstrap_loads_latest_project_session() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let source_a = temp.path().join("a.wav");
+        let source_b = temp.path().join("b.wav");
+        write_test_wav(&source_a);
+        write_test_wav(&source_b);
+        let projects = temp.path().join("projects");
+        let _first = ProjectSession::create(&projects, &[source_a]).expect("first project");
+        thread::sleep(std::time::Duration::from_millis(5));
+        let second = ProjectSession::create(&projects, &[source_b]).expect("second project");
+
+        let engine =
+            Engine::bootstrap_with_paths(TEST_MODELS, temp.path().join("app-data"), projects)
+                .expect("engine");
+
+        assert_eq!(engine.current_project().unwrap().id, second.id);
+    }
+
+    #[test]
+    fn snapshot_contains_bootstrap_paths_and_schema_models() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let engine = engine_in_temp(&temp);
+
+        let snapshot = engine.snapshot();
+
+        assert_eq!(snapshot.project_root, temp.path().join("projects"));
+        assert_eq!(snapshot.app_data_dir, temp.path().join("app-data"));
+        assert!(snapshot
+            .models
+            .iter()
+            .any(|model| model.id == "demucs" && model.sample_rate == 44_100));
+        assert!(snapshot.current_project.is_none());
+        assert!(snapshot.jobs.is_empty());
+        assert_eq!(SESSION_SCHEMA_VERSION, 1);
+    }
+}

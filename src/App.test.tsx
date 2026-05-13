@@ -101,4 +101,84 @@ describe("TrackExtract app", () => {
     expect(await screen.findByText("UVR MDX23C InstVoc HQ installed")).toBeInTheDocument();
     expect(await screen.findByText("Installed · backend pending")).toBeInTheDocument();
   });
+
+  it("filters full stem models when the full split task is selected", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Full Stem Split"));
+
+    expect(await screen.findByText("Demucs HTDemucs 6 Stem Split")).toBeInTheDocument();
+  });
+
+  it("filters layered vocal cleanup models", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Remove Layered Vocals"));
+
+    expect(await screen.findByText("UVR MDX-NET Karaoke 2 ONNX")).toBeInTheDocument();
+  });
+
+  it("filters denoise models", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Denoise Vocal"));
+
+    expect(await screen.findByText("UVR DeNoise")).toBeInTheDocument();
+  });
+
+  it("imports browser mock audio from the drop-zone button", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Drop audio here"));
+
+    expect(await screen.findByText("Artist - Browser Demo")).toBeInTheDocument();
+    expect(await screen.findByText("1 source file")).toBeInTheDocument();
+  });
+
+  it("runs the browser mock separation and shows generated stems", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Drop audio here"));
+    const runButton = await screen.findByText("Run separation");
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    fireEvent.click(runButton);
+
+    expect(await screen.findByText("Separation complete")).toBeInTheDocument();
+    expect((await screen.findAllByText("Vocals")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("Instrumental")).length).toBeGreaterThan(0);
+  });
+
+  it("opens model source links in the browser runtime", async () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    render(<App />);
+
+    fireEvent.click((await screen.findAllByTitle("Open model source"))[0]);
+
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("github.com"), "_blank", "noopener,noreferrer");
+    openSpy.mockRestore();
+  });
+
+  it("refreshes the model registry from the toolbar action", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByTitle("Refresh model registry"));
+
+    expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
+  });
+
+  it("keeps backend-pending installed models from running separation", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Clean Lead Vocal"));
+    fireEvent.click(await screen.findByText("Drop audio here"));
+    await screen.findByText("Artist - Browser Demo");
+
+    const installButtons = screen.queryAllByText("Install");
+    if (installButtons.length > 0) {
+      fireEvent.click(installButtons[0]);
+      await screen.findByText(/installed$/);
+    }
+
+    await waitFor(() => expect(screen.getByText("Run separation")).toBeDisabled());
+  });
 });

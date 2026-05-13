@@ -115,4 +115,89 @@ mod tests {
         job.set_state(JobState::Cancelled, "Cancelled");
         assert_eq!(job.state, JobState::Cancelled);
     }
+
+    #[test]
+    fn progress_is_clamped_to_valid_range() {
+        let mut job = test_job();
+
+        job.set_progress(-0.5, "too low");
+        assert_eq!(job.progress, 0.0);
+        assert_eq!(job.status_message, "too low");
+
+        job.set_progress(1.5, "too high");
+        assert_eq!(job.progress, 1.0);
+        assert_eq!(job.status_message, "too high");
+    }
+
+    #[test]
+    fn set_state_updates_message_and_timestamp() {
+        let mut job = test_job();
+        let previous_updated_at = job.updated_at;
+
+        job.set_state(JobState::Running, "Rendering");
+
+        assert_eq!(job.state, JobState::Running);
+        assert_eq!(job.status_message, "Rendering");
+        assert!(job.updated_at >= previous_updated_at);
+    }
+
+    #[test]
+    fn new_job_copies_project_and_source_identity() {
+        let project = ProjectSession {
+            schema_version: 1,
+            id: "project-id".into(),
+            name: "Project Name".into(),
+            root_path: PathBuf::from("/tmp/project"),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+            original_files: Vec::new(),
+            jobs: Vec::new(),
+            stems: Vec::new(),
+        };
+        let source = AudioSource {
+            id: "source-id".into(),
+            original_name: "song.wav".into(),
+            source_path: PathBuf::from("/imports/song.wav"),
+            project_path: PathBuf::from("/tmp/project/original/song.wav"),
+            sample_rate: Some(44_100),
+            channels: Some(2),
+            duration_seconds: Some(123.0),
+        };
+
+        let job = JobRecord::new(
+            &project,
+            &source,
+            TaskType::VocalCleanupChain,
+            "model-id".into(),
+        );
+
+        assert_eq!(job.project_id, "project-id");
+        assert_eq!(job.project_name, "Project Name");
+        assert_eq!(job.source_id, "source-id");
+        assert_eq!(job.source_path, source.project_path);
+        assert_eq!(job.task, TaskType::VocalCleanupChain);
+        assert_eq!(job.model_id, "model-id");
+        assert_eq!(job.state, JobState::Queued);
+        assert_eq!(job.progress, 0.0);
+    }
+
+    fn test_job() -> JobRecord {
+        JobRecord {
+            id: "job".into(),
+            project_id: "project".into(),
+            project_name: "Project".into(),
+            source_id: "source".into(),
+            source_path: PathBuf::from("source.wav"),
+            task: TaskType::VocalsInstrumental,
+            model_id: "stub".into(),
+            state: JobState::Queued,
+            progress: 0.0,
+            status_message: "Queued".into(),
+            error: None,
+            stems: Vec::new(),
+            log_path: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
 }
