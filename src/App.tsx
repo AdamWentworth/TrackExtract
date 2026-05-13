@@ -52,6 +52,10 @@ type ModelOptionType = "select" | "integer" | "number" | "boolean";
 type RenderOptionValue = string | number | boolean;
 type WorkflowKind = "preset" | "custom" | "template";
 type ModelPanelView = "library" | "workflow";
+type ModelStatusFilter = "all" | "runnable" | "installable" | "pending" | "missing";
+type ModelStatusKey = Exclude<ModelStatusFilter, "all">;
+type ModelTaskFilter = "all" | TaskType;
+type ModelBackendFilter = "all" | BackendKind;
 
 interface ModelOptionChoice {
   value: string;
@@ -211,6 +215,20 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
 const SILENT_WAV_DATA_URI =
   "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+const MODEL_STATUS_FILTERS: Array<{ value: ModelStatusFilter; label: string }> = [
+  { value: "all", label: "All statuses" },
+  { value: "runnable", label: "Runnable" },
+  { value: "installable", label: "Installable" },
+  { value: "pending", label: "Backend pending" },
+  { value: "missing", label: "Catalog only" },
+];
+const MODEL_BACKEND_FILTERS: Array<{ value: ModelBackendFilter; label: string }> = [
+  { value: "all", label: "All backends" },
+  { value: "pytorch-worker", label: "PyTorch worker" },
+  { value: "onnx", label: "ONNX" },
+  { value: "external-process", label: "External process" },
+  { value: "stub", label: "Stub" },
+];
 
 function isTauriRuntime() {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -257,6 +275,9 @@ function App() {
   const [modelManagerOpen, setModelManagerOpen] = useState(false);
   const [modelPanelView, setModelPanelView] = useState<ModelPanelView>("library");
   const [modelFilter, setModelFilter] = useState("");
+  const [modelStatusFilter, setModelStatusFilter] = useState<ModelStatusFilter>("all");
+  const [modelTaskFilter, setModelTaskFilter] = useState<ModelTaskFilter>("all");
+  const [modelBackendFilter, setModelBackendFilter] = useState<ModelBackendFilter>("all");
   const [customWorkflowName, setCustomWorkflowName] = useState("");
   const [status, setStatus] = useState("Ready");
   const [error, setError] = useState<string | null>(null);
@@ -491,26 +512,21 @@ function App() {
   const selectedModelRunnable = selectedModel ? isRunnableModel(selectedModel) : false;
   const filteredModels = useMemo(() => {
     const query = modelFilter.trim().toLowerCase();
-    return models.filter((model) => {
-      const matchesQuery = !query || [
-        model.displayName,
-        model.backend,
-        model.quality,
-        model.version,
-        model.notes,
-        model.tasks.map(formatTask).join(" "),
-      ]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(query));
-      return matchesQuery;
-    });
-  }, [modelFilter, models]);
+    return models
+      .filter((model) => modelMatchesFilters(model, query, modelStatusFilter, modelTaskFilter, modelBackendFilter))
+      .sort(compareModelsForLibrary);
+  }, [modelBackendFilter, modelFilter, modelStatusFilter, modelTaskFilter, models]);
   const modelCounts = useMemo(() => ({
     total: models.length,
     runnable: models.filter(isRunnableModel).length,
     installable: models.filter(isInstallableModel).length,
     pending: models.filter((model) => model.installed && !isRunnableModel(model)).length,
+    missing: models.filter((model) => modelStatusKey(model) === "missing").length,
   }), [models]);
+  const modelFiltersActive = Boolean(modelFilter.trim()) ||
+    modelStatusFilter !== "all" ||
+    modelTaskFilter !== "all" ||
+    modelBackendFilter !== "all";
 
   useEffect(() => {
     if (!selectedWorkflowStep) {
@@ -763,6 +779,13 @@ function App() {
     setModelManagerOpen(false);
   }
 
+  function clearModelFilters() {
+    setModelFilter("");
+    setModelStatusFilter("all");
+    setModelTaskFilter("all");
+    setModelBackendFilter("all");
+  }
+
   function setRenderOption(option: ModelOptionDefinition, value: RenderOptionValue) {
     setRenderOptions((existing) => ({
       ...existing,
@@ -903,7 +926,7 @@ function App() {
               </button>
               <button className="secondary-action inline-action" type="button" onClick={() => setModelManagerOpen(true)}>
                 <Database aria-hidden />
-                Model manager
+                Model library
               </button>
               <button className="icon-action" type="button" onClick={cancelRunningJob} disabled={!runningJob} title="Cancel job">
                 <Square aria-hidden />
@@ -1006,9 +1029,9 @@ function App() {
             <div className="panel-heading with-action">
               <span>
                 <Database aria-hidden />
-                <h2>Model Registry</h2>
+                <h2>Model Library</h2>
               </span>
-              <button className="icon-button" type="button" onClick={() => setModelManagerOpen(true)} title="Open model manager">
+              <button className="icon-button" type="button" onClick={() => setModelManagerOpen(true)} title="Open full model library">
                 <Database aria-hidden />
               </button>
             </div>
@@ -1036,20 +1059,30 @@ function App() {
 
             {modelPanelView === "library" ? (
               <>
-                <input
-                  aria-label="Search model registry"
-                  onChange={(event) => setModelFilter(event.currentTarget.value)}
-                  placeholder="Search all models"
-                  type="search"
-                  value={modelFilter}
-                />
+                <div className="rail-library-tools">
+                  <input
+                    aria-label="Search model registry"
+                    onChange={(event) => setModelFilter(event.currentTarget.value)}
+                    placeholder="Search all models"
+                    type="search"
+                    value={modelFilter}
+                  />
+                  <button className="secondary-action inline-action" type="button" onClick={() => setModelManagerOpen(true)}>
+                    Browse
+                  </button>
+                </div>
                 <div className="model-summary-strip" aria-label="Model registry summary">
                   <span>{modelCounts.total} total</span>
                   <span>{modelCounts.runnable} runnable</span>
                   <span>{modelCounts.installable} installable</span>
                   <span>{modelCounts.pending} pending</span>
                 </div>
-                <div className="inline-model-list">
+                {modelFiltersActive ? (
+                  <button className="secondary-action compact-action" type="button" onClick={clearModelFilters}>
+                    Clear filters
+                  </button>
+                ) : null}
+                <div className="inline-model-list" aria-label="Model registry results">
                   {filteredModels.length === 0 ? (
                     <div className="empty-state compact">
                       <span>No models match this search.</span>
@@ -1087,24 +1120,12 @@ function App() {
                               <ExternalLink aria-hidden />
                             </button>
                           ) : null}
-                          {model.installed ? (
-                            isRunnableModel(model) ? (
-                              <CheckCircle2 aria-label="Installed" />
-                            ) : (
-                              <AlertTriangle aria-label="Backend pending" />
-                            )
-                          ) : (
-                            <X aria-label="Missing" />
-                          )}
+                          <ModelStatusIcon model={model} />
                         </div>
                       </article>
                     ))
                   )}
                 </div>
-                <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
-                  <Database aria-hidden />
-                  Manage models
-                </button>
               </>
             ) : (
               <>
@@ -1208,16 +1229,24 @@ function App() {
       </section>
       {modelManagerOpen ? (
         <ModelManager
+          backendFilter={modelBackendFilter}
+          counts={modelCounts}
           filter={modelFilter}
           installProgress={modelInstallProgress}
           models={filteredModels}
           onClose={() => setModelManagerOpen(false)}
+          onBackendFilterChange={setModelBackendFilter}
+          onClearFilters={clearModelFilters}
           onFilterChange={setModelFilter}
           onInstall={installModel}
           onOpenSource={openModelSource}
           onRefresh={refreshModels}
+          onStatusFilterChange={setModelStatusFilter}
+          onTaskFilterChange={setModelTaskFilter}
           onUse={useModelFromManager}
           selectedModelId={selectedModelId}
+          statusFilter={modelStatusFilter}
+          taskFilter={modelTaskFilter}
         />
       ) : null}
     </main>
@@ -1225,99 +1254,195 @@ function App() {
 }
 
 function ModelManager({
+  backendFilter,
+  counts,
   filter,
   installProgress,
   models,
   onClose,
+  onBackendFilterChange,
+  onClearFilters,
   onFilterChange,
   onInstall,
   onOpenSource,
   onRefresh,
+  onStatusFilterChange,
+  onTaskFilterChange,
   onUse,
   selectedModelId,
+  statusFilter,
+  taskFilter,
 }: {
+  backendFilter: ModelBackendFilter;
+  counts: {
+    total: number;
+    runnable: number;
+    installable: number;
+    pending: number;
+    missing: number;
+  };
   filter: string;
   installProgress: Record<string, ModelDownloadProgress>;
   models: ModelEntry[];
   onClose: () => void;
+  onBackendFilterChange: (value: ModelBackendFilter) => void;
+  onClearFilters: () => void;
   onFilterChange: (value: string) => void;
   onInstall: (model: ModelEntry) => void;
   onOpenSource: (model: ModelEntry) => void;
   onRefresh: () => void;
+  onStatusFilterChange: (value: ModelStatusFilter) => void;
+  onTaskFilterChange: (value: ModelTaskFilter) => void;
   onUse: (model: ModelEntry) => void;
   selectedModelId: string;
+  statusFilter: ModelStatusFilter;
+  taskFilter: ModelTaskFilter;
 }) {
+  const filtersActive = Boolean(filter.trim()) ||
+    statusFilter !== "all" ||
+    taskFilter !== "all" ||
+    backendFilter !== "all";
+
   return (
     <div className="modal-backdrop" role="presentation">
-      <section aria-label="Model Manager" className="model-manager" role="dialog">
-        <div className="modal-heading">
+      <section aria-label="Model Library" aria-modal="true" className="model-manager model-library" role="dialog">
+        <div className="modal-heading library-heading">
           <span>
             <Database aria-hidden />
-            <h2>Model Manager</h2>
+            <span>
+              <h2>Model Library</h2>
+              <small>{models.length} of {counts.total} models visible</small>
+            </span>
           </span>
-          <button className="icon-button" type="button" onClick={onClose} title="Close model manager">
+          <button className="icon-button" type="button" onClick={onClose} title="Close model library">
             <X aria-hidden />
           </button>
         </div>
+
+        <div className="model-library-stats" aria-label="Model library summary">
+          <span><strong>{counts.total}</strong>Total</span>
+          <span><strong>{counts.runnable}</strong>Runnable</span>
+          <span><strong>{counts.installable}</strong>Installable</span>
+          <span><strong>{counts.pending}</strong>Backend pending</span>
+          <span><strong>{counts.missing}</strong>Catalog only</span>
+        </div>
+
         <div className="model-manager-toolbar">
           <input
             aria-label="Filter models"
             onChange={(event) => onFilterChange(event.currentTarget.value)}
-            placeholder="Filter models"
+            placeholder="Search name, task, backend, version"
             type="search"
             value={filter}
           />
+          <select
+            aria-label="Status filter"
+            value={statusFilter}
+            onChange={(event) => onStatusFilterChange(event.currentTarget.value as ModelStatusFilter)}
+          >
+            {MODEL_STATUS_FILTERS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Task filter"
+            value={taskFilter}
+            onChange={(event) => onTaskFilterChange(event.currentTarget.value as ModelTaskFilter)}
+          >
+            <option value="all">All tasks</option>
+            {TASKS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Backend filter"
+            value={backendFilter}
+            onChange={(event) => onBackendFilterChange(event.currentTarget.value as ModelBackendFilter)}
+          >
+            {MODEL_BACKEND_FILTERS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
           <button className="secondary-action inline-action" type="button" onClick={onRefresh}>
             <RefreshCw aria-hidden />
             Refresh
           </button>
+          {filtersActive ? (
+            <button className="secondary-action inline-action" type="button" onClick={onClearFilters}>
+              Clear
+            </button>
+          ) : null}
         </div>
-        <div className="manager-model-list">
-          {models.map((model) => (
-            <article className={selectedModelId === model.id ? "manager-model-row is-selected" : "manager-model-row"} key={model.id}>
-              <div>
-                <strong>{model.displayName}</strong>
-                <small>
-                  {model.backend} · {model.quality} · {model.version}
-                  {model.downloadSizeMb ? ` · ${model.downloadSizeMb} MB` : ""}
-                </small>
-                <small>{model.tasks.map(formatTask).join(", ")}</small>
-                {model.license ? <small>{model.license}</small> : null}
-                <small>{modelStatusText(model, installProgress[model.id])}</small>
-              </div>
-              <div className="manager-model-actions">
-                <button className="secondary-action inline-action" type="button" onClick={() => onUse(model)}>
-                  <SlidersHorizontal aria-hidden />
-                  Use
+
+        <div className="model-library-header" aria-hidden="true">
+          <span>Model</span>
+          <span>Tasks</span>
+          <span>Backend</span>
+          <span>Status</span>
+          <span>Actions</span>
+        </div>
+
+        <div className="manager-model-list model-library-list">
+          {models.length === 0 ? (
+            <div className="empty-state">
+              <Database aria-hidden />
+              <span>No models match the current filters.</span>
+            </div>
+          ) : (
+            models.map((model) => (
+              <article
+                className={selectedModelId === model.id ? "manager-model-row library-model-row is-selected" : "manager-model-row library-model-row"}
+                key={model.id}
+              >
+                <button className="library-model-title" type="button" onClick={() => onUse(model)}>
+                  <strong>{model.displayName}</strong>
+                  <small>{model.id}</small>
+                  <small>{model.version}</small>
                 </button>
-                {isInstallableModel(model) ? (
-                  <button
-                    className="secondary-action inline-action"
-                    type="button"
-                    onClick={() => onInstall(model)}
-                    disabled={Boolean(installProgress[model.id])}
-                  >
-                    <Download aria-hidden />
-                    {installProgress[model.id] ? `${Math.round(installProgress[model.id].progress * 100)}%` : "Install"}
+                <div className="library-task-list">
+                  {model.tasks.map((task) => (
+                    <span key={task}>{formatTask(task)}</span>
+                  ))}
+                </div>
+                <div className="library-model-meta">
+                  <strong>{model.backend}</strong>
+                  <small>{model.quality} · {formatSampleRate(model.sampleRate)}</small>
+                  <small>{model.downloadSizeMb ? `${model.downloadSizeMb} MB` : model.license ?? "No packaged file"}</small>
+                </div>
+                <div className="library-model-status">
+                  <ModelStatusPill model={model} progress={installProgress[model.id]} />
+                </div>
+                <div className="manager-model-actions library-model-actions">
+                  <button className="secondary-action inline-action" type="button" onClick={() => onUse(model)}>
+                    <SlidersHorizontal aria-hidden />
+                    Use
                   </button>
-                ) : null}
-                {model.sourceUrl || model.downloadUrl ? (
-                  <button className="icon-button" type="button" onClick={() => onOpenSource(model)} title="Open model source">
-                    <ExternalLink aria-hidden />
-                  </button>
-                ) : null}
-                {model.installed ? (
-                  isRunnableModel(model) ? (
-                    <CheckCircle2 aria-label="Installed" />
-                  ) : (
-                    <AlertTriangle aria-label="Backend pending" />
-                  )
-                ) : (
-                  <X aria-label="Missing" />
-                )}
-              </div>
-            </article>
-          ))}
+                  {isInstallableModel(model) ? (
+                    <button
+                      className="secondary-action inline-action"
+                      type="button"
+                      onClick={() => onInstall(model)}
+                      disabled={Boolean(installProgress[model.id])}
+                    >
+                      <Download aria-hidden />
+                      {installProgress[model.id] ? `${Math.round(installProgress[model.id].progress * 100)}%` : "Install"}
+                    </button>
+                  ) : null}
+                  {model.sourceUrl || model.downloadUrl ? (
+                    <button className="icon-button" type="button" onClick={() => onOpenSource(model)} title="Open model source">
+                      <ExternalLink aria-hidden />
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            ))
+          )}
         </div>
       </section>
     </div>
@@ -1467,8 +1592,39 @@ function StateBadge({ state }: { state: JobState }) {
   return <span className={`state-badge state-${state}`}>{state.replace("_", " ")}</span>;
 }
 
+function ModelStatusIcon({ model }: { model: ModelEntry }) {
+  if (isRunnableModel(model)) {
+    return <CheckCircle2 aria-label="Installed" />;
+  }
+
+  if (model.installed) {
+    return <AlertTriangle aria-label="Backend pending" />;
+  }
+
+  if (isInstallableModel(model)) {
+    return <Download aria-label="Available to install" />;
+  }
+
+  return <X aria-label="Missing" />;
+}
+
+function ModelStatusPill({ model, progress }: { model: ModelEntry; progress?: ModelDownloadProgress }) {
+  const status = modelStatusKey(model);
+
+  return (
+    <span className={`model-status-pill model-status-${status}`}>
+      <ModelStatusIcon model={model} />
+      {modelStatusText(model, progress)}
+    </span>
+  );
+}
+
 function formatTask(value: TaskType) {
   return TASKS.find((task) => task.value === value)?.label ?? value;
+}
+
+function formatSampleRate(sampleRate: number) {
+  return `${(sampleRate / 1000).toFixed(1)} kHz`;
 }
 
 function defaultRenderOptions(model: ModelEntry) {
@@ -1542,6 +1698,76 @@ function isRunnableModel(model: ModelEntry) {
 
 function isInstallableModel(model: ModelEntry) {
   return !model.installed && Boolean(model.downloadUrl) && model.path.startsWith("models/");
+}
+
+function modelStatusKey(model: ModelEntry): ModelStatusKey {
+  if (isRunnableModel(model)) {
+    return "runnable";
+  }
+
+  if (model.installed) {
+    return "pending";
+  }
+
+  if (isInstallableModel(model)) {
+    return "installable";
+  }
+
+  return "missing";
+}
+
+function modelMatchesFilters(
+  model: ModelEntry,
+  query: string,
+  statusFilter: ModelStatusFilter,
+  taskFilter: ModelTaskFilter,
+  backendFilter: ModelBackendFilter,
+) {
+  if (statusFilter !== "all" && modelStatusKey(model) !== statusFilter) {
+    return false;
+  }
+
+  if (taskFilter !== "all" && !model.tasks.includes(taskFilter)) {
+    return false;
+  }
+
+  if (backendFilter !== "all" && model.backend !== backendFilter) {
+    return false;
+  }
+
+  if (!query) {
+    return true;
+  }
+
+  return [
+    model.id,
+    model.displayName,
+    model.backend,
+    model.quality,
+    model.version,
+    model.notes,
+    model.license,
+    model.tasks.map(formatTask).join(" "),
+    model.stems.join(" "),
+  ]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes(query));
+}
+
+function compareModelsForLibrary(left: ModelEntry, right: ModelEntry) {
+  const statusOrder: Record<ModelStatusKey, number> = {
+    installable: 0,
+    runnable: 1,
+    pending: 2,
+    missing: 3,
+  };
+  const statusDelta = statusOrder[modelStatusKey(left)] - statusOrder[modelStatusKey(right)];
+
+  if (statusDelta !== 0) {
+    return statusDelta;
+  }
+
+  return left.displayName.localeCompare(right.displayName);
 }
 
 function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
@@ -1625,11 +1851,107 @@ const mockModels: ModelEntry[] = [
     options: mockDemucsOptions,
   },
   {
+    id: "demucs_htdemucs_ft_vocals_instrumental",
+    displayName: "Demucs HTDemucs FT Vocals / Instrumental",
+    backend: "pytorch-worker",
+    tasks: ["vocals_instrumental"],
+    stems: ["Vocals", "Instrumental"],
+    sampleRate: 44100,
+    quality: "best",
+    version: "demucs-4.0.1/htdemucs_ft",
+    installed: true,
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
+    options: mockDemucsOptions,
+  },
+  {
     id: "demucs_htdemucs_6s_full_split",
     displayName: "Demucs HTDemucs 6 Stem Split",
     backend: "pytorch-worker",
     tasks: ["full_stem_split"],
     stems: ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    sampleRate: 44100,
+    quality: "experimental",
+    version: "demucs-4.0.1/htdemucs_6s",
+    installed: true,
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
+    options: mockDemucsOptions,
+  },
+  {
+    id: "demucs_htdemucs_ft_4stem_best_split",
+    displayName: "Demucs HTDemucs FT 4 Stem Best Split",
+    backend: "pytorch-worker",
+    tasks: ["experimental_best_quality"],
+    stems: ["Vocals", "Drums", "Bass", "Other"],
+    sampleRate: 44100,
+    quality: "best",
+    version: "demucs-4.0.1/htdemucs_ft",
+    installed: true,
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
+    options: mockDemucsOptions,
+  },
+  {
+    id: "demucs_htdemucs_drums_only",
+    displayName: "Demucs HTDemucs Drums / No Drums",
+    backend: "pytorch-worker",
+    tasks: ["drums_only"],
+    stems: ["Drums", "No Drums"],
+    sampleRate: 44100,
+    quality: "balanced",
+    version: "demucs-4.0.1/htdemucs",
+    installed: true,
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
+    options: mockDemucsOptions,
+  },
+  {
+    id: "demucs_htdemucs_bass_only",
+    displayName: "Demucs HTDemucs Bass / No Bass",
+    backend: "pytorch-worker",
+    tasks: ["bass_only"],
+    stems: ["Bass", "No Bass"],
+    sampleRate: 44100,
+    quality: "balanced",
+    version: "demucs-4.0.1/htdemucs",
+    installed: true,
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
+    options: mockDemucsOptions,
+  },
+  {
+    id: "demucs_htdemucs_6s_guitar_only",
+    displayName: "Demucs HTDemucs 6s Guitar / No Guitar",
+    backend: "pytorch-worker",
+    tasks: ["guitar_only"],
+    stems: ["Guitar", "No Guitar"],
+    sampleRate: 44100,
+    quality: "experimental",
+    version: "demucs-4.0.1/htdemucs_6s",
+    installed: true,
+    path: "workers/demucs_worker.py",
+    downloadUrl: "https://pypi.org/project/demucs/",
+    sourceUrl: "https://github.com/facebookresearch/demucs",
+    license: "MIT",
+    options: mockDemucsOptions,
+  },
+  {
+    id: "demucs_htdemucs_6s_piano_only",
+    displayName: "Demucs HTDemucs 6s Piano / No Piano",
+    backend: "pytorch-worker",
+    tasks: ["piano_only"],
+    stems: ["Piano", "No Piano"],
     sampleRate: 44100,
     quality: "experimental",
     version: "demucs-4.0.1/htdemucs_6s",
@@ -1655,6 +1977,22 @@ const mockModels: ModelEntry[] = [
     sourceUrl: "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
     license: "MIT per UVR public model pack; verify before redistribution",
     downloadSizeMb: 28,
+  },
+  {
+    id: "onnx_uvr_mdxnet_inst_hq_5",
+    displayName: "UVR MDX-NET Inst HQ 5 ONNX",
+    backend: "onnx",
+    tasks: ["vocals_instrumental"],
+    stems: ["Vocals", "Instrumental"],
+    sampleRate: 44100,
+    quality: "balanced",
+    version: "UVR-MDX-NET-Inst_HQ_5",
+    installed: false,
+    path: "models/onnx/UVR-MDX-NET-Inst_HQ_5.onnx",
+    downloadUrl: "https://github.com/k2-fsa/sherpa-onnx/releases/download/source-separation-models/UVR-MDX-NET-Inst_HQ_5.onnx",
+    sourceUrl: "https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html",
+    license: "MIT per UVR public model pack; verify before redistribution",
+    downloadSizeMb: 56,
   },
   {
     id: "uvr_mdx23c_instvoc_hq",
@@ -1735,6 +2073,21 @@ const mockModels: ModelEntry[] = [
     sourceUrl: "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     license: "UVR public model pack; verify before redistribution",
     downloadSizeMb: 121,
+  },
+  {
+    id: "catalog_roformer_vocals",
+    displayName: "RoFormer Vocals Catalog Source",
+    backend: "external-process",
+    tasks: ["vocals_instrumental", "experimental_best_quality"],
+    stems: ["Vocals", "Instrumental"],
+    sampleRate: 44100,
+    quality: "best",
+    version: "catalog",
+    installed: false,
+    path: "",
+    downloadUrl: "https://huggingface.co/AEmotionStudio/roformer-models",
+    sourceUrl: "https://huggingface.co/AEmotionStudio/roformer-models",
+    license: "MIT per Hugging Face model card",
   },
 ];
 

@@ -109,7 +109,7 @@ h2 {
 .workspace {
   display: grid;
   gap: 16px;
-  grid-template-columns: 280px minmax(420px, 1fr) 320px;
+  grid-template-columns: 280px minmax(420px, 1fr) minmax(360px, 420px);
   height: calc(100vh - 98px);
   min-height: 0;
 }
@@ -158,6 +158,15 @@ h2 {
 .model-rail .export-panel,
 .model-rail .details-panel {
   flex: 0 0 auto;
+}
+
+.model-rail .model-registry-panel {
+  min-height: 430px;
+}
+
+.model-rail .details-panel {
+  max-height: 170px;
+  overflow-y: auto;
 }
 
 .panel-heading {
@@ -557,6 +566,20 @@ input[type="number"] {
   gap: 10px;
 }
 
+.rail-library-tools {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.compact-field {
+  color: #45483f;
+  display: grid;
+  font-size: 0.76rem;
+  font-weight: 800;
+  gap: 5px;
+}
+
 .registry-tabs {
   background: #f1eadb;
   border: 1px solid #e3dac5;
@@ -601,9 +624,10 @@ input[type="number"] {
 }
 
 .inline-model-list {
+  align-content: start;
   display: grid;
   flex: 1 1 auto;
-  gap: 8px;
+  gap: 6px;
   min-height: 0;
   overflow-y: auto;
   padding-right: 3px;
@@ -617,6 +641,7 @@ input[type="number"] {
   border-radius: 8px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 58px;
   overflow: hidden;
 }
 
@@ -631,9 +656,10 @@ input[type="number"] {
   color: #24211d;
   display: grid;
   gap: 2px;
+  align-content: center;
   justify-items: start;
   min-width: 0;
-  padding: 9px;
+  padding: 8px 9px;
   text-align: left;
 }
 
@@ -662,6 +688,13 @@ input[type="number"] {
   padding: 6px;
 }
 
+.inline-model-actions .model-install,
+.inline-model-actions .model-link {
+  border: 0;
+  border-radius: 6px;
+  min-height: 28px;
+}
+
 .inline-model-actions > svg {
   color: #247c75;
   height: 17px;
@@ -672,8 +705,55 @@ input[type="number"] {
   color: #bd6958;
 }
 
+.inline-model-actions > svg[aria-label="Available to install"] {
+  color: #247c75;
+}
+
 .inline-model-actions > svg[aria-label="Backend pending"] {
   color: #a28549;
+}
+
+.model-status-pill {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 5px;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.model-status-pill svg {
+  height: 14px;
+  width: 14px;
+}
+
+.model-status-runnable {
+  background: #e2f0df;
+  border-color: #c4dfbf;
+  color: #356d37;
+}
+
+.model-status-installable {
+  background: #e0f1ee;
+  border-color: #bfe0dc;
+  color: #1f6f68;
+}
+
+.model-status-pending {
+  background: #f3ead2;
+  border-color: #dfc98f;
+  color: #846529;
+}
+
+.model-status-missing {
+  background: #f6dfd8;
+  border-color: #e4b9ad;
+  color: #9f3e31;
 }
 
 .workflow-step-row {
@@ -891,13 +971,14 @@ input[type="number"] {
   border-radius: 8px;
   box-shadow: 0 24px 64px rgba(20, 18, 14, 0.24);
   display: grid;
-  gap: 14px;
-  max-height: min(760px, calc(100vh - 48px));
-  max-width: 980px;
-  min-height: 520px;
+  gap: 10px;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  height: min(880px, calc(100vh - 32px));
+  max-width: 1340px;
+  min-height: 620px;
   overflow: hidden;
-  padding: 16px;
-  width: min(980px, calc(100vw - 48px));
+  padding: 14px;
+  width: min(1340px, calc(100vw - 32px));
 }
 
 .modal-heading,
@@ -914,9 +995,71 @@ input[type="number"] {
   gap: 8px;
 }
 
-.manager-model-list {
+.library-heading > span > span {
+  align-items: start;
+  display: grid;
+  gap: 2px;
+}
+
+.library-heading small {
+  color: #6b7068;
+  font-size: 0.76rem;
+}
+
+.model-library-stats {
   display: grid;
   gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.model-library-stats span {
+  background: #f4f8f7;
+  border: 1px solid #d9e5e2;
+  border-radius: 8px;
+  color: #345a56;
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 1px;
+  min-height: 46px;
+  place-items: center;
+  text-align: center;
+}
+
+.model-library-stats strong {
+  color: #1d403d;
+  font-size: 1rem;
+}
+
+.model-manager-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(150px, auto) minmax(170px, auto) minmax(160px, auto) auto auto;
+}
+
+.model-manager-toolbar .secondary-action {
+  white-space: nowrap;
+}
+
+.model-library-header {
+  align-items: center;
+  background: #f1eadb;
+  border: 1px solid #e3dac5;
+  border-radius: 8px;
+  color: #5b5e55;
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 900;
+  gap: 10px;
+  grid-template-columns: minmax(230px, 1.25fr) minmax(220px, 1fr) minmax(150px, 0.65fr) minmax(150px, 0.65fr) minmax(230px, auto);
+  min-height: 32px;
+  padding: 0 10px;
+  text-transform: uppercase;
+}
+
+.manager-model-list {
+  align-content: start;
+  display: grid;
+  gap: 6px;
   min-height: 0;
   overflow-y: auto;
   padding-right: 3px;
@@ -928,9 +1071,10 @@ input[type="number"] {
   border: 1px solid #e3dac5;
   border-radius: 8px;
   display: grid;
-  gap: 12px;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: 10px;
+  gap: 10px;
+  grid-template-columns: minmax(230px, 1.25fr) minmax(220px, 1fr) minmax(150px, 0.65fr) minmax(150px, 0.65fr) minmax(230px, auto);
+  min-height: 58px;
+  padding: 8px 10px;
 }
 
 .manager-model-row.is-selected {
@@ -953,8 +1097,67 @@ input[type="number"] {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   justify-content: flex-end;
+}
+
+.library-model-title {
+  background: transparent;
+  border: 0;
+  color: #24211d;
+  display: grid;
+  gap: 1px;
+  justify-items: start;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.library-model-title strong,
+.library-model-title small,
+.library-model-meta strong,
+.library-model-meta small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.library-model-title small,
+.library-model-meta small {
+  color: #6b7068;
+  font-size: 0.7rem;
+}
+
+.library-task-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.library-task-list span {
+  background: #ece4d2;
+  border-radius: 999px;
+  color: #45483f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 7px;
+}
+
+.library-model-meta {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.library-model-status {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.library-model-actions .secondary-action {
+  min-height: 30px;
+  padding: 0 10px;
 }
 
 .manager-model-actions > svg {

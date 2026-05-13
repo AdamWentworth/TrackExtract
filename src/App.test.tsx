@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
@@ -76,7 +76,7 @@ describe("TrackExtract app", () => {
     expect(await screen.findByText("TrackExtract")).toBeInTheDocument();
     expect(screen.getByText("Import")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Workflow" })).toBeInTheDocument();
-    expect(screen.getByText("Model Registry")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Model Library" })).toBeInTheDocument();
     expect(screen.getByText("All models")).toBeInTheDocument();
     expect(screen.getByText("Queue")).toBeInTheDocument();
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("TrackExtract app", () => {
     render(<App />);
 
     fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
-    fireEvent.click(await screen.findByText("Manage models"));
+    fireEvent.click(await screen.findByText("Model library"));
     fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "MDX23C" } });
     expect((await screen.findAllByText("UVR MDX23C InstVoc HQ")).length).toBeGreaterThan(0);
 
@@ -139,10 +139,30 @@ describe("TrackExtract app", () => {
   it("filters denoise models in the model manager", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model manager"));
+    fireEvent.click(await screen.findByText("Model library"));
     fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "denoise" } });
 
     expect((await screen.findAllByText("UVR DeNoise")).length).toBeGreaterThan(0);
+  });
+
+  it("uses status, task, and backend filters inside the full model library", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Model library"));
+    const dialog = await screen.findByRole("dialog", { name: "Model Library" });
+    const library = within(dialog);
+
+    fireEvent.change(library.getByLabelText("Task filter"), { target: { value: "vocal_dereverb" } });
+    fireEvent.change(library.getByLabelText("Backend filter"), { target: { value: "onnx" } });
+
+    expect(await library.findByText("Reverb HQ By FoxJoy ONNX")).toBeInTheDocument();
+    expect(library.queryByText("Demucs HTDemucs Vocals / Instrumental")).not.toBeInTheDocument();
+
+    fireEvent.change(library.getByLabelText("Status filter"), { target: { value: "installable" } });
+    expect(await library.findByText("Reverb HQ By FoxJoy ONNX")).toBeInTheDocument();
+
+    fireEvent.click(library.getByText("Clear"));
+    expect(await library.findByText("Demucs HTDemucs Vocals / Instrumental")).toBeInTheDocument();
   });
 
   it("browses and filters the full model registry without opening the manager", async () => {
@@ -182,7 +202,7 @@ describe("TrackExtract app", () => {
     const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model manager"));
+    fireEvent.click(await screen.findByText("Model library"));
     fireEvent.click((await screen.findAllByTitle("Open model source"))[0]);
 
     expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("github.com"), "_blank", "noopener,noreferrer");
@@ -192,7 +212,7 @@ describe("TrackExtract app", () => {
   it("refreshes the model registry from the toolbar action", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model manager"));
+    fireEvent.click(await screen.findByText("Model library"));
     fireEvent.click(await screen.findByText("Refresh"));
 
     expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
@@ -205,7 +225,7 @@ describe("TrackExtract app", () => {
     fireEvent.click(await screen.findByText("Drop audio here"));
     expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
 
-    fireEvent.click(await screen.findByText("Manage models"));
+    fireEvent.click(await screen.findByText("Model library"));
     const installButtons = screen.queryAllByText("Install");
     if (installButtons.length > 0) {
       fireEvent.click(installButtons[0]);
