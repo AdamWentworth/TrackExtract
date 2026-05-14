@@ -254,8 +254,8 @@ h2 {
 }
 
 .workspace {
-  --scroll-edge-space: 10px;
-  --scroll-bottom-space: 28px;
+  --scroll-bottom-space: 26px;
+  --scroll-inline-gutter: 12px;
   display: grid;
   gap: 16px;
   grid-template-columns: minmax(260px, 0.76fr) minmax(500px, 1.42fr) minmax(320px, 0.95fr);
@@ -274,49 +274,23 @@ h2 {
 }
 
 .main-column {
-  margin-block: calc(var(--scroll-edge-space) * -1);
   overscroll-behavior: contain;
   overflow-y: auto;
-  padding: var(--scroll-edge-space) 2px var(--scroll-bottom-space) 0;
-  scroll-padding-block: var(--scroll-edge-space);
+  padding: 0 var(--scroll-inline-gutter) var(--scroll-bottom-space) 0;
+  scroll-padding-bottom: var(--scroll-bottom-space);
   scrollbar-gutter: stable;
 }
 
 .rail {
-  margin-block: calc(var(--scroll-edge-space) * -1);
   overscroll-behavior: contain;
   overflow-y: auto;
-  padding: var(--scroll-edge-space) 2px var(--scroll-bottom-space) 0;
-  scroll-padding-block: var(--scroll-edge-space);
+  padding: 0 var(--scroll-inline-gutter) var(--scroll-bottom-space) 0;
+  scroll-padding-bottom: var(--scroll-bottom-space);
   scrollbar-gutter: stable;
 }
 
 .rail.model-rail {
   overflow-y: auto;
-}
-
-.rail::-webkit-scrollbar,
-.main-column::-webkit-scrollbar {
-  width: 10px;
-}
-
-.rail::-webkit-scrollbar-track,
-.main-column::-webkit-scrollbar-track {
-  background: transparent;
-  margin-block: var(--scroll-edge-space);
-}
-
-.rail::-webkit-scrollbar-thumb,
-.main-column::-webkit-scrollbar-thumb {
-  background: var(--border-soft);
-  background-clip: content-box;
-  border: 3px solid transparent;
-  border-radius: 999px;
-}
-
-.rail::-webkit-scrollbar-thumb:hover,
-.main-column::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-muted);
 }
 
 .panel {
