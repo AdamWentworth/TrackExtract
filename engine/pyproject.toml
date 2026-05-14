@@ -18,7 +18,9 @@ test = ["pytest>=8"]
 trackextract-engine = "trackextract_engine.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["trackextract_engine*"]
+exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -86,7 +86,7 @@ impl PythonEngineBridge {
             .arg("-m")
             .arg("trackextract_engine")
             .arg(command)
-            .env("PYTHONPATH", self.repo_root.join("engine/src"))
+            .env("PYTHONPATH", self.repo_root.join("engine"))
             .current_dir(&self.repo_root)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -465,7 +465,7 @@ fn find_repo_root() -> Result<PathBuf, String> {
 
     for candidate in candidates {
         for ancestor in candidate.ancestors() {
-            if ancestor.join("engine/src/trackextract_engine").is_dir()
+            if ancestor.join("engine/trackextract_engine").is_dir()
                 && ancestor.join("resources/models.json").is_file()
             {
                 return Ok(ancestor.to_path_buf());
