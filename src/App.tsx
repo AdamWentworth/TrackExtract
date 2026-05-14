@@ -1462,19 +1462,7 @@ function App() {
         <section className="main-column">
           {selectedSource ? (
             <section className="panel source-panel">
-              <div className="panel-heading">
-                <Music2 aria-hidden />
-                <h2>Source Waveform</h2>
-              </div>
-              <div className="source-waveform-header">
-                <strong>{selectedSource.originalName}</strong>
-                <span>{formatAudioSummary(selectedSource)}</span>
-              </div>
-              <AudioWaveform
-                durationSeconds={selectedSource.durationSeconds}
-                label={selectedSource.originalName}
-                mediaUrl={sourceMediaUrls[selectedSource.id]}
-              />
+              <SourcePreview source={selectedSource} mediaUrl={sourceMediaUrls[selectedSource.id]} />
             </section>
           ) : null}
 
@@ -2122,14 +2110,20 @@ function AudioWaveform({
   mediaUrl,
   label,
   durationSeconds,
+  audioRef,
+  onSeek,
 }: {
   mediaUrl?: string;
   label: string;
   durationSeconds?: number | null;
+  audioRef?: React.RefObject<HTMLAudioElement | null>;
+  onSeek?: (ratio: number, fallbackDuration: number) => Promise<void> | void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [waveform, setWaveform] = useState<WaveformData | null>(null);
   const [waveformState, setWaveformState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [playbackProgress, setPlaybackProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -2182,7 +2176,7 @@ function AudioWaveform({
     }
 
     const draw = () => {
-      drawWaveformCanvas(canvas, waveform?.peaks ?? null, waveformState);
+      drawWaveformCanvas(canvas, waveform?.peaks ?? null, waveformState, playbackProgress);
     };
 
     draw();
@@ -2194,26 +2188,166 @@ function AudioWaveform({
     const observer = new ResizeObserver(draw);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [waveform, waveformState]);
+  }, [playbackProgress, waveform, waveformState]);
+
+  useEffect(() => {
+    const audio = audioRef?.current;
+    if (!audio) {
+      setPlaybackProgress(0);
+      setIsPlaying(false);
+      return;
+    }
+
+    const updateProgress = () => {
+      const duration = audio.duration || durationSeconds || waveform?.durationSeconds || 0;
+      setPlaybackProgress(duration > 0 ? clamp(audio.currentTime / duration, 0, 1) : 0);
+    };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setPlaybackProgress(1);
+    };
+
+    updateProgress();
+    audio.addEventListener("loadedmetadata", updateProgress);
+    audio.addEventListener("durationchange", updateProgress);
+    audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("seeking", updateProgress);
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("pause", handlePause);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", updateProgress);
+      audio.removeEventListener("durationchange", updateProgress);
+      audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("seeking", updateProgress);
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("pause", handlePause);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [audioRef, durationSeconds, mediaUrl, waveform?.durationSeconds]);
+
+  function handleWaveformClick(event: React.MouseEvent<HTMLButtonElement>) {
+    if (!mediaUrl || !onSeek) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = rect.width > 0 ? clamp((event.clientX - rect.left) / rect.width, 0, 1) : 0;
+    const duration = durationSeconds || waveform?.durationSeconds || 0;
+    setPlaybackProgress(ratio);
+
+    Promise.resolve(onSeek(ratio, duration)).catch(() => {
+      setWaveformState((current) => (current === "idle" ? "error" : current));
+    });
+  }
 
   const displayedDuration = durationSeconds ?? waveform?.durationSeconds;
   const detail =
-    waveformState === "loading"
-      ? "Reading waveform"
-      : waveformState === "error"
-        ? "Waveform unavailable"
-        : typeof displayedDuration === "number"
-          ? formatDuration(displayedDuration)
-          : "Waiting for audio";
+    isPlaying && typeof displayedDuration === "number"
+      ? `${formatDuration(playbackProgress * displayedDuration)} / ${formatDuration(displayedDuration)}`
+      : waveformState === "loading"
+        ? "Reading waveform"
+        : waveformState === "error"
+          ? "Waveform unavailable"
+          : typeof displayedDuration === "number"
+            ? formatDuration(displayedDuration)
+            : "Waiting for audio";
 
   return (
-    <div className={`waveform-card waveform-${waveformState}`} aria-label={label}>
+    <button
+      aria-label={`Play ${label} from waveform`}
+      className={`waveform-card waveform-${waveformState} ${isPlaying ? "is-playing" : ""}`}
+      disabled={!mediaUrl || !onSeek}
+      onClick={handleWaveformClick}
+      type="button"
+    >
       <canvas ref={canvasRef} className="waveform-canvas" />
       <div className="waveform-meta">
         <span>{detail}</span>
       </div>
-    </div>
+    </button>
   );
+}
+
+function SourcePreview({ source, mediaUrl }: { source: AudioSource; mediaUrl?: string }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMediaError(null);
+    audioRef.current?.load();
+  }, [mediaUrl]);
+
+  async function seekAndPlay(ratio: number, fallbackDuration: number) {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    const duration = audio.duration || fallbackDuration || source.durationSeconds || 0;
+    if (duration > 0) {
+      audio.currentTime = ratio * duration;
+    }
+    await audio.play();
+  }
+
+  return (
+    <>
+      <div className="panel-heading">
+        <Music2 aria-hidden />
+        <h2>Source Waveform</h2>
+      </div>
+      <div className="source-waveform-header">
+        <strong>{source.originalName}</strong>
+        <span>{formatAudioSummary(source)}</span>
+      </div>
+      <div className="source-audio">
+        <AudioWaveform
+          audioRef={audioRef}
+          durationSeconds={source.durationSeconds}
+          label={source.originalName}
+          mediaUrl={mediaUrl}
+          onSeek={seekAndPlay}
+        />
+        <audio
+          ref={audioRef}
+          controls
+          onCanPlay={() => setMediaError(null)}
+          onError={() => setMediaError(describeMediaError(audioRef.current?.error))}
+          preload="metadata"
+        >
+          {mediaUrl ? <source src={mediaUrl} type={audioMimeType(source.projectPath || source.sourcePath)} /> : null}
+        </audio>
+        {mediaError ? <span className="media-error">{mediaError}</span> : null}
+      </div>
+    </>
+  );
+}
+
+function audioMimeType(path: string) {
+  const extension = path.split(".").pop()?.toLowerCase();
+  switch (extension) {
+    case "wav":
+      return "audio/wav";
+    case "aif":
+    case "aiff":
+      return "audio/aiff";
+    case "flac":
+      return "audio/flac";
+    case "mp3":
+      return "audio/mpeg";
+    case "m4a":
+      return "audio/mp4";
+    default:
+      return "audio/*";
+  }
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 async function loadWaveformData(mediaUrl: string): Promise<WaveformData> {
@@ -2282,6 +2416,7 @@ function drawWaveformCanvas(
   canvas: HTMLCanvasElement,
   peaks: number[] | null,
   state: "idle" | "loading" | "ready" | "error",
+  playbackProgress = 0,
 ) {
   const width = Math.max(1, Math.floor(canvas.clientWidth || 480));
   const height = Math.max(1, Math.floor(canvas.clientHeight || 70));
@@ -2304,14 +2439,47 @@ function drawWaveformCanvas(
   const activeColor = styles.getPropertyValue("--accent").trim() || "#2dd4bf";
   const mutedColor = styles.getPropertyValue("--border-soft").trim() || "#333d4d";
   const warningColor = styles.getPropertyValue("--warning-strong").trim() || "#d6a846";
+  const progressTrack = styles.getPropertyValue("--progress-track").trim() || "#293241";
   const bars = fitPeaksToCanvas(peaks ?? placeholderWaveformPeaks(), width);
   const gap = width < 420 ? 1.5 : 2;
   const barWidth = Math.max(1.5, (width - gap * (bars.length - 1)) / bars.length);
   const center = height / 2;
   const verticalPadding = 9;
   const fill =
-    state === "ready" ? activeColor : state === "error" ? warningColor : state === "loading" ? mutedColor : mutedColor;
+    state === "ready"
+      ? progressTrack
+      : state === "error"
+        ? warningColor
+        : state === "loading"
+          ? mutedColor
+          : mutedColor;
 
+  drawWaveformBars(context, bars, barWidth, gap, center, height, verticalPadding, fill);
+  if (state === "ready" && playbackProgress > 0) {
+    context.save();
+    context.beginPath();
+    context.rect(0, 0, width * clamp(playbackProgress, 0, 1), height);
+    context.clip();
+    drawWaveformBars(context, bars, barWidth, gap, center, height, verticalPadding, activeColor);
+    context.restore();
+  }
+
+  if (playbackProgress > 0 && state === "ready") {
+    context.fillStyle = activeColor;
+    context.fillRect(Math.max(0, width * playbackProgress - 1), 6, 2, height - 12);
+  }
+}
+
+function drawWaveformBars(
+  context: CanvasRenderingContext2D,
+  bars: number[],
+  barWidth: number,
+  gap: number,
+  center: number,
+  height: number,
+  verticalPadding: number,
+  fill: string,
+) {
   context.fillStyle = fill;
   for (const [index, peak] of bars.entries()) {
     const barHeight = Math.max(2, peak * (height - verticalPadding * 2));
@@ -2385,6 +2553,19 @@ function StemPreview({
     audioRef.current?.load();
   }, [source]);
 
+  async function seekAndPlay(ratio: number, fallbackDuration: number) {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    const duration = audio.duration || fallbackDuration || 0;
+    if (duration > 0) {
+      audio.currentTime = ratio * duration;
+    }
+    await audio.play();
+  }
+
   return (
     <article className="stem-row">
       <label className="stem-select">
@@ -2392,7 +2573,7 @@ function StemPreview({
         <span>{stem.label}</span>
       </label>
       <div className="stem-audio">
-        <AudioWaveform label={`${stem.label} waveform`} mediaUrl={source} />
+        <AudioWaveform audioRef={audioRef} label={`${stem.label} waveform`} mediaUrl={source} onSeek={seekAndPlay} />
         <audio
           ref={audioRef}
           controls
@@ -2401,7 +2582,7 @@ function StemPreview({
           onError={() => setMediaError(describeMediaError(audioRef.current?.error))}
           preload="metadata"
         >
-          {source ? <source src={source} type="audio/wav" /> : null}
+          {source ? <source src={source} type={audioMimeType(stem.path)} /> : null}
         </audio>
         {mediaError ? <span className="media-error">{mediaError}</span> : null}
       </div>
