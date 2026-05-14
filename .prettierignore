@@ -11,3 +11,4 @@ __pycache__
 .pytest_cache
 resources/models.json
 src-tauri/icons
+docs/assets/*.svg

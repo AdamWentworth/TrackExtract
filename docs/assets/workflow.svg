@@ -1,0 +1,54 @@
+<svg width="1120" height="260" viewBox="0 0 1120 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Track Extract workflow</title>
+  <desc id="desc">Import audio, choose a workflow, render stems locally, preview the generated tracks, then export DAW-ready files.</desc>
+  <rect width="1120" height="260" rx="24" fill="#0B1016"/>
+  <rect x="1" y="1" width="1118" height="258" rx="23" stroke="#1F2A36" stroke-width="2"/>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 6L2 10" fill="none" stroke="#5E7187" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="48" y="56" fill="#F5F7FA" font-family="Inter, Segoe UI, sans-serif" font-size="26" font-weight="700">Producer Workflow</text>
+  <text x="48" y="84" fill="#9BA8B6" font-family="Inter, Segoe UI, sans-serif" font-size="15">Offline separation with predictable project folders and DAW-friendly outputs.</text>
+
+  <g fill="#101821" stroke="#263445">
+    <rect x="48" y="124" width="166" height="74" rx="14"/>
+    <rect x="270" y="124" width="166" height="74" rx="14"/>
+    <rect x="492" y="124" width="166" height="74" rx="14"/>
+    <rect x="714" y="124" width="166" height="74" rx="14"/>
+    <rect x="936" y="124" width="136" height="74" rx="14"/>
+  </g>
+
+  <g font-family="Inter, Segoe UI, sans-serif" font-size="15" font-weight="700" fill="#F5F7FA">
+    <text x="86" y="166">Import Audio</text>
+    <text x="303" y="166">Pick Workflow</text>
+    <text x="535" y="166">Render Stems</text>
+    <text x="751" y="166">Preview Mix</text>
+    <text x="974" y="166">Export</text>
+  </g>
+
+  <g font-family="Inter, Segoe UI, sans-serif" font-size="12" fill="#9BA8B6">
+    <text x="78" y="184">WAV, AIFF, FLAC, MP3</text>
+    <text x="297" y="184">Presets or custom chains</text>
+    <text x="528" y="184">Demucs/audio-separator</text>
+    <text x="743" y="184">Solo, mute, volume</text>
+    <text x="957" y="184">Clean stem names</text>
+  </g>
+
+  <g stroke="#5E7187" stroke-width="3" marker-end="url(#arrow)">
+    <line x1="226" y1="161" x2="256" y2="161"/>
+    <line x1="448" y1="161" x2="478" y2="161"/>
+    <line x1="670" y1="161" x2="700" y2="161"/>
+    <line x1="892" y1="161" x2="922" y2="161"/>
+  </g>
+
+  <g fill="#2EC4D6">
+    <circle cx="72" cy="151" r="5"/>
+    <circle cx="294" cy="151" r="5"/>
+    <circle cx="516" cy="151" r="5"/>
+    <circle cx="738" cy="151" r="5"/>
+    <circle cx="960" cy="151" r="5"/>
+  </g>
+</svg>
