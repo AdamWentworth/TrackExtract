@@ -255,6 +255,7 @@ h2 {
 
 .workspace {
   --scroll-edge-space: 10px;
+  --scroll-bottom-space: 28px;
   display: grid;
   gap: 16px;
   grid-template-columns: minmax(260px, 0.76fr) minmax(500px, 1.42fr) minmax(320px, 0.95fr);
@@ -276,7 +277,7 @@ h2 {
   margin-block: calc(var(--scroll-edge-space) * -1);
   overscroll-behavior: contain;
   overflow-y: auto;
-  padding: var(--scroll-edge-space) 2px var(--scroll-edge-space) 0;
+  padding: var(--scroll-edge-space) 2px var(--scroll-bottom-space) 0;
   scroll-padding-block: var(--scroll-edge-space);
   scrollbar-gutter: stable;
 }
@@ -285,7 +286,7 @@ h2 {
   margin-block: calc(var(--scroll-edge-space) * -1);
   overscroll-behavior: contain;
   overflow-y: auto;
-  padding: var(--scroll-edge-space) 2px var(--scroll-edge-space) 0;
+  padding: var(--scroll-edge-space) 2px var(--scroll-bottom-space) 0;
   scroll-padding-block: var(--scroll-edge-space);
   scrollbar-gutter: stable;
 }
