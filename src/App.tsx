@@ -218,6 +218,12 @@ interface WaveformData {
   peaks: number[];
 }
 
+interface ScrollMetrics {
+  height: number;
+  top: number;
+  visible: boolean;
+}
+
 const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
   { value: "vocals_instrumental", label: "Vocals / Instrumental", short: "Vocal split" },
   { value: "full_stem_split", label: "Full Stem Split", short: "6 stems" },
@@ -389,6 +395,12 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
+  const leftRailRef = useRef<HTMLElement | null>(null);
+  const mainColumnRef = useRef<HTMLElement | null>(null);
+  const rightRailRef = useRef<HTMLElement | null>(null);
+  const leftRailScrollbar = useScrollMetrics(leftRailRef);
+  const mainColumnScrollbar = useScrollMetrics(mainColumnRef);
+  const rightRailScrollbar = useScrollMetrics(rightRailRef);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -1369,472 +1381,481 @@ function App() {
       </header>
 
       <section className="workspace">
-        <aside className="rail">
-          <section className="panel import-panel">
-            <div className="panel-heading">
-              <Upload aria-hidden />
-              <h2>Import</h2>
-            </div>
-            <button
-              className="drop-zone"
-              type="button"
-              onClick={chooseFiles}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={handleDropZoneDrop}
-              disabled={isBusy}
-            >
-              <Music2 aria-hidden />
-              <span>Drop audio here</span>
-              <small>WAV, AIFF, FLAC, MP3, M4A</small>
-            </button>
+        <div className="scroll-shell rail-shell">
+          <aside className="rail" ref={leftRailRef}>
+            <section className="panel import-panel">
+              <div className="panel-heading">
+                <Upload aria-hidden />
+                <h2>Import</h2>
+              </div>
+              <button
+                className="drop-zone"
+                type="button"
+                onClick={chooseFiles}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={handleDropZoneDrop}
+                disabled={isBusy}
+              >
+                <Music2 aria-hidden />
+                <span>Drop audio here</span>
+                <small>WAV, AIFF, FLAC, MP3, M4A</small>
+              </button>
 
-            {project ? (
-              <div className="project-block">
-                <div className="project-summary">
-                  <strong>{project.name}</strong>
-                  <span>
-                    {project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"} ·{" "}
-                    {project.stems.length} stem{project.stems.length === 1 ? "" : "s"}
-                  </span>
-                  <button
-                    className="icon-button"
-                    type="button"
-                    onClick={revealCurrentProject}
-                    title="Reveal project folder"
-                  >
-                    <ExternalLink aria-hidden />
-                  </button>
+              {project ? (
+                <div className="project-block">
+                  <div className="project-summary">
+                    <strong>{project.name}</strong>
+                    <span>
+                      {project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"} ·{" "}
+                      {project.stems.length} stem{project.stems.length === 1 ? "" : "s"}
+                    </span>
+                    <button
+                      className="icon-button"
+                      type="button"
+                      onClick={revealCurrentProject}
+                      title="Reveal project folder"
+                    >
+                      <ExternalLink aria-hidden />
+                    </button>
+                  </div>
+                  <div className="workspace-cleanup" aria-label="Workspace cleanup">
+                    <button
+                      className="secondary-action inline-action"
+                      type="button"
+                      onClick={clearGeneratedStems}
+                      disabled={isBusy || project.stems.length === 0 || Boolean(runningJob)}
+                    >
+                      <Trash2 aria-hidden />
+                      Clear stems
+                    </button>
+                    <button
+                      className="danger-action inline-action"
+                      type="button"
+                      onClick={clearSourceAudio}
+                      disabled={isBusy || project.originalFiles.length === 0 || Boolean(runningJob)}
+                    >
+                      <Trash2 aria-hidden />
+                      Clear source
+                    </button>
+                  </div>
                 </div>
-                <div className="workspace-cleanup" aria-label="Workspace cleanup">
+              ) : (
+                <p className="empty-copy">Start with a full mix or batch of tracks.</p>
+              )}
+            </section>
+
+            <section className="panel workflow-panel">
+              <div className="panel-heading">
+                <SlidersHorizontal aria-hidden />
+                <h2>Workflow</h2>
+              </div>
+              <div className="workflow-list" role="radiogroup" aria-label="Workflow">
+                {workflows.map((workflow) => (
+                  <button
+                    className={selectedWorkflowId === workflow.id ? "workflow-option is-selected" : "workflow-option"}
+                    key={workflow.id}
+                    type="button"
+                    onClick={() => setSelectedWorkflowId(workflow.id)}
+                  >
+                    <span>{workflow.displayName}</span>
+                    <small>
+                      {workflow.kind} · {workflow.steps.length} step{workflow.steps.length === 1 ? "" : "s"}
+                    </small>
+                  </button>
+                ))}
+              </div>
+              <button className="secondary-action compact-action" type="button" onClick={refreshWorkflows}>
+                <RefreshCw aria-hidden />
+                Refresh workflows
+              </button>
+
+              {project && project.originalFiles.length > 1 ? (
+                <label className="field-label">
+                  Source
+                  <select value={selectedSourceId} onChange={(event) => setSelectedSourceId(event.currentTarget.value)}>
+                    {project.originalFiles.map((source) => (
+                      <option key={source.id} value={source.id}>
+                        {source.originalName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+            </section>
+          </aside>
+          <ColumnScrollbar metrics={leftRailScrollbar} targetRef={leftRailRef} />
+        </div>
+
+        <div className="scroll-shell main-shell">
+          <section className="main-column" ref={mainColumnRef}>
+            {selectedSource ? (
+              <section className="panel source-panel">
+                <SourcePreview source={selectedSource} mediaUrl={sourceMediaUrls[selectedSource.id]} />
+              </section>
+            ) : null}
+
+            <section className="panel run-panel">
+              <div>
+                <div className="panel-heading">
+                  <ListMusic aria-hidden />
+                  <h2>Queue</h2>
+                </div>
+                <p className="panel-copy">
+                  {selectedWorkflow
+                    ? `${selectedWorkflow.displayName}: ${selectedWorkflow.description}`
+                    : "Ad hoc model setup. Save it as a named workflow when it feels right."}
+                </p>
+                <p className="panel-copy">
+                  {selectedWorkflow && selectedWorkflow.steps.length > 1
+                    ? `${selectedWorkflow.steps.length}-step workflow · ${
+                        workflowIssues.length === 0
+                          ? "all models ready"
+                          : `${workflowIssues.length} step${workflowIssues.length === 1 ? "" : "s"} need setup`
+                      }`
+                    : selectedModel
+                      ? `Model: ${selectedModel.displayName}`
+                      : "No model selected"}
+                </p>
+              </div>
+              <div className="run-actions">
+                <button
+                  className="primary-action"
+                  type="button"
+                  onClick={runSeparation}
+                  disabled={!project || !selectedSource || !workflowCanRun || isBusy || Boolean(runningJob)}
+                >
+                  {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
+                  Run workflow
+                </button>
+                <button
+                  className="secondary-action inline-action"
+                  type="button"
+                  onClick={() => setModelManagerOpen(true)}
+                >
+                  <Database aria-hidden />
+                  Model library
+                </button>
+                <button
+                  className="icon-action"
+                  type="button"
+                  onClick={cancelRunningJob}
+                  disabled={!runningJob}
+                  title="Cancel job"
+                >
+                  <Square aria-hidden />
+                </button>
+              </div>
+            </section>
+
+            <section className="panel options-panel">
+              <div className="panel-heading">
+                <SlidersHorizontal aria-hidden />
+                <h2>Render Options</h2>
+              </div>
+              {selectedModelOptions.length === 0 ? (
+                <div className="empty-state compact">
+                  <span>Default render settings</span>
+                </div>
+              ) : (
+                <div className="option-grid">
+                  {selectedModelOptions.map((option) => (
+                    <label className="option-field" key={option.id} title={option.description}>
+                      <span>{option.displayName}</span>
+                      <RenderOptionControl
+                        option={option}
+                        value={renderOptions[option.id] ?? option.defaultValue}
+                        onChange={(value) => setRenderOption(option, value)}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+              <div className="custom-workflow-row">
+                <input
+                  aria-label="Custom workflow name"
+                  onChange={(event) => setCustomWorkflowName(event.currentTarget.value)}
+                  placeholder="Name this workflow"
+                  type="text"
+                  value={customWorkflowName}
+                />
+                <button className="secondary-action inline-action" type="button" onClick={saveCurrentWorkflow}>
+                  <Save aria-hidden />
+                  Save workflow
+                </button>
+              </div>
+            </section>
+
+            <section className="panel queue-panel">
+              <div className="panel-heading with-action">
+                <span>
+                  <ListMusic aria-hidden />
+                  <h2>Job Queue</h2>
+                </span>
+                <div className="queue-heading-actions">
                   <button
                     className="secondary-action inline-action"
                     type="button"
-                    onClick={clearGeneratedStems}
-                    disabled={isBusy || project.stems.length === 0 || Boolean(runningJob)}
+                    onClick={cancelRunningJob}
+                    disabled={!runningJob}
                   >
-                    <Trash2 aria-hidden />
-                    Clear stems
+                    <Square aria-hidden />
+                    Cancel
                   </button>
                   <button
-                    className="danger-action inline-action"
+                    className="secondary-action inline-action"
                     type="button"
-                    onClick={clearSourceAudio}
-                    disabled={isBusy || project.originalFiles.length === 0 || Boolean(runningJob)}
+                    onClick={clearJobHistory}
+                    disabled={jobs.length === 0 || Boolean(runningJob) || isBusy}
                   >
                     <Trash2 aria-hidden />
-                    Clear source
+                    Clear jobs
                   </button>
                 </div>
               </div>
-            ) : (
-              <p className="empty-copy">Start with a full mix or batch of tracks.</p>
-            )}
-          </section>
+              {jobs.length === 0 ? (
+                <div className="empty-state">
+                  <ListMusic aria-hidden />
+                  <span>No jobs queued yet</span>
+                </div>
+              ) : (
+                jobs.map((job) => (
+                  <article className="job-row" key={job.id}>
+                    <div>
+                      <strong>{formatTask(job.task)}</strong>
+                      <span>{job.statusMessage}</span>
+                    </div>
+                    <div className="job-progress" aria-label={`${Math.round(job.progress * 100)} percent`}>
+                      <span style={{ width: `${Math.round(job.progress * 100)}%` }} />
+                    </div>
+                    <StateBadge state={job.state} />
+                  </article>
+                ))
+              )}
+            </section>
 
-          <section className="panel workflow-panel">
-            <div className="panel-heading">
-              <SlidersHorizontal aria-hidden />
-              <h2>Workflow</h2>
-            </div>
-            <div className="workflow-list" role="radiogroup" aria-label="Workflow">
-              {workflows.map((workflow) => (
+            <section className="panel preview-panel">
+              <div className="panel-heading with-action">
+                <span>
+                  <Music2 aria-hidden />
+                  <h2>Stem Preview</h2>
+                </span>
                 <button
-                  className={selectedWorkflowId === workflow.id ? "workflow-option is-selected" : "workflow-option"}
-                  key={workflow.id}
+                  className="icon-button"
                   type="button"
-                  onClick={() => setSelectedWorkflowId(workflow.id)}
+                  onClick={clearGeneratedStems}
+                  disabled={!project || project.stems.length === 0 || isBusy || Boolean(runningJob)}
+                  title="Clear generated stems"
                 >
-                  <span>{workflow.displayName}</span>
-                  <small>
-                    {workflow.kind} · {workflow.steps.length} step{workflow.steps.length === 1 ? "" : "s"}
-                  </small>
+                  <Trash2 aria-hidden />
                 </button>
-              ))}
-            </div>
-            <button className="secondary-action compact-action" type="button" onClick={refreshWorkflows}>
-              <RefreshCw aria-hidden />
-              Refresh workflows
-            </button>
+              </div>
 
-            {project && project.originalFiles.length > 1 ? (
-              <label className="field-label">
-                Source
-                <select value={selectedSourceId} onChange={(event) => setSelectedSourceId(event.currentTarget.value)}>
-                  {project.originalFiles.map((source) => (
-                    <option key={source.id} value={source.id}>
-                      {source.originalName}
+              {!project || project.stems.length === 0 ? (
+                <div className="empty-state">
+                  <Music2 aria-hidden />
+                  <span>Generated stems will appear here.</span>
+                </div>
+              ) : (
+                <div className="stem-list">
+                  {project.stems.map((stem) => (
+                    <StemPreview
+                      key={stem.id}
+                      selected={selectedStemIds.includes(stem.id)}
+                      soloActive={soloActive}
+                      state={previewState[stem.id] ?? { muted: false, solo: false, volume: 1 }}
+                      stem={stem}
+                      mediaUrl={mediaUrls[stem.id]}
+                      onSelect={() => toggleStemSelection(stem.id)}
+                      onUpdate={(patch) => setStemPreview(stem.id, patch)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </section>
+          <ColumnScrollbar metrics={mainColumnScrollbar} targetRef={mainColumnRef} />
+        </div>
+
+        <div className="scroll-shell rail-shell model-shell">
+          <aside className="rail model-rail" ref={rightRailRef}>
+            <section className="panel model-summary-panel">
+              <div className="panel-heading with-action">
+                <span>
+                  <Database aria-hidden />
+                  <h2>Model Setup</h2>
+                </span>
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={() => setModelManagerOpen(true)}
+                  title="Manage models"
+                >
+                  <Database aria-hidden />
+                </button>
+              </div>
+
+              <div className="model-summary-strip" aria-label="Model registry summary">
+                <span>{modelCounts.total} total</span>
+                <span>{modelCounts.runnable} runnable</span>
+                <span>{modelCounts.installable} installable</span>
+                <span>{modelCounts.missing} catalog</span>
+              </div>
+
+              <div className="selected-model-card">
+                <span className="summary-label">Selected model</span>
+                {selectedModel ? (
+                  <>
+                    <strong>{selectedModel.displayName}</strong>
+                    <small>
+                      {selectedModel.backend} · {selectedModel.quality} · {formatTask(task)}
+                    </small>
+                    <ModelStatusPill model={selectedModel} progress={modelInstallProgress[selectedModel.id]} />
+                  </>
+                ) : (
+                  <strong>No model selected</strong>
+                )}
+              </div>
+
+              <div className="workflow-step-list compact-step-list">
+                {(
+                  selectedWorkflow?.steps ?? [
+                    {
+                      id: "ad_hoc",
+                      displayName: "Ad hoc step",
+                      task,
+                      modelId: selectedModelId,
+                      options: renderOptions,
+                    },
+                  ]
+                ).map((step, index) => {
+                  const stepModel = models.find((model) => model.id === step.modelId);
+                  return (
+                    <article className="workflow-step-row compact-step-row" key={step.id}>
+                      <span>{index + 1}</span>
+                      <div>
+                        <strong>{step.displayName}</strong>
+                        <small>{stepModel?.displayName ?? step.modelId}</small>
+                        {stepModel ? (
+                          <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small>
+                        ) : null}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {selectedWorkflow && workflowIssues.length > 0 ? (
+                <div className="workflow-readiness">
+                  <AlertTriangle aria-hidden />
+                  <div>
+                    <strong>
+                      {workflowIssues.length} step{workflowIssues.length === 1 ? "" : "s"} need setup
+                    </strong>
+                    <small>{workflowStepIssueText(workflowIssues[0])}</small>
+                  </div>
+                </div>
+              ) : null}
+
+              {selectedWorkflow && workflowInstallTargets.length > 0 ? (
+                <button
+                  className="secondary-action"
+                  type="button"
+                  onClick={installSelectedWorkflowModels}
+                  disabled={isBusy || workflowInstallBusy}
+                >
+                  <Download aria-hidden />
+                  Install workflow models
+                </button>
+              ) : null}
+
+              <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
+                <Database aria-hidden />
+                Manage models
+              </button>
+            </section>
+
+            <section className="panel export-panel">
+              <div className="panel-heading">
+                <Download aria-hidden />
+                <h2>Export</h2>
+              </div>
+              <label className="field-label export-format-field">
+                Format
+                <select
+                  value={exportFormat}
+                  onChange={(event) => setExportFormat(event.currentTarget.value as ExportFormat)}
+                >
+                  {EXPORT_FORMATS.map((format) => (
+                    <option key={format.value} value={format.value}>
+                      {format.label} · {format.description}
                     </option>
                   ))}
                 </select>
               </label>
-            ) : null}
-          </section>
-        </aside>
-
-        <section className="main-column">
-          {selectedSource ? (
-            <section className="panel source-panel">
-              <SourcePreview source={selectedSource} mediaUrl={sourceMediaUrls[selectedSource.id]} />
-            </section>
-          ) : null}
-
-          <section className="panel run-panel">
-            <div>
-              <div className="panel-heading">
-                <ListMusic aria-hidden />
-                <h2>Queue</h2>
-              </div>
-              <p className="panel-copy">
-                {selectedWorkflow
-                  ? `${selectedWorkflow.displayName}: ${selectedWorkflow.description}`
-                  : "Ad hoc model setup. Save it as a named workflow when it feels right."}
-              </p>
-              <p className="panel-copy">
-                {selectedWorkflow && selectedWorkflow.steps.length > 1
-                  ? `${selectedWorkflow.steps.length}-step workflow · ${
-                      workflowIssues.length === 0
-                        ? "all models ready"
-                        : `${workflowIssues.length} step${workflowIssues.length === 1 ? "" : "s"} need setup`
-                    }`
-                  : selectedModel
-                    ? `Model: ${selectedModel.displayName}`
-                    : "No model selected"}
-              </p>
-            </div>
-            <div className="run-actions">
               <button
                 className="primary-action"
                 type="button"
-                onClick={runSeparation}
-                disabled={!project || !selectedSource || !workflowCanRun || isBusy || Boolean(runningJob)}
-              >
-                {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
-                Run workflow
-              </button>
-              <button
-                className="secondary-action inline-action"
-                type="button"
-                onClick={() => setModelManagerOpen(true)}
-              >
-                <Database aria-hidden />
-                Model library
-              </button>
-              <button
-                className="icon-action"
-                type="button"
-                onClick={cancelRunningJob}
-                disabled={!runningJob}
-                title="Cancel job"
-              >
-                <Square aria-hidden />
-              </button>
-            </div>
-          </section>
-
-          <section className="panel options-panel">
-            <div className="panel-heading">
-              <SlidersHorizontal aria-hidden />
-              <h2>Render Options</h2>
-            </div>
-            {selectedModelOptions.length === 0 ? (
-              <div className="empty-state compact">
-                <span>Default render settings</span>
-              </div>
-            ) : (
-              <div className="option-grid">
-                {selectedModelOptions.map((option) => (
-                  <label className="option-field" key={option.id} title={option.description}>
-                    <span>{option.displayName}</span>
-                    <RenderOptionControl
-                      option={option}
-                      value={renderOptions[option.id] ?? option.defaultValue}
-                      onChange={(value) => setRenderOption(option, value)}
-                    />
-                  </label>
-                ))}
-              </div>
-            )}
-            <div className="custom-workflow-row">
-              <input
-                aria-label="Custom workflow name"
-                onChange={(event) => setCustomWorkflowName(event.currentTarget.value)}
-                placeholder="Name this workflow"
-                type="text"
-                value={customWorkflowName}
-              />
-              <button className="secondary-action inline-action" type="button" onClick={saveCurrentWorkflow}>
-                <Save aria-hidden />
-                Save workflow
-              </button>
-            </div>
-          </section>
-
-          <section className="panel queue-panel">
-            <div className="panel-heading with-action">
-              <span>
-                <ListMusic aria-hidden />
-                <h2>Job Queue</h2>
-              </span>
-              <div className="queue-heading-actions">
-                <button
-                  className="secondary-action inline-action"
-                  type="button"
-                  onClick={cancelRunningJob}
-                  disabled={!runningJob}
-                >
-                  <Square aria-hidden />
-                  Cancel
-                </button>
-                <button
-                  className="secondary-action inline-action"
-                  type="button"
-                  onClick={clearJobHistory}
-                  disabled={jobs.length === 0 || Boolean(runningJob) || isBusy}
-                >
-                  <Trash2 aria-hidden />
-                  Clear jobs
-                </button>
-              </div>
-            </div>
-            {jobs.length === 0 ? (
-              <div className="empty-state">
-                <ListMusic aria-hidden />
-                <span>No jobs queued yet</span>
-              </div>
-            ) : (
-              jobs.map((job) => (
-                <article className="job-row" key={job.id}>
-                  <div>
-                    <strong>{formatTask(job.task)}</strong>
-                    <span>{job.statusMessage}</span>
-                  </div>
-                  <div className="job-progress" aria-label={`${Math.round(job.progress * 100)} percent`}>
-                    <span style={{ width: `${Math.round(job.progress * 100)}%` }} />
-                  </div>
-                  <StateBadge state={job.state} />
-                </article>
-              ))
-            )}
-          </section>
-
-          <section className="panel preview-panel">
-            <div className="panel-heading with-action">
-              <span>
-                <Music2 aria-hidden />
-                <h2>Stem Preview</h2>
-              </span>
-              <button
-                className="icon-button"
-                type="button"
-                onClick={clearGeneratedStems}
-                disabled={!project || project.stems.length === 0 || isBusy || Boolean(runningJob)}
-                title="Clear generated stems"
-              >
-                <Trash2 aria-hidden />
-              </button>
-            </div>
-
-            {!project || project.stems.length === 0 ? (
-              <div className="empty-state">
-                <Music2 aria-hidden />
-                <span>Generated stems will appear here.</span>
-              </div>
-            ) : (
-              <div className="stem-list">
-                {project.stems.map((stem) => (
-                  <StemPreview
-                    key={stem.id}
-                    selected={selectedStemIds.includes(stem.id)}
-                    soloActive={soloActive}
-                    state={previewState[stem.id] ?? { muted: false, solo: false, volume: 1 }}
-                    stem={stem}
-                    mediaUrl={mediaUrls[stem.id]}
-                    onSelect={() => toggleStemSelection(stem.id)}
-                    onUpdate={(patch) => setStemPreview(stem.id, patch)}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        </section>
-
-        <aside className="rail model-rail">
-          <section className="panel model-summary-panel">
-            <div className="panel-heading with-action">
-              <span>
-                <Database aria-hidden />
-                <h2>Model Setup</h2>
-              </span>
-              <button
-                className="icon-button"
-                type="button"
-                onClick={() => setModelManagerOpen(true)}
-                title="Manage models"
-              >
-                <Database aria-hidden />
-              </button>
-            </div>
-
-            <div className="model-summary-strip" aria-label="Model registry summary">
-              <span>{modelCounts.total} total</span>
-              <span>{modelCounts.runnable} runnable</span>
-              <span>{modelCounts.installable} installable</span>
-              <span>{modelCounts.missing} catalog</span>
-            </div>
-
-            <div className="selected-model-card">
-              <span className="summary-label">Selected model</span>
-              {selectedModel ? (
-                <>
-                  <strong>{selectedModel.displayName}</strong>
-                  <small>
-                    {selectedModel.backend} · {selectedModel.quality} · {formatTask(task)}
-                  </small>
-                  <ModelStatusPill model={selectedModel} progress={modelInstallProgress[selectedModel.id]} />
-                </>
-              ) : (
-                <strong>No model selected</strong>
-              )}
-            </div>
-
-            <div className="workflow-step-list compact-step-list">
-              {(
-                selectedWorkflow?.steps ?? [
-                  {
-                    id: "ad_hoc",
-                    displayName: "Ad hoc step",
-                    task,
-                    modelId: selectedModelId,
-                    options: renderOptions,
-                  },
-                ]
-              ).map((step, index) => {
-                const stepModel = models.find((model) => model.id === step.modelId);
-                return (
-                  <article className="workflow-step-row compact-step-row" key={step.id}>
-                    <span>{index + 1}</span>
-                    <div>
-                      <strong>{step.displayName}</strong>
-                      <small>{stepModel?.displayName ?? step.modelId}</small>
-                      {stepModel ? (
-                        <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            {selectedWorkflow && workflowIssues.length > 0 ? (
-              <div className="workflow-readiness">
-                <AlertTriangle aria-hidden />
-                <div>
-                  <strong>
-                    {workflowIssues.length} step{workflowIssues.length === 1 ? "" : "s"} need setup
-                  </strong>
-                  <small>{workflowStepIssueText(workflowIssues[0])}</small>
-                </div>
-              </div>
-            ) : null}
-
-            {selectedWorkflow && workflowInstallTargets.length > 0 ? (
-              <button
-                className="secondary-action"
-                type="button"
-                onClick={installSelectedWorkflowModels}
-                disabled={isBusy || workflowInstallBusy}
+                onClick={exportSelectedStems}
+                disabled={!project || project.stems.length === 0}
               >
                 <Download aria-hidden />
-                Install workflow models
+                Export selected
               </button>
-            ) : null}
+              <button className="secondary-action" type="button" onClick={revealCurrentProject}>
+                <FolderOpen aria-hidden />
+                Open project folder
+              </button>
+              <p className="export-count">
+                {selectedStemIds.length || 0} of {project?.stems.length ?? 0} stems selected
+              </p>
+            </section>
 
-            <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
-              <Database aria-hidden />
-              Manage models
-            </button>
-          </section>
-
-          <section className="panel export-panel">
-            <div className="panel-heading">
-              <Download aria-hidden />
-              <h2>Export</h2>
-            </div>
-            <label className="field-label export-format-field">
-              Format
-              <select
-                value={exportFormat}
-                onChange={(event) => setExportFormat(event.currentTarget.value as ExportFormat)}
-              >
-                {EXPORT_FORMATS.map((format) => (
-                  <option key={format.value} value={format.value}>
-                    {format.label} · {format.description}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              className="primary-action"
-              type="button"
-              onClick={exportSelectedStems}
-              disabled={!project || project.stems.length === 0}
-            >
-              <Download aria-hidden />
-              Export selected
-            </button>
-            <button className="secondary-action" type="button" onClick={revealCurrentProject}>
-              <FolderOpen aria-hidden />
-              Open project folder
-            </button>
-            <p className="export-count">
-              {selectedStemIds.length || 0} of {project?.stems.length ?? 0} stems selected
-            </p>
-          </section>
-
-          <section className="panel details-panel">
-            <div className="panel-heading">
-              <FolderOpen aria-hidden />
-              <h2>Project</h2>
-            </div>
-            <dl>
-              <div>
-                <dt>Name</dt>
-                <dd>{project?.name ?? "No project"}</dd>
+            <section className="panel details-panel">
+              <div className="panel-heading">
+                <FolderOpen aria-hidden />
+                <h2>Project</h2>
               </div>
-              <div>
-                <dt>Source</dt>
-                <dd>{selectedSource?.originalName ?? "None"}</dd>
-              </div>
-              <div>
-                <dt>Audio</dt>
-                <dd>{selectedSource ? formatAudioSummary(selectedSource) : "Waiting for import"}</dd>
-              </div>
-              <div>
-                <dt>Stems</dt>
-                <dd>{project?.stems.length ?? 0}</dd>
-              </div>
-              <div>
-                <dt>Latest job</dt>
-                <dd>{latestJob ? latestJob.state : "None"}</dd>
-              </div>
-              <div>
-                <dt>Folder</dt>
-                <dd>{project?.rootPath ?? boot?.projectRoot ?? "Loading"}</dd>
-              </div>
-              <div>
-                <dt>Registry</dt>
-                <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
-              </div>
-            </dl>
-            {logEntries.length > 0 ? (
-              <ul className="log-list">
-                {logEntries.map((entry) => (
-                  <li key={entry}>{entry}</li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
-        </aside>
+              <dl>
+                <div>
+                  <dt>Name</dt>
+                  <dd>{project?.name ?? "No project"}</dd>
+                </div>
+                <div>
+                  <dt>Source</dt>
+                  <dd>{selectedSource?.originalName ?? "None"}</dd>
+                </div>
+                <div>
+                  <dt>Audio</dt>
+                  <dd>{selectedSource ? formatAudioSummary(selectedSource) : "Waiting for import"}</dd>
+                </div>
+                <div>
+                  <dt>Stems</dt>
+                  <dd>{project?.stems.length ?? 0}</dd>
+                </div>
+                <div>
+                  <dt>Latest job</dt>
+                  <dd>{latestJob ? latestJob.state : "None"}</dd>
+                </div>
+                <div>
+                  <dt>Folder</dt>
+                  <dd>{project?.rootPath ?? boot?.projectRoot ?? "Loading"}</dd>
+                </div>
+                <div>
+                  <dt>Registry</dt>
+                  <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
+                </div>
+              </dl>
+              {logEntries.length > 0 ? (
+                <ul className="log-list">
+                  {logEntries.map((entry) => (
+                    <li key={entry}>{entry}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          </aside>
+          <ColumnScrollbar metrics={rightRailScrollbar} targetRef={rightRailRef} />
+        </div>
       </section>
       {modelManagerOpen ? (
         <ModelManager
@@ -2126,6 +2147,140 @@ function RenderOptionControl({
       type="number"
       value={Number(value)}
     />
+  );
+}
+
+const emptyScrollMetrics: ScrollMetrics = { height: 0, top: 0, visible: false };
+
+function useScrollMetrics(targetRef: { current: HTMLElement | null }) {
+  const [metrics, setMetrics] = useState<ScrollMetrics>(emptyScrollMetrics);
+
+  useEffect(() => {
+    const target = targetRef.current;
+    if (!target) {
+      setMetrics(emptyScrollMetrics);
+      return;
+    }
+
+    let animationFrame = 0;
+
+    const update = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        const { clientHeight, scrollHeight, scrollTop } = target;
+        const visible = scrollHeight > clientHeight + 2;
+        if (!visible) {
+          setMetrics((current) => (current.visible ? emptyScrollMetrics : current));
+          return;
+        }
+
+        const height = Math.max(44, Math.round((clientHeight / scrollHeight) * clientHeight));
+        const maxTop = Math.max(0, clientHeight - height);
+        const maxScroll = Math.max(1, scrollHeight - clientHeight);
+        const top = Math.round((scrollTop / maxScroll) * maxTop);
+        setMetrics((current) =>
+          current.visible === visible && current.height === height && current.top === top
+            ? current
+            : { height, top, visible },
+        );
+      });
+    };
+
+    update();
+    target.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    resizeObserver?.observe(target);
+
+    const mutationObserver = typeof MutationObserver === "undefined" ? null : new MutationObserver(update);
+    mutationObserver?.observe(target, { childList: true, subtree: true });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      target.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+    };
+  }, [targetRef]);
+
+  return metrics;
+}
+
+function ColumnScrollbar({
+  metrics,
+  targetRef,
+}: {
+  metrics: ScrollMetrics;
+  targetRef: { current: HTMLElement | null };
+}) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const dragOffsetRef = useRef(0);
+  const [dragging, setDragging] = useState(false);
+
+  function scrollToClientY(clientY: number, offset: number) {
+    const target = targetRef.current;
+    const track = trackRef.current;
+    if (!target || !track || !metrics.visible) {
+      return;
+    }
+
+    const trackRect = track.getBoundingClientRect();
+    const maxTop = Math.max(1, trackRect.height - metrics.height);
+    const top = clamp(clientY - trackRect.top - offset, 0, maxTop);
+    target.scrollTop = (top / maxTop) * Math.max(0, target.scrollHeight - target.clientHeight);
+  }
+
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (!metrics.visible) {
+      return;
+    }
+
+    const targetElement = event.target as HTMLElement;
+    const thumb = targetElement.closest(".column-scrollbar-thumb");
+    const thumbRect = thumb?.getBoundingClientRect();
+    dragOffsetRef.current = thumbRect ? event.clientY - thumbRect.top : metrics.height / 2;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    setDragging(true);
+    scrollToClientY(event.clientY, dragOffsetRef.current);
+  }
+
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (dragging) {
+      event.preventDefault();
+      scrollToClientY(event.clientY, dragOffsetRef.current);
+    }
+  }
+
+  function stopDragging(event: React.PointerEvent<HTMLDivElement>) {
+    if (!dragging) {
+      return;
+    }
+
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setDragging(false);
+  }
+
+  return (
+    <div
+      aria-hidden
+      className={`column-scrollbar ${metrics.visible ? "is-visible" : ""} ${dragging ? "is-dragging" : ""}`}
+      onPointerCancel={stopDragging}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={stopDragging}
+      ref={trackRef}
+      style={
+        {
+          "--scrollbar-height": `${metrics.height}px`,
+          "--scrollbar-top": `${metrics.top}px`,
+        } as React.CSSProperties
+      }
+    >
+      <span className="column-scrollbar-thumb" />
+    </div>
   );
 }
 
