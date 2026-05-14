@@ -1,1 +1,1 @@
-"""Subprocess worker scripts used by TrackExtract providers."""
+"""Subprocess worker scripts used by Track Extract providers."""

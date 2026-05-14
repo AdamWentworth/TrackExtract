@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://phlosion.com/trackextract/workflows.schema.json",
-  "title": "TrackExtract Workflow Registry",
+  "$id": "https://trackextract.local/schema/workflows.schema.json",
+  "title": "Track Extract Workflow Registry",
   "type": "array",
   "items": {
     "type": "object",

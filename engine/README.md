@@ -1,6 +1,6 @@
-# TrackExtract Engine
+# Track Extract Engine
 
-This is the Python-first TrackExtract engine. It owns project/session state,
+This is the Python-first Track Extract engine. It owns project/session state,
 model registry migration, model installs, job lifecycle, catalog sync, and
 separation providers. The source code lives directly in `src/` and is packaged
 as the Python module `trackextract_engine`.

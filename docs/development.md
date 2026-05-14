@@ -30,7 +30,7 @@ cp .env.example .env
 
 ## Python Dependencies
 
-Python package metadata lives in `engine/pyproject.toml`. TrackExtract does not
+Python package metadata lives in `engine/pyproject.toml`. Track Extract does not
 keep a separate `requirements.txt` because that would duplicate dependency
 state and drift from the installable package metadata.
 

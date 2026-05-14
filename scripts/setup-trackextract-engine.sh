@@ -16,7 +16,7 @@ case "$AUDIO_SEPARATOR_EXTRA" in
     ;;
 esac
 
-echo "Creating TrackExtract Python engine environment at $VENV_DIR"
+echo "Creating Track Extract Python engine environment at $VENV_DIR"
 trackextract_prepare_python_venv "$VENV_DIR" "${PYTHON:-python3}"
 "$VENV_PYTHON" -m pip install --upgrade pip wheel
 "$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine[runtime-$AUDIO_SEPARATOR_EXTRA]"
@@ -41,7 +41,7 @@ except Exception as error:
 PY
 
 echo
-echo "Done. Launch TrackExtract from this repo or set:"
+echo "Done. Launch Track Extract from this repo or set:"
 echo "  export TRACKEXTRACT_ENGINE_PYTHON=\"$VENV_PYTHON\""
 echo "For NVIDIA CUDA, install/update with:"
 echo "  TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh"

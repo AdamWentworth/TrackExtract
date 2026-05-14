@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "TrackExtract",
+  "productName": "Track Extract",
   "version": "0.1.0",
-  "identifier": "com.phlosion.trackextract",
+  "identifier": "com.trackextract.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "TrackExtract",
+        "title": "Track Extract",
         "width": 1280,
         "height": 820,
         "minWidth": 1040,

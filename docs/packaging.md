@@ -1,6 +1,6 @@
 # Packaging
 
-TrackExtract currently uses a managed development Python environment rather than bundled Python packaging.
+Track Extract currently uses a managed development Python environment rather than bundled Python packaging.
 
 Create the engine environment with:
 
@@ -33,7 +33,7 @@ Future production packaging should decide how to bundle Python, provider depende
 Projects use predictable DAW-friendly folders:
 
 ```text
-TrackExtract Projects/
+Track Extract Projects/
   Artist - Song/
     original/
     stems/

@@ -1436,7 +1436,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 160,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Raw Demucs weight asset from the public UVR pack. TrackExtract can download it, but it requires a matching YAML model definition before it can run.",
+    "notes": "Raw Demucs weight asset from the public UVR pack. Track Extract can download it, but it requires a matching YAML model definition before it can run.",
     "options": [
       {
         "id": "device",
@@ -1514,7 +1514,7 @@
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "downloadSizeMb": 160,
     "license": "UVR public model pack; verify before redistribution",
-    "notes": "Raw Demucs weight asset from the public UVR pack. TrackExtract can download it, but it requires a matching YAML model definition before it can run.",
+    "notes": "Raw Demucs weight asset from the public UVR pack. Track Extract can download it, but it requires a matching YAML model definition before it can run.",
     "options": [
       {
         "id": "device",
@@ -5290,7 +5290,7 @@
     "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_9482.onnx",
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "MIT per UVR public model pack; verify before redistribution",
-    "notes": "Real ONNX model candidate. TrackExtract needs the ONNX backend before this can run.",
+    "notes": "Real ONNX model candidate. Track Extract needs the ONNX backend before this can run.",
     "downloadSizeMb": 29,
     "options": [
       {
@@ -5375,7 +5375,7 @@
     "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_HQ_5.onnx",
     "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
     "license": "MIT per UVR public model pack; verify before redistribution",
-    "notes": "Real ONNX model candidate. TrackExtract needs the ONNX backend before this can run.",
+    "notes": "Real ONNX model candidate. Track Extract needs the ONNX backend before this can run.",
     "downloadSizeMb": 57,
     "options": [
       {

@@ -14,6 +14,7 @@ import {
   ExternalLink,
   FolderOpen,
   ListMusic,
+  Moon,
   Music2,
   Pause,
   Play,
@@ -21,6 +22,7 @@ import {
   Save,
   SlidersHorizontal,
   Square,
+  Sun,
   Trash2,
   Upload,
   X,
@@ -54,6 +56,7 @@ type ModelStatusFilter = "all" | "runnable" | "installable" | "pending" | "missi
 type ModelStatusKey = Exclude<ModelStatusFilter, "all">;
 type ModelTaskFilter = "all" | TaskType;
 type ModelBackendFilter = "all" | BackendKind;
+type ThemeMode = "dark" | "light";
 
 interface ModelOptionChoice {
   value: string;
@@ -221,6 +224,7 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
 const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+const THEME_STORAGE_KEY = "trackextract_theme";
 const MODEL_STATUS_FILTERS: Array<{ value: ModelStatusFilter; label: string }> = [
   { value: "all", label: "All statuses" },
   { value: "runnable", label: "Runnable" },
@@ -262,6 +266,12 @@ function browserStemMediaSrc(path: string) {
 }
 
 function App() {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    if (typeof window === "undefined") {
+      return "dark";
+    }
+    return window.localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+  });
   const [boot, setBoot] = useState<BootstrapState | null>(null);
   const [models, setModels] = useState<ModelEntry[]>([]);
   const [workflows, setWorkflows] = useState<WorkflowEntry[]>([]);
@@ -286,6 +296,15 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.theme = themeMode;
+    }
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+    }
+  }, [themeMode]);
 
   const mergeJob = useCallback((updated: JobRecord) => {
     setJobs((existing) => {
@@ -625,7 +644,7 @@ function App() {
     }
 
     if (!isRunnableModel(selectedModel)) {
-      setError(`${selectedModel.displayName} is installed, but this model asset is not runnable in TrackExtract yet.`);
+      setError(`${selectedModel.displayName} is installed, but this model asset is not runnable in Track Extract yet.`);
       return;
     }
 
@@ -773,7 +792,7 @@ function App() {
     }
 
     const confirmed = window.confirm(
-      "Clear the source audio from this workspace? This also clears generated stems and job history. Your original file outside TrackExtract is not touched.",
+      "Clear the source audio from this workspace? This also clears generated stems and job history. Your original file outside Track Extract is not touched.",
     );
     if (!confirmed) {
       return;
@@ -931,12 +950,23 @@ function App() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Phlosion</p>
-          <h1>TrackExtract</h1>
+          <h1>Track Extract</h1>
         </div>
-        <div className="status-strip" aria-live="polite">
-          <span className={`status-dot ${error ? "is-error" : runningJob ? "is-running" : ""}`} />
-          <span>{error ?? status}</span>
+        <div className="topbar-actions">
+          <button
+            className="theme-toggle"
+            type="button"
+            onClick={() => setThemeMode((current) => (current === "dark" ? "light" : "dark"))}
+            aria-label={`Switch to ${themeMode === "dark" ? "light" : "dark"} mode`}
+            title={`Switch to ${themeMode === "dark" ? "light" : "dark"} mode`}
+          >
+            {themeMode === "dark" ? <Sun aria-hidden /> : <Moon aria-hidden />}
+            <span>{themeMode === "dark" ? "Light" : "Dark"}</span>
+          </button>
+          <div className="status-strip" aria-live="polite">
+            <span className={`status-dot ${error ? "is-error" : runningJob ? "is-running" : ""}`} />
+            <span>{error ?? status}</span>
+          </div>
         </div>
       </header>
 

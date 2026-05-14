@@ -2,7 +2,7 @@
 name = "trackextract"
 version = "0.1.0"
 description = "Local AI stem separation for producers, engineers, DJs, remixers, and creators."
-authors = ["Phlosion"]
+authors = ["Track Extract contributors"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

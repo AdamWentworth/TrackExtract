@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://phlosion.com/trackextract/session.schema.json",
-  "title": "TrackExtract Project Session",
+  "$id": "https://trackextract.local/schema/session.schema.json",
+  "title": "Track Extract Project Session",
   "type": "object",
   "required": ["schemaVersion", "id", "name", "rootPath", "createdAt", "updatedAt", "originalFiles", "jobs", "stems"],
   "properties": {

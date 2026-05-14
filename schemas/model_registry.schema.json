@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://phlosion.com/trackextract/model_registry.schema.json",
-  "title": "TrackExtract Model Registry",
+  "$id": "https://trackextract.local/schema/model_registry.schema.json",
+  "title": "Track Extract Model Registry",
   "type": "array",
   "items": {
     "type": "object",

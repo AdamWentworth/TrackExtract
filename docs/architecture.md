@@ -1,12 +1,12 @@
-# TrackExtract Architecture
+# Track Extract Architecture
 
-TrackExtract is a Tauri + React desktop app with a Python-first engine. Rust is intentionally thin: it owns desktop plumbing, process spawning, cancellation, local media preview, app paths, and event forwarding.
+Track Extract is a Tauri + React desktop app with a Python-first engine. Rust is intentionally thin: it owns desktop plumbing, process spawning, cancellation, local media preview, app paths, and event forwarding.
 
 ```text
 React/Tauri UI
   -> Tauri commands/events
   -> thin Rust bridge
-  -> Python TrackExtract engine
+  -> Python Track Extract engine
      -> project/session manager
      -> model registry
      -> job queue

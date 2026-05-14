@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TrackExtract audio-separator sidecar worker.
+"""Track Extract audio-separator sidecar worker.
 
 Rust owns the app state and launches this process behind the backend trait. The
 worker keeps the Python dependency surface out of the Tauri UI and reports only
@@ -40,7 +40,7 @@ COMMON_STEM_ALIASES = {
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run audio-separator for TrackExtract")
+    parser = argparse.ArgumentParser(description="Run audio-separator for Track Extract")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--model-file-dir", required=True)
@@ -66,7 +66,7 @@ def main() -> int:
         try:
             return run(args, log)
         except Exception:
-            log.write("\nTrackExtract Audio Separator worker crashed:\n")
+            log.write("\nTrack Extract Audio Separator worker crashed:\n")
             traceback.print_exc(file=log)
             return 1
 
@@ -82,7 +82,7 @@ def run(args: argparse.Namespace, log) -> int:
     model_file_dir.mkdir(parents=True, exist_ok=True)
     result_json.parent.mkdir(parents=True, exist_ok=True)
 
-    log.write(f"TrackExtract Audio Separator worker job {args.job_id}\n")
+    log.write(f"Track Extract Audio Separator worker job {args.job_id}\n")
     log.write(f"Input: {input_path}\n")
     log.write(f"Task: {args.task}\n")
     log.write(f"Model file dir: {model_file_dir}\n")

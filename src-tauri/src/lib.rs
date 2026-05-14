@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     env,
-    fs::File,
+    fs::{self, File},
     io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
     net::{TcpListener, TcpStream},
     path::{Path, PathBuf},
@@ -42,7 +42,7 @@ fn lock_children(runtime: &RuntimeState) -> Result<MutexGuard<'_, RunningChildre
     runtime
         .running_children
         .lock()
-        .map_err(|_| "TrackExtract child process state is unavailable".to_string())
+        .map_err(|_| "Track Extract child process state is unavailable".to_string())
 }
 
 #[derive(Debug, Clone)]
@@ -60,6 +60,7 @@ impl PythonEngineBridge {
             .path()
             .app_data_dir()
             .map_err(|error| error.to_string())?;
+        migrate_legacy_app_data(&app_data_dir)?;
         let project_root = default_project_root()?;
         let python = resolve_engine_python(&repo_root);
 
@@ -101,7 +102,7 @@ impl PythonEngineBridge {
         let mut child = self
             .command(command)
             .spawn()
-            .map_err(|error| format!("Could not start TrackExtract Python engine: {error}"))?;
+            .map_err(|error| format!("Could not start Track Extract Python engine: {error}"))?;
         write_child_stdin(&mut child, &self.request_payload(args))?;
         let output = child
             .wait_with_output()
@@ -134,7 +135,7 @@ impl PythonEngineBridge {
         configure_long_running_process(&mut process);
         let mut child = process
             .spawn()
-            .map_err(|error| format!("Could not start TrackExtract Python engine: {error}"))?;
+            .map_err(|error| format!("Could not start Track Extract Python engine: {error}"))?;
         write_child_stdin(&mut child, &self.request_payload(args))?;
 
         let stdout = child
@@ -540,7 +541,7 @@ fn find_repo_root() -> Result<PathBuf, String> {
         }
     }
 
-    Err("Could not find the TrackExtract repo root. Set TRACKEXTRACT_REPO_ROOT.".to_string())
+    Err("Could not find the Track Extract repo root. Set TRACKEXTRACT_REPO_ROOT.".to_string())
 }
 
 fn default_project_root() -> Result<PathBuf, String> {
@@ -552,6 +553,91 @@ fn default_project_root() -> Result<PathBuf, String> {
     let documents = home.join("Documents");
     let base = if music.exists() { music } else { documents };
     Ok(base.join("TrackExtract Projects"))
+}
+
+fn migrate_legacy_app_data(target: &Path) -> Result<(), String> {
+    if target.join("state.json").is_file() || target.join("models.json").is_file() {
+        return Ok(());
+    }
+
+    for legacy in legacy_app_data_dirs() {
+        if legacy == target || !legacy.is_dir() {
+            continue;
+        }
+        if !legacy.join("state.json").is_file() && !legacy.join("models.json").is_file() {
+            continue;
+        }
+        copy_dir_all(&legacy, target).map_err(|error| {
+            format!(
+                "Could not migrate existing Track Extract app data from {}: {error}",
+                legacy.display()
+            )
+        })?;
+        return Ok(());
+    }
+
+    Ok(())
+}
+
+fn legacy_app_data_dirs() -> Vec<PathBuf> {
+    let home = env::var("HOME")
+        .or_else(|_| env::var("USERPROFILE"))
+        .map(PathBuf::from)
+        .ok();
+    let mut paths = Vec::new();
+
+    if cfg!(target_os = "windows") {
+        if let Ok(local_data) = env::var("LOCALAPPDATA") {
+            paths.push(
+                PathBuf::from(local_data)
+                    .join("Phlosion")
+                    .join("TrackExtract"),
+            );
+        }
+    } else if cfg!(target_os = "macos") {
+        if let Some(home) = &home {
+            paths.push(
+                home.join("Library")
+                    .join("Application Support")
+                    .join("com.Phlosion.TrackExtract"),
+            );
+        }
+    } else if let Some(home) = &home {
+        paths.push(
+            home.join(".local")
+                .join("share")
+                .join("com.phlosion.trackextract"),
+        );
+        paths.push(
+            home.join(".local")
+                .join("share")
+                .join("com.Phlosion.TrackExtract"),
+        );
+    }
+
+    if let Some(home) = &home {
+        paths.push(home.join(".local").join("share").join("trackextract"));
+    }
+
+    paths
+}
+
+fn copy_dir_all(source: &Path, target: &Path) -> std::io::Result<()> {
+    fs::create_dir_all(target)?;
+
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let next_target = target.join(entry.file_name());
+
+        if file_type.is_dir() {
+            copy_dir_all(&entry.path(), &next_target)?;
+        } else if file_type.is_file() && !next_target.exists() {
+            fs::copy(entry.path(), next_target)?;
+        }
+    }
+
+    Ok(())
 }
 
 #[derive(Debug)]
@@ -643,7 +729,7 @@ fn stream_stem_http(
     let canonical_path = path.canonicalize().map_err(|error| error.to_string())?;
 
     if !is_trackextract_stem_path(&canonical_path) {
-        return Err("Requested media path is outside TrackExtract project stems".to_string());
+        return Err("Requested media path is outside Track Extract project stems".to_string());
     }
 
     let mut file = File::open(&canonical_path).map_err(|error| error.to_string())?;

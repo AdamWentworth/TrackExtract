@@ -52,12 +52,14 @@ const bootstrap = {
   jobs: [],
 };
 
-describe("TrackExtract app", () => {
+describe("Track Extract app", () => {
   afterEach(() => {
     cleanup();
   });
 
   beforeEach(() => {
+    window.localStorage.clear();
+    delete document.documentElement.dataset.theme;
     mockInvoke.mockReset();
     mockInvoke.mockImplementation((command: string) => {
       if (command === "bootstrap_app") {
@@ -73,7 +75,7 @@ describe("TrackExtract app", () => {
   it("renders import, workflow, queue, preview, and export surfaces", async () => {
     render(<App />);
 
-    expect(await screen.findByText("TrackExtract")).toBeInTheDocument();
+    expect(await screen.findByText("Track Extract")).toBeInTheDocument();
     expect(screen.getByText("Import")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Workflow" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Model Setup" })).toBeInTheDocument();
@@ -82,6 +84,19 @@ describe("TrackExtract app", () => {
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
     expect(screen.getByText("Render Options")).toBeInTheDocument();
     expect(screen.getByText("Export")).toBeInTheDocument();
+  });
+
+  it("defaults to dark mode and toggles light mode", async () => {
+    render(<App />);
+
+    expect(await screen.findByText("Track Extract")).toBeInTheDocument();
+    expect(document.documentElement.dataset.theme).toBe("dark");
+
+    fireEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(window.localStorage.getItem("trackextract_theme")).toBe("light");
+    expect(screen.getByRole("button", { name: "Switch to dark mode" })).toBeInTheDocument();
   });
 
   it("renders editable model render options", async () => {

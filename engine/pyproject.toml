@@ -5,10 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "trackextract-engine"
 version = "0.1.0"
-description = "Python engine for TrackExtract local stem separation."
+description = "Python engine for Track Extract local stem separation."
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Phlosion" }]
+authors = [{ name = "Track Extract contributors" }]
 license = "MIT"
 keywords = ["audio", "source-separation", "stem-separation", "demucs", "audio-separator"]
 classifiers = [

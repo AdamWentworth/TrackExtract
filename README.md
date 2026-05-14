@@ -1,8 +1,8 @@
-# TrackExtract
+# Track Extract
 
-TrackExtract is a local-first desktop prototype for AI stem separation by Phlosion. It is aimed at producers, engineers, DJs, remixers, and creators who need a cleaner workflow than dependency-heavy command-line wrappers: import audio, choose a curated separation task, run an offline job, preview stems, and export DAW-ready files.
+Track Extract is a local-first desktop prototype for AI stem separation. It is aimed at producers, engineers, DJs, remixers, and creators who need a cleaner workflow than dependency-heavy command-line wrappers: import audio, choose a curated separation task, run an offline job, preview stems, and export DAW-ready files.
 
-This repository currently implements a Tauri + React desktop shell backed by a Python-first TrackExtract engine. Rust is now a thin Tauri bridge for app paths, process spawning, cancellation, local media preview, and event forwarding. Python owns projects, sessions, jobs, model registry state, model installs, catalog sync, and separation providers.
+This repository currently implements a Tauri + React desktop shell backed by a Python-first Track Extract engine. Rust is now a thin Tauri bridge for app paths, process spawning, cancellation, local media preview, and event forwarding. Python owns projects, sessions, jobs, model registry state, model installs, catalog sync, and separation providers.
 
 ## Current Prototype Scope
 
@@ -58,7 +58,7 @@ To enable the Python engine in development, create the managed environment:
 scripts/setup-trackextract-engine.sh
 ```
 
-TrackExtract auto-detects `.venv-trackextract-engine/bin/python` when launched from this repo. To force a specific Python environment, set `TRACKEXTRACT_ENGINE_PYTHON`. For NVIDIA CUDA support in audio-separator, install/update the environment with `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu`; for Windows DirectML, use `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml`.
+Track Extract auto-detects `.venv-trackextract-engine/bin/python` when launched from this repo. To force a specific Python environment, set `TRACKEXTRACT_ENGINE_PYTHON`. For NVIDIA CUDA support in audio-separator, install/update the environment with `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu`; for Windows DirectML, use `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml`.
 
 See [docs/development.md](docs/development.md) for toolchain pins, `.env` usage, and local check commands.
 
@@ -106,4 +106,4 @@ See [docs/model-registry.md](docs/model-registry.md) for registry structure, mod
 4. Add native ONNX Runtime only for models where it clearly improves packaging or acceleration.
 5. Better batch processing, cancellation, and resumable jobs.
 6. DAW export templates for Ableton, Logic, Pro Tools, Reaper, and FL Studio.
-7. Future VST3/AU bridge plugin that talks to the same offline TrackExtract engine.
+7. Future VST3/AU bridge plugin that talks to the same offline Track Extract engine.

@@ -1,4 +1,4 @@
-"""TrackExtract Python-first engine."""
+"""Track Extract Python-first engine."""
 
 __all__ = ["__version__"]
 

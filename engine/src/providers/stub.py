@@ -21,7 +21,7 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     source_info = wav_info(Path(job["sourcePath"]))
 
     with log_path.open("w", encoding="utf-8") as log:
-        log.write(f"TrackExtract Python stub job {job['id']}\n")
+        log.write(f"Track Extract Python stub job {job['id']}\n")
         log.write(f"Input: {job['sourcePath']}\n")
         log.write(f"Model: {model['displayName']}\n")
 

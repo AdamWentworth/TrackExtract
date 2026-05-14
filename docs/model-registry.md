@@ -36,7 +36,7 @@ Installed Demucs provider entries are included for real development renders:
 
 The bundled catalog includes the public UVR single-model release model files as managed downloads, excluding YAML/config sidecars that are not useful as standalone choices in the UI. It also includes MVSEP separation and restoration algorithms as source references so producers can discover RoFormer, SCNet, MDX, drum, guitar, piano, wind, string, percussion, dereverb, denoise, and restoration options without leaving the model manager.
 
-Missing ONNX, RoFormer, MDX23C, and VR rows are real catalog candidates, not fake placeholders. Downloadable `.onnx`, `.pth`, and `.ckpt` entries run through the Python audio-separator provider after setup. Raw `.th` Demucs weights are still cataloged, but they need matching YAML model definitions before TrackExtract can run them. MVSEP rows without direct model files remain source references until a local compatible model or service adapter exists.
+Missing ONNX, RoFormer, MDX23C, and VR rows are real catalog candidates, not fake placeholders. Downloadable `.onnx`, `.pth`, and `.ckpt` entries run through the Python audio-separator provider after setup. Raw `.th` Demucs weights are still cataloged, but they need matching YAML model definitions before Track Extract can run them. MVSEP rows without direct model files remain source references until a local compatible model or service adapter exists.
 
 Useful public model sources:
 

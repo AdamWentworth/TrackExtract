@@ -43,10 +43,10 @@ class EngineContext:
 def default_app_data_dir() -> Path:
     home = Path.home()
     if os.name == "nt":
-        return Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")) / "Phlosion" / "TrackExtract"
+        return Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")) / "TrackExtract"
     if sys_platform() == "darwin":
-        return home / "Library" / "Application Support" / "com.Phlosion.TrackExtract"
-    return home / ".local" / "share" / "com.Phlosion.TrackExtract"
+        return home / "Library" / "Application Support" / "TrackExtract"
+    return home / ".local" / "share" / "trackextract"
 
 
 def default_project_root() -> Path:

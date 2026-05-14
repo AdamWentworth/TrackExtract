@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TrackExtract Demucs sidecar worker.
+"""Track Extract Demucs sidecar worker.
 
 This script is intentionally small and process-oriented. The Tauri UI never
 talks to Python directly; Rust launches this worker through the backend trait
@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run Demucs for TrackExtract")
+    parser = argparse.ArgumentParser(description="Run Demucs for Track Extract")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--work-dir", required=True)
@@ -41,7 +41,7 @@ def main() -> int:
         try:
             return run(args, log)
         except Exception:
-            log.write("\nTrackExtract Demucs worker crashed:\n")
+            log.write("\nTrack Extract Demucs worker crashed:\n")
             traceback.print_exc(file=log)
             return 1
 
@@ -56,7 +56,7 @@ def run(args: argparse.Namespace, log) -> int:
     work_dir.mkdir(parents=True, exist_ok=True)
     result_json.parent.mkdir(parents=True, exist_ok=True)
 
-    log.write(f"TrackExtract Demucs worker job {args.job_id}\n")
+    log.write(f"Track Extract Demucs worker job {args.job_id}\n")
     log.write(f"Input: {input_path}\n")
     log.write(f"Task: {args.task}\n")
     log.write(f"Model: {args.model}\n")

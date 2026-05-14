@@ -14,5 +14,5 @@ def run_provider(request: dict, emit) -> tuple[list[dict], object]:
     if provider == "stub":
         return stub.run(request, emit)
     raise TrackExtractError(
-        f"{model.get('displayName')} is installed, but this model asset is not runnable in TrackExtract yet."
+        f"{model.get('displayName')} is installed, but this model asset is not runnable in Track Extract yet."
     )

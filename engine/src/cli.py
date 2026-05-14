@@ -14,7 +14,7 @@ LONG_COMMANDS = {"start_job", "install_model"}
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="TrackExtract Python engine")
+    parser = argparse.ArgumentParser(description="Track Extract Python engine")
     parser.add_argument("command")
     parser.add_argument("--jsonl", action="store_true")
     args = parser.parse_args()
