@@ -225,6 +225,27 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
 const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const THEME_STORAGE_KEY = "trackextract_theme";
+const DEV_BRIDGE_PREFIX = "/__trackextract_dev";
+const DEV_BRIDGE_COMMANDS = new Set([
+  "bootstrap_app",
+  "import_audio_files",
+  "list_models",
+  "list_workflows",
+  "save_custom_workflow",
+  "install_model",
+  "enqueue_separation",
+  "start_job",
+  "cancel_job",
+  "get_project",
+  "get_jobs",
+  "clear_jobs",
+  "export_stems",
+  "clear_project_stems",
+  "clear_project_source",
+  "sync_audio_separator_catalog",
+  "stem_media_url",
+  "reveal_path",
+]);
 const MODEL_STATUS_FILTERS: Array<{ value: ModelStatusFilter; label: string }> = [
   { value: "all", label: "All statuses" },
   { value: "runnable", label: "Runnable" },
@@ -245,12 +266,60 @@ function isTauriRuntime() {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+function isDevBridgeRuntime() {
+  return (
+    typeof window !== "undefined" && window.location.protocol.startsWith("http") && window.location.port === "1420"
+  );
+}
+
 async function command<T>(name: string, args?: CommandArgs): Promise<T> {
+  if (name === "reveal_path" && isTauriRuntime()) {
+    return invoke<T>(name, args);
+  }
+
+  if (isDevBridgeRuntime() && DEV_BRIDGE_COMMANDS.has(name)) {
+    return devBridgeCommand<T>(name, args);
+  }
+
   if (isTauriRuntime()) {
     return invoke<T>(name, args);
   }
 
   return mockCommand<T>(name, args);
+}
+
+async function devBridgeCommand<T>(name: string, args?: CommandArgs): Promise<T> {
+  const response = await fetch(`${DEV_BRIDGE_PREFIX}/command`, {
+    body: JSON.stringify({ command: name, args: args ?? {} }),
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+  });
+  const envelope = (await response.json().catch(() => null)) as { ok?: boolean; payload?: T; message?: string } | null;
+  if (!response.ok || !envelope?.ok) {
+    throw new Error(envelope?.message ?? `Track Extract dev bridge failed: ${name}`);
+  }
+  return envelope.payload as T;
+}
+
+async function uploadBrowserAudioFiles(files: File[]): Promise<ProjectSession> {
+  const body = new FormData();
+  for (const file of files) {
+    body.append("files", file, file.name);
+  }
+
+  const response = await fetch(`${DEV_BRIDGE_PREFIX}/import-files`, {
+    body,
+    method: "POST",
+  });
+  const envelope = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    payload?: ProjectSession;
+    message?: string;
+  } | null;
+  if (!response.ok || !envelope?.ok || !envelope.payload) {
+    throw new Error(envelope?.message ?? "Browser import failed.");
+  }
+  return envelope.payload;
 }
 
 async function listenTo<T>(eventName: string, handler: Parameters<typeof listen<T>>[1]): Promise<() => void> {
@@ -316,32 +385,44 @@ function App() {
     });
   }, []);
 
-  const importAudioPaths = useCallback(async (paths: string[]) => {
-    if (paths.length === 0) {
-      return;
-    }
-
-    setIsBusy(true);
-    setError(null);
-    setStatus("Creating project session");
-
-    try {
-      const imported = await command<ProjectSession>("import_audio_files", { paths });
-      setProject(imported);
-      setSelectedSourceId(imported.originalFiles[0]?.id ?? "");
-      setSelectedStemIds([]);
-      setPreviewState({});
-      setMediaUrls({});
-      setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
-      const refreshedJobs = await command<JobRecord[]>("get_jobs");
-      setJobs(refreshedJobs);
-    } catch (caught) {
-      setError(String(caught));
-      setStatus("Import failed");
-    } finally {
-      setIsBusy(false);
-    }
+  const applyProjectSnapshot = useCallback((snapshot: ProjectSession | null) => {
+    setProject(snapshot);
+    setSelectedSourceId((current) => {
+      if (!snapshot || snapshot.originalFiles.length === 0) {
+        return "";
+      }
+      return snapshot.originalFiles.some((source) => source.id === current) ? current : snapshot.originalFiles[0].id;
+    });
   }, []);
+
+  const importAudioPaths = useCallback(
+    async (paths: string[]) => {
+      if (paths.length === 0) {
+        return;
+      }
+
+      setIsBusy(true);
+      setError(null);
+      setStatus("Creating project session");
+
+      try {
+        const imported = await command<ProjectSession>("import_audio_files", { paths });
+        applyProjectSnapshot(imported);
+        setSelectedStemIds([]);
+        setPreviewState({});
+        setMediaUrls({});
+        setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
+        const refreshedJobs = await command<JobRecord[]>("get_jobs");
+        setJobs(refreshedJobs);
+      } catch (caught) {
+        setError(String(caught));
+        setStatus("Import failed");
+      } finally {
+        setIsBusy(false);
+      }
+    },
+    [applyProjectSnapshot],
+  );
 
   useEffect(() => {
     let cleanup = () => {};
@@ -353,9 +434,8 @@ function App() {
         setModels(snapshot.models);
         setWorkflows(snapshot.workflows);
         setSelectedWorkflowId(snapshot.workflows[0]?.id ?? "");
-        setProject(snapshot.currentProject);
+        applyProjectSnapshot(snapshot.currentProject);
         setJobs(snapshot.jobs);
-        setSelectedSourceId(snapshot.currentProject?.originalFiles[0]?.id ?? "");
         setStatus("Ready");
       } catch (caught) {
         setError(String(caught));
@@ -371,7 +451,7 @@ function App() {
         mergeJob(event.payload);
       });
       const unlistenProject = await listenTo<ProjectSession>("project_updated", (event) => {
-        setProject(event.payload);
+        applyProjectSnapshot(event.payload);
       });
       const unlistenLog = await listenTo<string>("log_entry", (event) => {
         setLogEntries((entries) => [event.payload, ...entries].slice(0, 6));
@@ -409,7 +489,53 @@ function App() {
     bindEvents();
 
     return () => cleanup();
-  }, [mergeJob]);
+  }, [applyProjectSnapshot, mergeJob]);
+
+  useEffect(() => {
+    if (!boot) {
+      return;
+    }
+
+    let cancelled = false;
+    let tick = 0;
+    async function refreshSharedState() {
+      try {
+        const includeRegistries = tick % 5 === 0;
+        tick += 1;
+        const [latestProject, latestJobs, latestModels, latestWorkflows] = await Promise.all([
+          command<ProjectSession | null>("get_project"),
+          command<JobRecord[]>("get_jobs"),
+          includeRegistries ? command<ModelEntry[]>("list_models") : Promise.resolve(null),
+          includeRegistries ? command<WorkflowEntry[]>("list_workflows") : Promise.resolve(null),
+        ]);
+        if (!cancelled) {
+          applyProjectSnapshot(latestProject);
+          setJobs(latestJobs);
+          const activeJob = latestJobs.find((job) => job.state === "running" || job.state === "preparing");
+          if (activeJob) {
+            setStatus(activeJob.statusMessage);
+          }
+          if (latestModels) {
+            setModels(latestModels);
+          }
+          if (latestWorkflows) {
+            setWorkflows(latestWorkflows);
+          }
+        }
+      } catch {
+        // Polling is opportunistic; direct commands still surface user-readable errors.
+      }
+    }
+
+    const interval = window.setInterval(refreshSharedState, isDevBridgeRuntime() ? 1000 : 1800);
+    window.addEventListener("focus", refreshSharedState);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshSharedState);
+    };
+  }, [applyProjectSnapshot, boot]);
 
   useEffect(() => {
     let unlistenDragDrop: (() => void) | undefined;
@@ -486,7 +612,7 @@ function App() {
       return;
     }
 
-    if (!isTauriRuntime()) {
+    if (!isTauriRuntime() && !isDevBridgeRuntime()) {
       setMediaUrls((existing) => {
         const next = Object.fromEntries(
           project.stems.map((stem) => [stem.id, existing[stem.id] ?? browserStemMediaSrc(stem.path)]),
@@ -572,6 +698,17 @@ function App() {
 
   async function chooseFiles() {
     if (!isTauriRuntime()) {
+      if (isDevBridgeRuntime()) {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.multiple = true;
+        input.accept = AUDIO_EXTENSIONS.map((extension) => `.${extension}`).join(",");
+        input.onchange = () => {
+          void importBrowserDroppedFiles(Array.from(input.files ?? []));
+        };
+        input.click();
+        return;
+      }
       await importAudioPaths(["/mock/Artist - Browser Demo.wav"]);
       return;
     }
@@ -597,9 +734,45 @@ function App() {
     }
 
     const files = Array.from(event.dataTransfer.files);
+    if (isDevBridgeRuntime()) {
+      await importBrowserDroppedFiles(files);
+      return;
+    }
+
     const mockPaths =
       files.length > 0 ? files.map((file) => `/mock/${file.name}`) : ["/mock/Artist - Browser Demo.wav"];
     await importAudioPaths(mockPaths);
+  }
+
+  async function importBrowserDroppedFiles(files: File[]) {
+    const audioFiles = files.filter((file) =>
+      AUDIO_EXTENSIONS.some((extension) => file.name.toLowerCase().endsWith(`.${extension}`)),
+    );
+    if (audioFiles.length === 0) {
+      setError("Drop or choose at least one supported audio file.");
+      setStatus("Import failed");
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+    setStatus("Importing browser-selected audio");
+
+    try {
+      const imported = await uploadBrowserAudioFiles(audioFiles);
+      applyProjectSnapshot(imported);
+      setSelectedStemIds([]);
+      setPreviewState({});
+      setMediaUrls({});
+      setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
+      const refreshedJobs = await command<JobRecord[]>("get_jobs");
+      setJobs(refreshedJobs);
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Import failed");
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   async function refreshModels() {
@@ -652,6 +825,7 @@ function App() {
     setError(null);
     setStatus("Queueing workflow job");
 
+    let queuedJobId: string | null = null;
     try {
       const queued = await command<JobRecord>("enqueue_separation", {
         task,
@@ -659,17 +833,25 @@ function App() {
         sourceId: selectedSourceId || null,
         options: renderOptions,
       });
+      queuedJobId = queued.id;
       mergeJob(queued);
       const completed = await command<JobRecord>("start_job", { jobId: queued.id });
       mergeJob(completed);
       const refreshedProject = await command<ProjectSession | null>("get_project");
       if (refreshedProject) {
-        setProject(refreshedProject);
+        applyProjectSnapshot(refreshedProject);
       }
       setStatus("Separation complete");
     } catch (caught) {
-      setError(String(caught));
-      setStatus("Separation failed");
+      const refreshedJobs = await command<JobRecord[]>("get_jobs").catch(() => jobs);
+      setJobs(refreshedJobs);
+      const cancelled = refreshedJobs.some((job) => job.id === queuedJobId && job.state === "cancelled");
+      if (cancelled) {
+        setStatus("Cancellation requested");
+      } else {
+        setError(String(caught));
+        setStatus("Separation failed");
+      }
     } finally {
       setIsBusy(false);
     }
@@ -712,7 +894,7 @@ function App() {
       setJobs(clearedJobs);
       const refreshedProject = await command<ProjectSession | null>("get_project");
       if (refreshedProject) {
-        setProject(refreshedProject);
+        applyProjectSnapshot(refreshedProject);
       }
       setStatus("Job history cleared");
     } catch (caught) {
@@ -771,7 +953,7 @@ function App() {
 
     try {
       const updated = await command<ProjectSession>("clear_project_stems");
-      setProject(updated);
+      applyProjectSnapshot(updated);
       setSelectedStemIds([]);
       setPreviewState({});
       setMediaUrls({});
@@ -804,8 +986,7 @@ function App() {
 
     try {
       const updated = await command<ProjectSession>("clear_project_source");
-      setProject(updated);
-      setSelectedSourceId("");
+      applyProjectSnapshot(updated);
       setSelectedStemIds([]);
       setPreviewState({});
       setMediaUrls({});
@@ -1094,7 +1275,7 @@ function App() {
                 className="primary-action"
                 type="button"
                 onClick={runSeparation}
-                disabled={!project || !selectedSource || !selectedModelRunnable || isBusy}
+                disabled={!project || !selectedSource || !selectedModelRunnable || isBusy || Boolean(runningJob)}
               >
                 {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
                 Run workflow

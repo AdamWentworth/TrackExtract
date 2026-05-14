@@ -77,6 +77,8 @@ Browser-only UI iteration:
 npm run dev:browser
 ```
 
+The browser tab is not a separate mock app when it runs on port `1420`. Vite exposes a development-only Track Extract bridge at `/__trackextract_dev/*`, and both the browser tab and Tauri desktop window use that bridge for Python-engine commands. That means project/session state, imports, jobs, generated stems, model installs, and workflow changes are shared while developing. Browser file imports are uploaded to the local dev bridge first, then imported through the same engine path as desktop-selected files.
+
 Tauri desktop development:
 
 ```bash

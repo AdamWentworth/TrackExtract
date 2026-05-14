@@ -68,6 +68,8 @@ For browser-only UI iteration with mock project/job data:
 npm run dev:browser
 ```
 
+When the dev server is running on `http://localhost:1420`, both the Tauri desktop window and a normal browser tab use the same local Python engine bridge. Imports, current project/session state, jobs, generated stems, and model/workflow registry changes are shared between both views during development.
+
 If you launch the dev terminal from the Snap build of VS Code and see a `libpthread`
 symbol lookup error when Tauri starts, run the clean environment helper instead:
 
