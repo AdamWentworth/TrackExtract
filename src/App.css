@@ -316,7 +316,7 @@ h2 {
 }
 
 .column-scrollbar {
-  bottom: 0;
+  bottom: 10%;
   opacity: 0;
   pointer-events: none;
   position: absolute;

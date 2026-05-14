@@ -219,8 +219,8 @@ interface WaveformData {
 }
 
 interface ScrollMetrics {
-  height: number;
-  top: number;
+  progress: number;
+  thumbRatio: number;
   visible: boolean;
 }
 
@@ -2150,7 +2150,7 @@ function RenderOptionControl({
   );
 }
 
-const emptyScrollMetrics: ScrollMetrics = { height: 0, top: 0, visible: false };
+const emptyScrollMetrics: ScrollMetrics = { progress: 0, thumbRatio: 0, visible: false };
 
 function useScrollMetrics(targetRef: { current: HTMLElement | null }) {
   const [metrics, setMetrics] = useState<ScrollMetrics>(emptyScrollMetrics);
@@ -2174,14 +2174,13 @@ function useScrollMetrics(targetRef: { current: HTMLElement | null }) {
           return;
         }
 
-        const height = Math.max(44, Math.round((clientHeight / scrollHeight) * clientHeight));
-        const maxTop = Math.max(0, clientHeight - height);
         const maxScroll = Math.max(1, scrollHeight - clientHeight);
-        const top = Math.round((scrollTop / maxScroll) * maxTop);
+        const progress = clamp(scrollTop / maxScroll, 0, 1);
+        const thumbRatio = clamp(clientHeight / scrollHeight, 0, 1);
         setMetrics((current) =>
-          current.visible === visible && current.height === height && current.top === top
+          current.visible === visible && current.progress === progress && current.thumbRatio === thumbRatio
             ? current
-            : { height, top, visible },
+            : { progress, thumbRatio, visible },
         );
       });
     };
@@ -2218,6 +2217,29 @@ function ColumnScrollbar({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const dragOffsetRef = useRef(0);
   const [dragging, setDragging] = useState(false);
+  const [trackHeight, setTrackHeight] = useState(0);
+  const thumbHeight = metrics.visible ? Math.max(44, Math.round(metrics.thumbRatio * trackHeight)) : 0;
+  const thumbTop = metrics.visible ? Math.round(metrics.progress * Math.max(0, trackHeight - thumbHeight)) : 0;
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) {
+      setTrackHeight(0);
+      return;
+    }
+
+    const update = () => setTrackHeight(track.getBoundingClientRect().height);
+    update();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", update);
+      return () => window.removeEventListener("resize", update);
+    }
+
+    const observer = new ResizeObserver(update);
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, []);
 
   function scrollToClientY(clientY: number, offset: number) {
     const target = targetRef.current;
@@ -2227,7 +2249,7 @@ function ColumnScrollbar({
     }
 
     const trackRect = track.getBoundingClientRect();
-    const maxTop = Math.max(1, trackRect.height - metrics.height);
+    const maxTop = Math.max(1, trackRect.height - thumbHeight);
     const top = clamp(clientY - trackRect.top - offset, 0, maxTop);
     target.scrollTop = (top / maxTop) * Math.max(0, target.scrollHeight - target.clientHeight);
   }
@@ -2240,7 +2262,7 @@ function ColumnScrollbar({
     const targetElement = event.target as HTMLElement;
     const thumb = targetElement.closest(".column-scrollbar-thumb");
     const thumbRect = thumb?.getBoundingClientRect();
-    dragOffsetRef.current = thumbRect ? event.clientY - thumbRect.top : metrics.height / 2;
+    dragOffsetRef.current = thumbRect ? event.clientY - thumbRect.top : thumbHeight / 2;
     event.currentTarget.setPointerCapture(event.pointerId);
     event.preventDefault();
     setDragging(true);
@@ -2274,8 +2296,8 @@ function ColumnScrollbar({
       ref={trackRef}
       style={
         {
-          "--scrollbar-height": `${metrics.height}px`,
-          "--scrollbar-top": `${metrics.top}px`,
+          "--scrollbar-height": `${thumbHeight}px`,
+          "--scrollbar-top": `${thumbTop}px`,
         } as React.CSSProperties
       }
     >
