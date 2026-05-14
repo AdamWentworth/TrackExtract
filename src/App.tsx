@@ -6,6 +6,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import bundledModels from "../resources/models.json";
 import bundledWorkflows from "../resources/workflows.json";
+import logoRow from "./assets/brand/trackextract-logo-row.png";
+import logoRowWhite from "./assets/brand/trackextract-logo-row-white.png";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -1284,8 +1286,9 @@ function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <div>
-          <h1>Track Extract</h1>
+        <div className="brand-lockup">
+          <img className="brand-logo" src={themeMode === "dark" ? logoRowWhite : logoRow} alt="" aria-hidden="true" />
+          <h1 className="sr-only">Track Extract</h1>
         </div>
         <div className="topbar-actions">
           <button

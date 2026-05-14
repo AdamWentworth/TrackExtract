@@ -1,7 +1,7 @@
 # Track Extract
 
 <p align="center">
-  <img src="src-tauri/icons/icon.png" width="96" alt="Track Extract app icon" />
+  <img src="docs/assets/brand/trackextract-github-banner.png" alt="TrackExtract logo" />
 </p>
 
 <p align="center">

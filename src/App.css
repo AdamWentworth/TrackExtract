@@ -147,6 +147,33 @@ button:disabled {
   margin-bottom: 18px;
 }
 
+.brand-lockup {
+  align-items: center;
+  display: flex;
+  min-width: 0;
+}
+
+.brand-logo {
+  display: block;
+  height: 62px;
+  max-width: min(420px, 34vw);
+  object-fit: contain;
+  object-position: left center;
+  width: auto;
+}
+
+.sr-only {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 .topbar-actions {
   align-items: center;
   display: flex;
