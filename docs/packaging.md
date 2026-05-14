@@ -21,6 +21,11 @@ TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh
 TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml scripts/setup-trackextract-engine.sh
 ```
 
+The script installs the Python package from `engine/pyproject.toml` with one of
+the runtime extras: `runtime-cpu`, `runtime-gpu`, or `runtime-dml`. There is no
+committed virtual environment and no separate `requirements.txt`; dependency
+ownership stays with the Python package metadata.
+
 Future production packaging should decide how to bundle Python, provider dependencies, model cache directories, and hardware-specific acceleration packages per platform.
 
 ## Project Output

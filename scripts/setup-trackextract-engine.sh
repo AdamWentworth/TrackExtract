@@ -3,22 +3,23 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${TRACKEXTRACT_ENGINE_VENV:-"$ROOT_DIR/.venv-trackextract-engine"}"
-PYTHON_BIN="${PYTHON:-python3}"
-AUDIO_SEPARATOR_VERSION="${TRACKEXTRACT_AUDIO_SEPARATOR_VERSION:-0.44.1}"
 AUDIO_SEPARATOR_EXTRA="${TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA:-cpu}"
 
+# shellcheck disable=SC1091
+source "$ROOT_DIR/scripts/python-env.sh"
+
+case "$AUDIO_SEPARATOR_EXTRA" in
+  cpu | gpu | dml) ;;
+  *)
+    echo "TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA must be one of: cpu, gpu, dml" >&2
+    exit 1
+    ;;
+esac
+
 echo "Creating TrackExtract Python engine environment at $VENV_DIR"
-"$PYTHON_BIN" -m venv "$VENV_DIR"
-
-if [[ -x "$VENV_DIR/bin/python" ]]; then
-  VENV_PYTHON="$VENV_DIR/bin/python"
-else
-  VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
-fi
-
+trackextract_prepare_python_venv "$VENV_DIR" "${PYTHON:-python3}"
 "$VENV_PYTHON" -m pip install --upgrade pip wheel
-"$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine"
-"$VENV_PYTHON" -m pip install static-ffmpeg "demucs==4.0.1" "audio-separator[$AUDIO_SEPARATOR_EXTRA]==$AUDIO_SEPARATOR_VERSION"
+"$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine[runtime-$AUDIO_SEPARATOR_EXTRA]"
 
 "$VENV_PYTHON" - <<'PY'
 from importlib import metadata
@@ -42,5 +43,7 @@ PY
 echo
 echo "Done. Launch TrackExtract from this repo or set:"
 echo "  export TRACKEXTRACT_ENGINE_PYTHON=\"$VENV_PYTHON\""
-echo "For NVIDIA CUDA, recreate with:"
+echo "For NVIDIA CUDA, install/update with:"
 echo "  TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh"
+echo "For Windows DirectML, install/update with:"
+echo "  TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml scripts/setup-trackextract-engine.sh"

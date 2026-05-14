@@ -28,6 +28,47 @@ Copy `.env.example` if you need local overrides:
 cp .env.example .env
 ```
 
+## Python Dependencies
+
+Python package metadata lives in `engine/pyproject.toml`. TrackExtract does not
+keep a separate `requirements.txt` because that would duplicate dependency
+state and drift from the installable package metadata.
+
+The managed local virtual environments are generated folders:
+
+- `.venv-trackextract-engine`: development runtime used by the Tauri bridge.
+- `.venv-python-tests`: test/lint/format environment used by scripts.
+
+Both are ignored by git. Recreate them with the setup or test scripts instead
+of committing them.
+
+Runtime provider dependencies are optional package extras:
+
+```bash
+python -m pip install -e "engine[runtime-cpu]"
+python -m pip install -e "engine[runtime-gpu]"
+python -m pip install -e "engine[runtime-dml]"
+```
+
+The setup script chooses the matching extra from
+`TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA`.
+
+## Automation Scripts
+
+The `scripts/` directory is intentional. This repo spans npm, Tauri/Rust,
+Python packaging, and generated model metadata, so package scripts delegate to
+small shell or Node helpers when the command would be brittle or unreadable
+inline.
+
+Most day-to-day entrypoints still go through `package.json`:
+
+```bash
+npm run check
+npm run test:engine
+npm run test:rust
+npm run models:build
+```
+
 ## Running
 
 Browser-only UI iteration:

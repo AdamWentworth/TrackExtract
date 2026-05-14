@@ -3,18 +3,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${TRACKEXTRACT_TEST_VENV:-"$ROOT_DIR/.venv-python-tests"}"
-PYTHON_BIN="${PYTHON:-python3}"
 
-if [[ ! -x "$VENV_DIR/bin/python" && ! -x "$VENV_DIR/Scripts/python.exe" ]]; then
-  "$PYTHON_BIN" -m venv "$VENV_DIR"
-fi
+# shellcheck disable=SC1091
+source "$ROOT_DIR/scripts/python-env.sh"
 
-if [[ -x "$VENV_DIR/bin/python" ]]; then
-  VENV_PYTHON="$VENV_DIR/bin/python"
-else
-  VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
-fi
-
+trackextract_prepare_python_venv "$VENV_DIR" "${PYTHON:-python3}"
 "$VENV_PYTHON" -m pip install --quiet --upgrade pip
 "$VENV_PYTHON" -m pip install --quiet -e "$ROOT_DIR/engine[dev]"
 "$VENV_PYTHON" -m pytest "$ROOT_DIR/engine/tests"

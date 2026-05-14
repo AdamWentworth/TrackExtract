@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -f "${HOME}/.cargo/env" ]]; then
-  # shellcheck disable=SC1091
-  source "${HOME}/.cargo/env"
-fi
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# shellcheck disable=SC1091
+source "$ROOT_DIR/scripts/cargo-env.sh"
+
+trackextract_source_cargo_env
 
 if [[ "${1:-}" == "--lint-only" ]]; then
   cargo clippy --workspace --all-targets -- -D warnings

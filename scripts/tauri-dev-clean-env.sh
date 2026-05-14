@@ -13,9 +13,11 @@ export XDG_DATA_DIRS="${XDG_DATA_DIRS_VSCODE_SNAP_ORIG:-/usr/share/ubuntu:/usr/s
 export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS_VSCODE_SNAP_ORIG:-/etc/xdg/xdg-ubuntu:/etc/xdg}"
 export XDG_DATA_HOME="${HOME}/.local/share"
 
-if [[ -f "${HOME}/.cargo/env" ]]; then
-  # shellcheck disable=SC1091
-  source "${HOME}/.cargo/env"
-fi
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# shellcheck disable=SC1091
+source "$ROOT_DIR/scripts/cargo-env.sh"
+
+trackextract_source_cargo_env
 
 npm run tauri dev
