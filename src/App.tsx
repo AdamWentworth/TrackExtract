@@ -661,9 +661,47 @@ function App() {
       return;
     }
 
-    const cancelled = await command<JobRecord>("cancel_job", { jobId: runningJob.id });
-    mergeJob(cancelled);
-    setStatus("Cancellation requested");
+    setError(null);
+    setStatus("Cancelling job");
+
+    try {
+      const cancelled = await command<JobRecord>("cancel_job", { jobId: runningJob.id });
+      mergeJob(cancelled);
+      setStatus("Cancellation requested");
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Cancel failed");
+    }
+  }
+
+  async function clearJobHistory() {
+    if (jobs.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm("Clear job history from this workspace? Stem files and source audio are kept.");
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+    setStatus("Clearing job history");
+
+    try {
+      const clearedJobs = await command<JobRecord[]>("clear_jobs");
+      setJobs(clearedJobs);
+      const refreshedProject = await command<ProjectSession | null>("get_project");
+      if (refreshedProject) {
+        setProject(refreshedProject);
+      }
+      setStatus("Job history cleared");
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Could not clear jobs");
+    } finally {
+      setIsBusy(false);
+    }
   }
 
   async function exportSelectedStems() {
@@ -1090,6 +1128,32 @@ function App() {
           </section>
 
           <section className="panel queue-panel">
+            <div className="panel-heading with-action">
+              <span>
+                <ListMusic aria-hidden />
+                <h2>Job Queue</h2>
+              </span>
+              <div className="queue-heading-actions">
+                <button
+                  className="secondary-action inline-action"
+                  type="button"
+                  onClick={cancelRunningJob}
+                  disabled={!runningJob}
+                >
+                  <Square aria-hidden />
+                  Cancel
+                </button>
+                <button
+                  className="secondary-action inline-action"
+                  type="button"
+                  onClick={clearJobHistory}
+                  disabled={jobs.length === 0 || Boolean(runningJob) || isBusy}
+                >
+                  <Trash2 aria-hidden />
+                  Clear jobs
+                </button>
+              </div>
+            </div>
             {jobs.length === 0 ? (
               <div className="empty-state">
                 <ListMusic aria-hidden />
@@ -2107,6 +2171,20 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
       return mockProject as T;
 
     case "get_jobs":
+      return mockJobs as T;
+
+    case "clear_jobs":
+      if (mockJobs.some((job) => job.state === "preparing" || job.state === "running")) {
+        throw new Error("Cancel the running job before clearing job history");
+      }
+      mockJobs = [];
+      if (mockProject) {
+        mockProject = {
+          ...mockProject,
+          jobs: [],
+          updatedAt: new Date().toISOString(),
+        };
+      }
       return mockJobs as T;
 
     case "clear_project_stems":

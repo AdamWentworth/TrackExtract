@@ -65,4 +65,4 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     ]
     if options.get("enableDenoisePass"):
         command.append("--enable-denoise-pass")
-    return run_worker(command, result_path, log_path, "Audio Separator", job["id"])
+    return run_worker(command, result_path, log_path, "Audio Separator", job["id"], emit=emit)

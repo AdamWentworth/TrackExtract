@@ -224,6 +224,11 @@ describe("TrackExtract app", () => {
     fireEvent.click(runButton);
     expect(await screen.findByText("Separation complete")).toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole("button", { name: "Clear jobs" }));
+    expect(await screen.findByText("Job history cleared")).toBeInTheDocument();
+    expect(screen.getByText("No jobs queued yet")).toBeInTheDocument();
+    expect((await screen.findAllByText("Vocals")).length).toBeGreaterThan(0);
+
     fireEvent.click(screen.getByRole("button", { name: "Clear stems" }));
     expect(await screen.findByText("Generated stems cleared")).toBeInTheDocument();
     expect(screen.getByText("Generated stems will appear here.")).toBeInTheDocument();
@@ -251,7 +256,8 @@ describe("TrackExtract app", () => {
     render(<App />);
 
     fireEvent.click(await screen.findByText("Model library"));
-    fireEvent.click(await screen.findByText("Refresh"));
+    const dialog = await screen.findByRole("dialog", { name: "Model Library" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Refresh" }));
 
     expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
   });

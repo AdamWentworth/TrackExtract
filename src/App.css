@@ -446,6 +446,19 @@ input[type="number"] {
   min-height: 145px;
 }
 
+.queue-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.queue-heading-actions .secondary-action {
+  min-height: 32px;
+  padding: 0 10px;
+}
+
 .options-panel {
   display: grid;
   gap: 10px;

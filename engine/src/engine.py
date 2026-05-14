@@ -5,7 +5,7 @@ from pathlib import Path
 from .catalog_audio_separator import sync_catalog
 from .errors import TrackExtractError
 from .installer import install_model
-from .jobs import cancel, complete, enqueue, fail, list_jobs, set_progress, set_state
+from .jobs import cancel, clear_job_history, complete, enqueue, fail, list_jobs, set_progress, set_state
 from .paths import EngineContext
 from .project import clear_project_source, clear_project_stems, export_stems, get_current_project, import_audio_files
 from .providers import run_provider
@@ -55,6 +55,9 @@ class Engine:
 
     def get_jobs(self, _args: dict) -> list[dict]:
         return list_jobs(self.context)
+
+    def clear_jobs(self, _args: dict) -> list[dict]:
+        return clear_job_history(self.context)
 
     def export_stems(self, args: dict) -> list[str]:
         return export_stems(self.context, args.get("stemIds") or [], args.get("destinationPath"))

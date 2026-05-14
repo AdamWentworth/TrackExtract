@@ -8,7 +8,11 @@ use std::{
     process::{Child, Command, Stdio},
     sync::{Arc, Mutex, MutexGuard},
     thread,
+    time::Duration,
 };
+
+#[cfg(unix)]
+use std::os::unix::process::CommandExt;
 
 use serde_json::{json, Value};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -127,6 +131,7 @@ impl PythonEngineBridge {
     ) -> Result<Value, String> {
         let mut process = self.command(command);
         process.arg("--jsonl");
+        configure_long_running_process(&mut process);
         let mut child = process
             .spawn()
             .map_err(|error| format!("Could not start TrackExtract Python engine: {error}"))?;
@@ -222,6 +227,26 @@ fn write_child_stdin(child: &mut Child, payload: &Value) -> Result<(), String> {
                 .as_bytes(),
         )
         .map_err(|error| error.to_string())
+}
+
+fn configure_long_running_process(process: &mut Command) {
+    #[cfg(unix)]
+    {
+        process.process_group(0);
+    }
+}
+
+fn terminate_child_process(child: &mut Child) {
+    #[cfg(unix)]
+    {
+        let _ = Command::new("kill")
+            .arg("-TERM")
+            .arg(format!("-{}", child.id()))
+            .status();
+        thread::sleep(Duration::from_millis(250));
+    }
+
+    let _ = child.kill();
 }
 
 #[tauri::command]
@@ -344,7 +369,7 @@ fn cancel_job(
 ) -> Result<Value, String> {
     if let Some(child) = lock_children(&state)?.remove(&job_id) {
         if let Ok(mut child) = child.lock() {
-            let _ = child.kill();
+            terminate_child_process(&mut child);
         }
     }
     let job = state
@@ -378,6 +403,19 @@ fn get_project(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
 #[tauri::command]
 fn get_jobs(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
     state.bridge.run_json("get_jobs", json!({}))
+}
+
+#[tauri::command]
+fn clear_jobs(state: State<'_, Arc<RuntimeState>>, app: AppHandle) -> Result<Value, String> {
+    let jobs = state.bridge.run_json("clear_jobs", json!({}))?;
+    let project = state.bridge.run_json("get_project", json!({}))?;
+    app.emit("jobs_updated", &jobs)
+        .map_err(|error| error.to_string())?;
+    app.emit("project_updated", project)
+        .map_err(|error| error.to_string())?;
+    app.emit("log_entry", "Cleared job history")
+        .map_err(|error| error.to_string())?;
+    Ok(jobs)
 }
 
 #[tauri::command]
@@ -843,6 +881,7 @@ pub fn run() {
             sync_audio_separator_catalog,
             get_project,
             get_jobs,
+            clear_jobs,
             export_stems,
             clear_project_stems,
             clear_project_source,

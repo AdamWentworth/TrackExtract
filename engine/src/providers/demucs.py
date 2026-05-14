@@ -57,4 +57,4 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     segment = float(options.get("demucsSegmentSeconds") or 0)
     if segment > 0:
         command.extend(["--segment", str(segment)])
-    return run_worker(command, result_path, log_path, "Demucs", job["id"])
+    return run_worker(command, result_path, log_path, "Demucs", job["id"], emit=emit)
