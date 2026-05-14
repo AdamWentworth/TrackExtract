@@ -55,7 +55,7 @@ Examples:
 
 ```bash
 TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh
-TRACKEXTRACT_ENGINE_PYTHON=/absolute/path/to/python npm run tauri dev
+TRACKEXTRACT_ENGINE_PYTHON=/absolute/path/to/python npm run tauri:dev
 TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
 ```
 
@@ -88,14 +88,11 @@ The browser tab is not a separate mock app when it runs on port `1420`. Vite exp
 Tauri desktop development:
 
 ```bash
-npm run tauri dev
+npm run tauri:dev
 ```
 
-If the terminal is launched from the Snap build of VS Code and Tauri hits a `libpthread` symbol lookup error, use:
-
-```bash
-npm run tauri:dev:clean
-```
+The repo's npm Tauri scripts run through `scripts/tauri-env.sh`, which strips Snap VS Code's GTK/GIO environment before
+launching Tauri. Raw `tauri dev` commands from Snap VS Code terminals may still hit a `libpthread` symbol lookup error.
 
 ## Checks
 

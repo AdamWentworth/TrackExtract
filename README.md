@@ -90,7 +90,7 @@ scripts/setup-trackextract-engine.sh
 Run the desktop app:
 
 ```bash
-npm run tauri dev
+npm run tauri:dev
 ```
 
 Track Extract auto-detects `.venv-trackextract-engine/bin/python` when launched from this repo. To force a specific
@@ -117,11 +117,8 @@ sudo apt update
 sudo apt install pkg-config libdbus-1-dev libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 ```
 
-If Tauri is launched from the Snap build of VS Code and hits a `libpthread` symbol lookup error, use:
-
-```bash
-npm run tauri:dev:clean
-```
+The npm Tauri scripts sanitize Snap VS Code's GTK/GIO environment automatically. Raw `tauri dev` commands launched from
+Snap VS Code terminals may still hit a `libpthread` symbol lookup error.
 
 ## Browser Development
 
