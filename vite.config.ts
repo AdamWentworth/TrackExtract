@@ -221,6 +221,7 @@ async function runEngineJsonl(
   runningChildren: Map<string, ChildProcessWithoutNullStreams>,
 ): Promise<unknown> {
   const child = spawnEngine(command, true, context);
+  child.stdin.end(JSON.stringify(enginePayload(context, args)));
   const runningKey = runningChildKey(command, args);
   if (runningKey) {
     runningChildren.set(runningKey, child);

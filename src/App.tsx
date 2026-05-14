@@ -827,14 +827,23 @@ function App() {
 
     let queuedJobId: string | null = null;
     try {
-      const queued = await command<JobRecord>("enqueue_separation", {
-        task,
-        modelId: selectedModel.id,
-        sourceId: selectedSourceId || null,
-        options: renderOptions,
-      });
+      const queued =
+        jobs.find(
+          (job) =>
+            job.state === "queued" &&
+            job.sourceId === selectedSource.id &&
+            job.task === task &&
+            job.modelId === selectedModel.id,
+        ) ??
+        (await command<JobRecord>("enqueue_separation", {
+          task,
+          modelId: selectedModel.id,
+          sourceId: selectedSourceId || null,
+          options: renderOptions,
+        }));
       queuedJobId = queued.id;
       mergeJob(queued);
+      setStatus(queued.state === "queued" ? "Starting queued job" : "Starting workflow job");
       const completed = await command<JobRecord>("start_job", { jobId: queued.id });
       mergeJob(completed);
       const refreshedProject = await command<ProjectSession | null>("get_project");
