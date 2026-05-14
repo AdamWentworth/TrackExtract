@@ -320,10 +320,10 @@ h2 {
   opacity: 0;
   pointer-events: none;
   position: absolute;
-  right: 1px;
+  right: 2px;
   top: 0;
   transition: opacity 140ms ease;
-  width: 10px;
+  width: 12px;
   z-index: 4;
 }
 
@@ -333,7 +333,8 @@ h2 {
 }
 
 .column-scrollbar-thumb {
-  background: color-mix(in srgb, var(--border-soft) 86%, transparent);
+  background: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 76%, transparent);
   border-radius: 999px;
   display: block;
   height: var(--scrollbar-height);
@@ -341,12 +342,18 @@ h2 {
   right: 2px;
   top: var(--scrollbar-top);
   transition: background-color 140ms ease;
-  width: 6px;
+  width: 7px;
 }
 
 .column-scrollbar:hover .column-scrollbar-thumb,
 .column-scrollbar.is-dragging .column-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-muted) 88%, transparent);
+  background: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 82%, transparent);
+}
+
+.panel-scroll-shell {
+  min-width: 0;
+  position: relative;
 }
 
 .panel {
@@ -359,13 +366,21 @@ h2 {
 
 .model-rail .model-summary-panel,
 .model-rail .export-panel,
-.model-rail .details-panel {
+.model-rail .details-shell {
   flex: 0 0 auto;
 }
 
 .model-rail .details-panel {
   max-height: 240px;
   overflow-y: auto;
+  padding-right: calc(14px + var(--scroll-inline-gutter));
+  scrollbar-width: none;
+}
+
+.model-rail .details-panel::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
 }
 
 .panel-heading {

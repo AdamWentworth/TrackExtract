@@ -398,9 +398,11 @@ function App() {
   const leftRailRef = useRef<HTMLElement | null>(null);
   const mainColumnRef = useRef<HTMLElement | null>(null);
   const rightRailRef = useRef<HTMLElement | null>(null);
+  const detailsPanelRef = useRef<HTMLElement | null>(null);
   const leftRailScrollbar = useScrollMetrics(leftRailRef);
   const mainColumnScrollbar = useScrollMetrics(mainColumnRef);
   const rightRailScrollbar = useScrollMetrics(rightRailRef);
+  const detailsPanelScrollbar = useScrollMetrics(detailsPanelRef);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -1810,49 +1812,52 @@ function App() {
               </p>
             </section>
 
-            <section className="panel details-panel">
-              <div className="panel-heading">
-                <FolderOpen aria-hidden />
-                <h2>Project</h2>
-              </div>
-              <dl>
-                <div>
-                  <dt>Name</dt>
-                  <dd>{project?.name ?? "No project"}</dd>
+            <div className="panel-scroll-shell details-shell">
+              <section className="panel details-panel" ref={detailsPanelRef}>
+                <div className="panel-heading">
+                  <FolderOpen aria-hidden />
+                  <h2>Project</h2>
                 </div>
-                <div>
-                  <dt>Source</dt>
-                  <dd>{selectedSource?.originalName ?? "None"}</dd>
-                </div>
-                <div>
-                  <dt>Audio</dt>
-                  <dd>{selectedSource ? formatAudioSummary(selectedSource) : "Waiting for import"}</dd>
-                </div>
-                <div>
-                  <dt>Stems</dt>
-                  <dd>{project?.stems.length ?? 0}</dd>
-                </div>
-                <div>
-                  <dt>Latest job</dt>
-                  <dd>{latestJob ? latestJob.state : "None"}</dd>
-                </div>
-                <div>
-                  <dt>Folder</dt>
-                  <dd>{project?.rootPath ?? boot?.projectRoot ?? "Loading"}</dd>
-                </div>
-                <div>
-                  <dt>Registry</dt>
-                  <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
-                </div>
-              </dl>
-              {logEntries.length > 0 ? (
-                <ul className="log-list">
-                  {logEntries.map((entry) => (
-                    <li key={entry}>{entry}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </section>
+                <dl>
+                  <div>
+                    <dt>Name</dt>
+                    <dd>{project?.name ?? "No project"}</dd>
+                  </div>
+                  <div>
+                    <dt>Source</dt>
+                    <dd>{selectedSource?.originalName ?? "None"}</dd>
+                  </div>
+                  <div>
+                    <dt>Audio</dt>
+                    <dd>{selectedSource ? formatAudioSummary(selectedSource) : "Waiting for import"}</dd>
+                  </div>
+                  <div>
+                    <dt>Stems</dt>
+                    <dd>{project?.stems.length ?? 0}</dd>
+                  </div>
+                  <div>
+                    <dt>Latest job</dt>
+                    <dd>{latestJob ? latestJob.state : "None"}</dd>
+                  </div>
+                  <div>
+                    <dt>Folder</dt>
+                    <dd>{project?.rootPath ?? boot?.projectRoot ?? "Loading"}</dd>
+                  </div>
+                  <div>
+                    <dt>Registry</dt>
+                    <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
+                  </div>
+                </dl>
+                {logEntries.length > 0 ? (
+                  <ul className="log-list">
+                    {logEntries.map((entry) => (
+                      <li key={entry}>{entry}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+              <ColumnScrollbar metrics={detailsPanelScrollbar} targetRef={detailsPanelRef} />
+            </div>
           </aside>
           <ColumnScrollbar metrics={rightRailScrollbar} targetRef={rightRailRef} />
         </div>
