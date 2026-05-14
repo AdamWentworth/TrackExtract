@@ -52,28 +52,6 @@ const bootstrap = {
   jobs: [],
 };
 
-async function installModelFromLibrary(displayName: string) {
-  const dialog = await screen.findByRole("dialog", { name: "Model Library" });
-  const library = within(dialog);
-  fireEvent.change(library.getByLabelText("Filter models"), { target: { value: displayName } });
-
-  const title = (await library.findAllByText(displayName)).find((element) => element.closest("article"));
-  if (!title) {
-    throw new Error(`Expected ${displayName} row in the model library.`);
-  }
-
-  const row = title.closest("article");
-  expect(row).not.toBeNull();
-  const installButton = within(row as HTMLElement).queryByText("Install");
-  if (installButton) {
-    fireEvent.click(installButton);
-  }
-
-  await waitFor(() => {
-    expect(within(row as HTMLElement).getByText("Ready")).toBeInTheDocument();
-  });
-}
-
 describe("Track Extract app", () => {
   afterEach(() => {
     cleanup();
@@ -255,13 +233,11 @@ describe("Track Extract app", () => {
     render(<App />);
 
     fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
-    fireEvent.click(await screen.findByText("Model library"));
-    await installModelFromLibrary("UVR MDX23C InstVoc HQ");
-    await installModelFromLibrary("UVR MDX-NET Karaoke 2 ONNX");
-    await installModelFromLibrary("UVR MDX-NET Voc FT ONNX");
-    await installModelFromLibrary("Reverb HQ By FoxJoy ONNX");
-    await installModelFromLibrary("UVR DeNoise");
-    fireEvent.click(screen.getByTitle("Close model library"));
+    const installWorkflowButton = screen.queryByRole("button", { name: "Install workflow models" });
+    if (installWorkflowButton) {
+      fireEvent.click(installWorkflowButton);
+      expect(await screen.findByText(/Installed \d+ workflow models?/)).toBeInTheDocument();
+    }
 
     fireEvent.click(await screen.findByText("Drop audio here"));
     const runButton = await screen.findByText("Run workflow");

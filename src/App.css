@@ -891,6 +891,42 @@ input[type="number"] {
   overflow-wrap: anywhere;
 }
 
+.workflow-readiness {
+  align-items: start;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-strong);
+  border-radius: 8px;
+  color: var(--warning-text);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  padding: 9px;
+}
+
+.workflow-readiness svg {
+  height: 18px;
+  margin-top: 1px;
+  width: 18px;
+}
+
+.workflow-readiness div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.workflow-readiness strong,
+.workflow-readiness small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.workflow-readiness small {
+  color: var(--warning-text);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
 .stem-row {
   align-items: center;
   background: var(--panel-alt);

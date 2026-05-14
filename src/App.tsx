@@ -173,6 +173,12 @@ interface JobRecord {
   updatedAt: string;
 }
 
+interface WorkflowStepReadinessIssue {
+  step: WorkflowStep;
+  model: ModelEntry | null;
+  message: string;
+}
+
 interface BootstrapState {
   projectRoot: string;
   appDataDir: string;
@@ -676,6 +682,12 @@ function App() {
     }),
     [models],
   );
+  const workflowIssues = selectedWorkflow ? workflowStepReadinessIssues(selectedWorkflow, models) : [];
+  const workflowInstallTargets = selectedWorkflow ? workflowInstallableModels(selectedWorkflow, models) : [];
+  const workflowCanRun =
+    selectedWorkflow && selectedWorkflow.steps.length > 1 ? workflowIssues.length === 0 : selectedModelRunnable;
+  const workflowInstallBusy = workflowInstallTargets.some((model) => modelInstallProgress[model.id]);
+
   useEffect(() => {
     if (!selectedWorkflowStep) {
       return;
@@ -872,17 +884,9 @@ function App() {
       return;
     }
 
-    const missingStep = workflow.steps.find((step) => {
-      const model = models.find((candidate) => candidate.id === step.modelId);
-      return !model || !model.installed || !isRunnableModel(model) || !model.tasks.includes(step.task);
-    });
-    if (missingStep) {
-      const model = models.find((candidate) => candidate.id === missingStep.modelId);
-      setError(
-        model
-          ? `Install or choose a runnable model for "${missingStep.displayName}" before running this workflow.`
-          : `Workflow step "${missingStep.displayName}" references a missing model.`,
-      );
+    const readinessIssue = workflowStepReadinessIssues(workflow, models)[0];
+    if (readinessIssue) {
+      setError(workflowStepIssueText(readinessIssue));
       return;
     }
 
@@ -1129,7 +1133,7 @@ function App() {
     }
   }
 
-  async function installModel(model: ModelEntry) {
+  async function installModelEntry(model: ModelEntry) {
     setError(null);
     setStatus(`Installing ${model.displayName}`);
     setModelInstallProgress((existing) => ({
@@ -1147,15 +1151,54 @@ function App() {
       const installed = await command<ModelEntry>("install_model", { modelId: model.id });
       setModels((existing) => existing.map((candidate) => (candidate.id === installed.id ? installed : candidate)));
       setStatus(`${installed.displayName} installed`);
+      return installed;
     } catch (caught) {
       setError(String(caught));
       setStatus("Model install failed");
+      return null;
     } finally {
       setModelInstallProgress((existing) => {
         const next = { ...existing };
         delete next[model.id];
         return next;
       });
+    }
+  }
+
+  async function installModel(model: ModelEntry) {
+    await installModelEntry(model);
+  }
+
+  async function installSelectedWorkflowModels() {
+    if (!selectedWorkflow) {
+      return;
+    }
+
+    const targets = workflowInstallableModels(selectedWorkflow, models);
+    if (targets.length === 0) {
+      const firstIssue = workflowStepReadinessIssues(selectedWorkflow, models)[0];
+      setError(firstIssue ? workflowStepIssueText(firstIssue) : "This workflow has no installable missing models.");
+      return;
+    }
+
+    setIsBusy(true);
+    let installedCount = 0;
+    try {
+      for (const target of targets) {
+        const installed = await installModelEntry(target);
+        if (!installed) {
+          return;
+        }
+        installedCount += 1;
+      }
+
+      const refreshed = await command<ModelEntry[]>("list_models").catch(() => null);
+      if (refreshed) {
+        setModels(refreshed);
+      }
+      setStatus(`Installed ${installedCount} workflow model${installedCount === 1 ? "" : "s"}`);
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -1378,7 +1421,15 @@ function App() {
                   : "Ad hoc model setup. Save it as a named workflow when it feels right."}
               </p>
               <p className="panel-copy">
-                {selectedModel ? `Model: ${selectedModel.displayName}` : "No model selected"}
+                {selectedWorkflow && selectedWorkflow.steps.length > 1
+                  ? `${selectedWorkflow.steps.length}-step workflow · ${
+                      workflowIssues.length === 0
+                        ? "all models ready"
+                        : `${workflowIssues.length} step${workflowIssues.length === 1 ? "" : "s"} need setup`
+                    }`
+                  : selectedModel
+                    ? `Model: ${selectedModel.displayName}`
+                    : "No model selected"}
               </p>
             </div>
             <div className="run-actions">
@@ -1386,7 +1437,7 @@ function App() {
                 className="primary-action"
                 type="button"
                 onClick={runSeparation}
-                disabled={!project || !selectedSource || !selectedModelRunnable || isBusy || Boolean(runningJob)}
+                disabled={!project || !selectedSource || !workflowCanRun || isBusy || Boolean(runningJob)}
               >
                 {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
                 Run workflow
@@ -1604,6 +1655,30 @@ function App() {
                 );
               })}
             </div>
+
+            {selectedWorkflow && workflowIssues.length > 0 ? (
+              <div className="workflow-readiness">
+                <AlertTriangle aria-hidden />
+                <div>
+                  <strong>
+                    {workflowIssues.length} step{workflowIssues.length === 1 ? "" : "s"} need setup
+                  </strong>
+                  <small>{workflowStepIssueText(workflowIssues[0])}</small>
+                </div>
+              </div>
+            ) : null}
+
+            {selectedWorkflow && workflowInstallTargets.length > 0 ? (
+              <button
+                className="secondary-action"
+                type="button"
+                onClick={installSelectedWorkflowModels}
+                disabled={isBusy || workflowInstallBusy}
+              >
+                <Download aria-hidden />
+                Install workflow models
+              </button>
+            ) : null}
 
             <button className="secondary-action" type="button" onClick={() => setModelManagerOpen(true)}>
               <Database aria-hidden />
@@ -2171,6 +2246,72 @@ function findWorkflowInputStem(project: ProjectSession, label: string, previousJ
 
 function stemLabelMatches(candidate: string, expected: string) {
   return candidate.trim().toLowerCase() === expected.trim().toLowerCase();
+}
+
+function workflowStepReadinessIssues(workflow: WorkflowEntry, models: ModelEntry[]) {
+  return workflow.steps.flatMap((step): WorkflowStepReadinessIssue[] => {
+    const model = models.find((candidate) => candidate.id === step.modelId) ?? null;
+    if (!model) {
+      return [
+        {
+          step,
+          model,
+          message: `Workflow step "${step.displayName}" references missing model ${step.modelId}.`,
+        },
+      ];
+    }
+
+    if (!model.tasks.includes(step.task)) {
+      return [
+        {
+          step,
+          model,
+          message: `Does not support ${formatTask(step.task)}.`,
+        },
+      ];
+    }
+
+    if (!model.installed) {
+      return [
+        {
+          step,
+          model,
+          message: modelStatusText(model),
+        },
+      ];
+    }
+
+    if (!isRunnableModel(model)) {
+      return [
+        {
+          step,
+          model,
+          message: "Installed but still needs a runnable model definition.",
+        },
+      ];
+    }
+
+    return [];
+  });
+}
+
+function workflowInstallableModels(workflow: WorkflowEntry, models: ModelEntry[]) {
+  const seen = new Set<string>();
+  return workflowStepReadinessIssues(workflow, models)
+    .map((issue) => issue.model)
+    .filter((model): model is ModelEntry => model !== null)
+    .filter(isInstallableModel)
+    .filter((model) => {
+      if (seen.has(model.id)) {
+        return false;
+      }
+      seen.add(model.id);
+      return true;
+    });
+}
+
+function workflowStepIssueText(issue: WorkflowStepReadinessIssue) {
+  return `Step "${issue.step.displayName}" needs ${issue.model?.displayName ?? issue.step.modelId}: ${issue.message}`;
 }
 
 function formatDuration(seconds: number) {
