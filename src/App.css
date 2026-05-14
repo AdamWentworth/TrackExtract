@@ -256,7 +256,7 @@ h2 {
 .workspace {
   display: grid;
   gap: 16px;
-  grid-template-columns: 280px minmax(420px, 1fr) minmax(360px, 420px);
+  grid-template-columns: minmax(260px, 0.76fr) minmax(500px, 1.42fr) minmax(320px, 0.95fr);
   height: calc(100vh - 98px);
   min-height: 0;
 }
@@ -272,17 +272,21 @@ h2 {
 }
 
 .main-column {
+  overscroll-behavior: contain;
   overflow-y: auto;
   padding-right: 2px;
+  scrollbar-gutter: stable;
 }
 
 .rail {
+  overscroll-behavior: contain;
   overflow-y: auto;
   padding-right: 2px;
+  scrollbar-gutter: stable;
 }
 
 .rail.model-rail {
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .panel {
@@ -1009,7 +1013,8 @@ input[type="number"] {
   border-radius: 8px;
   display: grid;
   gap: 10px;
-  grid-template-columns: 150px minmax(220px, 1fr) 250px;
+  grid-template-columns: minmax(120px, 0.55fr) minmax(220px, 1fr) minmax(190px, auto);
+  min-width: 0;
   padding: 10px;
 }
 
@@ -1018,6 +1023,12 @@ input[type="number"] {
   display: flex;
   font-weight: 800;
   gap: 8px;
+  min-width: 0;
+}
+
+.stem-select span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .stem-audio {
@@ -1103,6 +1114,7 @@ input[type="number"] {
   color: var(--button-secondary-text);
   font-size: 0.78rem;
   min-height: 30px;
+  white-space: nowrap;
 }
 
 .toggle.is-on {
@@ -1113,6 +1125,42 @@ input[type="number"] {
 .stem-controls input[type="range"] {
   accent-color: var(--accent);
   width: 90px;
+}
+
+@media (max-width: 1320px) {
+  .workspace {
+    grid-template-columns: minmax(250px, 0.76fr) minmax(470px, 1.48fr) minmax(300px, 0.9fr);
+  }
+
+  .stem-row {
+    align-items: stretch;
+    grid-template-columns: minmax(118px, 0.52fr) minmax(210px, 1fr) 72px;
+  }
+
+  .stem-controls {
+    align-items: stretch;
+    align-self: center;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .stem-controls .toggle {
+    min-height: 30px;
+    padding: 0 8px;
+    width: 100%;
+  }
+
+  .stem-controls input[type="range"] {
+    width: 100%;
+  }
+}
+
+.export-panel,
+.model-summary-panel,
+.details-panel {
+  min-width: 0;
 }
 
 .model-row {
