@@ -52,6 +52,28 @@ const bootstrap = {
   jobs: [],
 };
 
+async function installModelFromLibrary(displayName: string) {
+  const dialog = await screen.findByRole("dialog", { name: "Model Library" });
+  const library = within(dialog);
+  fireEvent.change(library.getByLabelText("Filter models"), { target: { value: displayName } });
+
+  const title = (await library.findAllByText(displayName)).find((element) => element.closest("article"));
+  if (!title) {
+    throw new Error(`Expected ${displayName} row in the model library.`);
+  }
+
+  const row = title.closest("article");
+  expect(row).not.toBeNull();
+  const installButton = within(row as HTMLElement).queryByText("Install");
+  if (installButton) {
+    fireEvent.click(installButton);
+  }
+
+  await waitFor(() => {
+    expect(within(row as HTMLElement).getByText("Ready")).toBeInTheDocument();
+  });
+}
+
 describe("Track Extract app", () => {
   afterEach(() => {
     cleanup();
@@ -227,6 +249,30 @@ describe("Track Extract app", () => {
     expect(await screen.findByText("Separation complete")).toBeInTheDocument();
     expect((await screen.findAllByText("Vocals")).length).toBeGreaterThan(0);
     expect((await screen.findAllByText("Instrumental")).length).toBeGreaterThan(0);
+  });
+
+  it("runs the browser mock vocal cleanup workflow as a five-step chain", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
+    fireEvent.click(await screen.findByText("Model library"));
+    await installModelFromLibrary("UVR MDX23C InstVoc HQ");
+    await installModelFromLibrary("UVR MDX-NET Karaoke 2 ONNX");
+    await installModelFromLibrary("UVR MDX-NET Voc FT ONNX");
+    await installModelFromLibrary("Reverb HQ By FoxJoy ONNX");
+    await installModelFromLibrary("UVR DeNoise");
+    fireEvent.click(screen.getByTitle("Close model library"));
+
+    fireEvent.click(await screen.findByText("Drop audio here"));
+    const runButton = await screen.findByText("Run workflow");
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    fireEvent.click(runButton);
+
+    expect(
+      await screen.findByText("Workflow complete: Clean Lead Vocal Chain", {}, { timeout: 10000 }),
+    ).toBeInTheDocument();
+    expect((await screen.findAllByText("Clean Vocal")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("Noise")).length).toBeGreaterThan(0);
   });
 
   it("clears generated stems and source audio from the workspace", async () => {

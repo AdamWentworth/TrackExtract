@@ -807,7 +807,7 @@ function App() {
     }
 
     if (selectedWorkflow && selectedWorkflow.steps.length > 1) {
-      setError("Multi-step workflow execution is planned; this prototype can run single-step workflows for now.");
+      await runWorkflowSequence(selectedWorkflow);
       return;
     }
 
@@ -860,6 +860,108 @@ function App() {
       } else {
         setError(String(caught));
         setStatus("Separation failed");
+      }
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function runWorkflowSequence(workflow: WorkflowEntry) {
+    if (!project || !selectedSource) {
+      setError("Import an audio file before running a workflow.");
+      return;
+    }
+
+    const missingStep = workflow.steps.find((step) => {
+      const model = models.find((candidate) => candidate.id === step.modelId);
+      return !model || !model.installed || !isRunnableModel(model) || !model.tasks.includes(step.task);
+    });
+    if (missingStep) {
+      const model = models.find((candidate) => candidate.id === missingStep.modelId);
+      setError(
+        model
+          ? `Install or choose a runnable model for "${missingStep.displayName}" before running this workflow.`
+          : `Workflow step "${missingStep.displayName}" references a missing model.`,
+      );
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+    setStatus(`Starting ${workflow.displayName}`);
+
+    let workingProject = project;
+    let workingJobs = jobs;
+    let sourceId = selectedSource.id;
+    let previousJob: JobRecord | null = null;
+    let queuedJobId: string | null = null;
+
+    try {
+      for (const [index, step] of workflow.steps.entries()) {
+        const stepModel = models.find((candidate) => candidate.id === step.modelId);
+        if (!stepModel) {
+          throw new Error(`Workflow step "${step.displayName}" references a missing model.`);
+        }
+
+        if (step.inputStem) {
+          const inputStem = findWorkflowInputStem(workingProject, step.inputStem, previousJob);
+          if (!inputStem) {
+            throw new Error(`Step "${step.displayName}" needs a "${step.inputStem}" stem from an earlier step.`);
+          }
+          sourceId = inputStem.id;
+        } else if (index > 0 && previousJob?.stems[0]) {
+          sourceId = previousJob.stems[0].id;
+        }
+
+        setTask(step.task);
+        setSelectedModelId(step.modelId);
+        setRenderOptions({ ...defaultRenderOptions(stepModel), ...step.options });
+        setStatus(`Step ${index + 1}/${workflow.steps.length}: ${step.displayName}`);
+
+        const queued =
+          workingJobs.find(
+            (job) =>
+              job.state === "queued" &&
+              job.sourceId === sourceId &&
+              job.task === step.task &&
+              job.modelId === step.modelId,
+          ) ??
+          (await command<JobRecord>("enqueue_separation", {
+            task: step.task,
+            modelId: step.modelId,
+            sourceId,
+            options: step.options,
+          }));
+
+        queuedJobId = queued.id;
+        mergeJob(queued);
+        workingJobs = [queued, ...workingJobs.filter((job) => job.id !== queued.id)];
+
+        const completed = await command<JobRecord>("start_job", { jobId: queued.id });
+        previousJob = completed;
+        mergeJob(completed);
+        workingJobs = workingJobs.map((job) => (job.id === completed.id ? completed : job));
+
+        const refreshedProject = await command<ProjectSession | null>("get_project");
+        if (!refreshedProject) {
+          throw new Error("Workflow project disappeared before the next step could run.");
+        }
+        workingProject = refreshedProject;
+        applyProjectSnapshot(refreshedProject);
+      }
+
+      const refreshedJobs = await command<JobRecord[]>("get_jobs");
+      setJobs(refreshedJobs);
+      setStatus(`Workflow complete: ${workflow.displayName}`);
+    } catch (caught) {
+      const refreshedJobs = await command<JobRecord[]>("get_jobs").catch(() => workingJobs);
+      setJobs(refreshedJobs);
+      const cancelled = refreshedJobs.some((job) => job.id === queuedJobId && job.state === "cancelled");
+      if (cancelled) {
+        setStatus("Cancellation requested");
+      } else {
+        setError(String(caught));
+        setStatus("Workflow failed");
       }
     } finally {
       setIsBusy(false);
@@ -2058,6 +2160,19 @@ function formatAudioSummary(source: AudioSource) {
   return `${sampleRate} · ${channels} · ${duration}`;
 }
 
+function findWorkflowInputStem(project: ProjectSession, label: string, previousJob: JobRecord | null) {
+  const preferred = [...(previousJob?.stems ?? [])].reverse().find((stem) => stemLabelMatches(stem.label, label));
+  if (preferred) {
+    return preferred;
+  }
+
+  return [...project.stems].reverse().find((stem) => stemLabelMatches(stem.label, label)) ?? null;
+}
+
+function stemLabelMatches(candidate: string, expected: string) {
+  return candidate.trim().toLowerCase() === expected.trim().toLowerCase();
+}
+
 function formatDuration(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.round(seconds % 60)
@@ -2327,6 +2442,7 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
         task,
         model.id,
         (args?.options as Record<string, RenderOptionValue> | undefined) ?? {},
+        (args?.sourceId as string | null | undefined) ?? null,
       );
       mockJobs = [job, ...mockJobs];
       mockProject.jobs = [job.id, ...mockProject.jobs];
@@ -2365,7 +2481,7 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
       mockJobs = mockJobs.map((candidate) => (candidate.id === job.id ? completed : candidate));
       mockProject = {
         ...mockProject,
-        stems,
+        stems: [...mockProject.stems.filter((stem) => stem.sourceJobId !== job.id), ...stems],
         updatedAt: new Date().toISOString(),
       };
       return completed as T;
@@ -2485,16 +2601,25 @@ function createMockJob(
   task: TaskType,
   modelId: string,
   options: Record<string, RenderOptionValue> = {},
+  sourceId: string | null = null,
 ): JobRecord {
   const now = new Date().toISOString();
-  const source = project.originalFiles[0];
+  const sources = [...project.originalFiles, ...project.stems];
+  const requestedSource = sourceId ? sources.find((candidate) => candidate.id === sourceId) : null;
+  if (sourceId && !requestedSource) {
+    throw new Error("Selected source is no longer available in this project");
+  }
+  const source = requestedSource ?? project.originalFiles[0] ?? project.stems[0];
 
   return {
     id: mockId("job"),
     projectId: project.id,
     projectName: project.name,
     sourceId: source?.id ?? mockId("source"),
-    sourcePath: source?.projectPath ?? `${project.rootPath}/original/mock.wav`,
+    sourcePath:
+      ("projectPath" in (source ?? {})
+        ? (source as AudioSource).projectPath
+        : (source as StemFile | undefined)?.path) ?? `${project.rootPath}/original/mock.wav`,
     task,
     modelId,
     options,

@@ -74,6 +74,7 @@
         "displayName": "Extract vocal",
         "task": "vocal_cleanup_chain",
         "modelId": "uvr_mdx23c_instvoc_hq",
+        "outputStems": ["Vocals"],
         "options": {
           "device": "auto",
           "chunkSize": 256,
@@ -86,6 +87,8 @@
         "displayName": "Reduce layered vocals",
         "task": "layered_vocal_cleanup",
         "modelId": "onnx_uvr_mdxnet_karaoke_2",
+        "inputStem": "Vocals",
+        "outputStems": ["Lead Vocal"],
         "options": {
           "device": "auto",
           "mdxSegmentSize": 256,
@@ -99,6 +102,8 @@
         "displayName": "Refine lead vocal",
         "task": "vocal_cleanup_chain",
         "modelId": "onnx_uvr_mdxnet_voc_ft",
+        "inputStem": "Lead Vocal",
+        "outputStems": ["Vocals"],
         "options": {
           "device": "auto",
           "mdxSegmentSize": 256,
@@ -112,6 +117,8 @@
         "displayName": "Remove reverb",
         "task": "vocal_dereverb",
         "modelId": "onnx_reverb_hq_by_foxjoy",
+        "inputStem": "Vocals",
+        "outputStems": ["Dry Vocal"],
         "options": {
           "device": "auto",
           "mdxSegmentSize": 256,
@@ -125,6 +132,8 @@
         "displayName": "Denoise vocal",
         "task": "vocal_denoise",
         "modelId": "uvr_denoise",
+        "inputStem": "Dry Vocal",
+        "outputStems": ["Clean Vocal"],
         "options": {
           "device": "auto",
           "chunkSize": 256,

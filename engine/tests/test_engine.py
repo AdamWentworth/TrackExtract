@@ -114,6 +114,64 @@ def test_job_lifecycle_and_stub_provider_writes_valid_wav(tmp_path: Path) -> Non
             assert wav.getframerate() == 44100
 
 
+def test_stub_workflow_step_can_use_previous_stem_as_source(tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    engine.import_audio_files({"paths": [str(source)]})
+
+    models = load_models(ctx)
+    first_stub = {
+        **models[0],
+        "id": "test_extract_stub",
+        "displayName": "Test Extract Stub",
+        "backend": "python-engine",
+        "tasks": ["vocal_cleanup_chain"],
+        "stems": ["Vocals", "Instrumental"],
+        "installed": True,
+        "path": "",
+        "installMethod": "source-only",
+        "runtime": {"provider": "stub"},
+        "options": [],
+    }
+    second_stub = {
+        **models[0],
+        "id": "test_clean_stub",
+        "displayName": "Test Clean Stub",
+        "backend": "python-engine",
+        "tasks": ["vocal_denoise"],
+        "stems": ["Clean Vocal", "Noise"],
+        "installed": True,
+        "path": "",
+        "installMethod": "source-only",
+        "runtime": {"provider": "stub"},
+        "options": [],
+    }
+    ctx.models_path.write_text(json.dumps([first_stub, second_stub]), encoding="utf-8")
+
+    first_job = engine.enqueue_separation(
+        {"task": "vocal_cleanup_chain", "modelId": "test_extract_stub", "sourceId": None, "options": {}}
+    )
+    first_completed = engine.start_job({"jobId": first_job["id"]}, lambda *_: None)
+    vocal_stem = next(stem for stem in first_completed["stems"] if stem["label"] == "Vocals")
+
+    second_job = engine.enqueue_separation(
+        {
+            "task": "vocal_denoise",
+            "modelId": "test_clean_stub",
+            "sourceId": vocal_stem["id"],
+            "options": {},
+        }
+    )
+    second_completed = engine.start_job({"jobId": second_job["id"]}, lambda *_: None)
+
+    assert second_job["sourceId"] == vocal_stem["id"]
+    assert second_job["sourcePath"] == vocal_stem["path"]
+    assert second_completed["state"] == "complete"
+    assert [stem["label"] for stem in second_completed["stems"]] == ["Clean Vocal", "Noise"]
+
+
 def test_workspace_cleanup_clears_stems_and_source(tmp_path: Path) -> None:
     ctx = context(tmp_path)
     engine = Engine(ctx)

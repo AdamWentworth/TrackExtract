@@ -23,12 +23,23 @@ def enqueue(
     active_job = next((job for job in load_jobs(context) if job.get("state") in {"preparing", "running"}), None)
     if active_job:
         raise TrackExtractError("A separation job is already running. Cancel it before starting another.")
-    sources = session.get("originalFiles") or []
-    source = next(
-        (candidate for candidate in sources if candidate.get("id") == source_id), sources[0] if sources else None
+    sources = available_sources(session)
+    originals = session.get("originalFiles") or []
+    default_source = originals[0] if originals else None
+    source = (
+        next((candidate for candidate in sources if candidate.get("id") == source_id), None)
+        if source_id
+        else default_source
     )
+    if source_id and not source:
+        raise TrackExtractError("Selected source is no longer available in this project")
     if not source:
         raise TrackExtractError("Project has no imported audio files")
+    source_path = source.get("projectPath") or source.get("path")
+    if not source_path:
+        raise TrackExtractError("Selected source does not have an audio path")
+    if not Path(source_path).is_file():
+        raise TrackExtractError(f"Selected source file not found: {source_path}")
 
     model = find_model(context, model_id) if model_id else default_model_for_task(context, task)
     if not model.get("installed"):
@@ -42,7 +53,7 @@ def enqueue(
         "projectId": session["id"],
         "projectName": session["name"],
         "sourceId": source["id"],
-        "sourcePath": source["projectPath"],
+        "sourcePath": source_path,
         "task": task,
         "modelId": model["id"],
         "options": model_option_defaults(model, options),
@@ -59,6 +70,10 @@ def enqueue(
     save_jobs(context, jobs)
     add_project_job(session, job["id"])
     return job
+
+
+def available_sources(session: dict) -> list[dict]:
+    return [*(session.get("originalFiles") or []), *(session.get("stems") or [])]
 
 
 def default_model_for_task(context: EngineContext, task: str) -> dict:
