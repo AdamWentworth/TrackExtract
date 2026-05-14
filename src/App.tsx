@@ -59,6 +59,7 @@ type ModelStatusKey = Exclude<ModelStatusFilter, "all">;
 type ModelTaskFilter = "all" | TaskType;
 type ModelBackendFilter = "all" | BackendKind;
 type ThemeMode = "dark" | "light";
+type ExportFormat = "wav" | "flac" | "mp3" | "m4a" | "aiff";
 
 interface ModelOptionChoice {
   value: string;
@@ -236,6 +237,13 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 ];
 
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
+const EXPORT_FORMATS: Array<{ value: ExportFormat; label: string; description: string }> = [
+  { value: "wav", label: "WAV", description: "DAW-ready lossless" },
+  { value: "flac", label: "FLAC", description: "Lossless compressed" },
+  { value: "mp3", label: "MP3", description: "320 kbps sharing" },
+  { value: "m4a", label: "M4A", description: "AAC compressed" },
+  { value: "aiff", label: "AIFF", description: "Apple DAW lossless" },
+];
 const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const THEME_STORAGE_KEY = "trackextract_theme";
 const WAVEFORM_PEAK_COUNT = 192;
@@ -369,6 +377,7 @@ function App() {
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
   const [sourceMediaUrls, setSourceMediaUrls] = useState<Record<string, string>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("wav");
   const [modelInstallProgress, setModelInstallProgress] = useState<Record<string, ModelDownloadProgress>>({});
   const [modelManagerOpen, setModelManagerOpen] = useState(false);
   const [modelFilter, setModelFilter] = useState("");
@@ -1074,7 +1083,9 @@ function App() {
       return;
     }
 
-    const destination = isTauriRuntime() ? await open({ directory: true, multiple: false }) : "/mock/export";
+    const destination = isTauriRuntime()
+      ? await open({ directory: true, multiple: false })
+      : `${project.rootPath}/renders/exports`;
     if (!destination || Array.isArray(destination)) {
       return;
     }
@@ -1083,8 +1094,9 @@ function App() {
       const exported = await command<string[]>("export_stems", {
         stemIds: selectedStemIds,
         destinationPath: destination,
+        format: exportFormat,
       });
-      setStatus(`Exported ${exported.length} stem${exported.length === 1 ? "" : "s"}`);
+      setStatus(`Exported ${exported.length} ${exportFormat.toUpperCase()} stem${exported.length === 1 ? "" : "s"}`);
     } catch (caught) {
       setError(String(caught));
       setStatus("Export failed");
@@ -1748,6 +1760,19 @@ function App() {
               <Download aria-hidden />
               <h2>Export</h2>
             </div>
+            <label className="field-label export-format-field">
+              Format
+              <select
+                value={exportFormat}
+                onChange={(event) => setExportFormat(event.currentTarget.value as ExportFormat)}
+              >
+                {EXPORT_FORMATS.map((format) => (
+                  <option key={format.value} value={format.value}>
+                    {format.label} · {format.description}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button
               className="primary-action"
               type="button"
@@ -3180,8 +3205,11 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
 
     case "export_stems": {
       const destinationPath = (args?.destinationPath as string | undefined) ?? "/mock/export";
+      const format = ((args?.format as string | undefined) ?? "wav").replace(/^aif$/, "aiff");
+      const extension = format === "aiff" ? "aiff" : format;
       const exported = (mockProject?.stems ?? []).map(
-        (stem) => `${destinationPath}/${lastPathPart(stem.path) ?? `${stem.label}.wav`}`,
+        (stem) =>
+          `${destinationPath}/${replaceExtension(lastPathPart(stem.path) ?? `${stem.label}.wav`, `.${extension}`)}`,
       );
       return exported as T;
     }
@@ -3269,6 +3297,10 @@ function mockId(prefix: string) {
 function lastPathPart(path: string) {
   const parts = path.split("/").filter(Boolean);
   return parts.length > 0 ? parts[parts.length - 1] : null;
+}
+
+function replaceExtension(fileName: string, extension: string) {
+  return `${fileName.replace(/\.[^.]+$/, "")}${extension}`;
 }
 
 const mockPreviewUrls = new Map<string, string>();

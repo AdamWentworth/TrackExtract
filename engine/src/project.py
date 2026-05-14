@@ -12,6 +12,28 @@ from .schemas import new_id, now_iso, read_json, write_json
 from .state import current_project_path, load_jobs, save_jobs, set_current_project
 
 SESSION_SCHEMA_VERSION = 1
+EXPORT_FORMATS = {
+    "wav": {
+        "extension": ".wav",
+        "ffmpeg_args": ["-c:a", "pcm_s16le"],
+    },
+    "flac": {
+        "extension": ".flac",
+        "ffmpeg_args": ["-c:a", "flac", "-compression_level", "8"],
+    },
+    "mp3": {
+        "extension": ".mp3",
+        "ffmpeg_args": ["-c:a", "libmp3lame", "-b:a", "320k"],
+    },
+    "m4a": {
+        "extension": ".m4a",
+        "ffmpeg_args": ["-c:a", "aac", "-b:a", "256k"],
+    },
+    "aiff": {
+        "extension": ".aiff",
+        "ffmpeg_args": ["-c:a", "pcm_s16be"],
+    },
+}
 
 
 def import_audio_files(context: EngineContext, paths: list[str]) -> dict:
@@ -101,19 +123,31 @@ def add_project_job(session: dict, job_id: str) -> dict:
     return session
 
 
-def export_stems(context: EngineContext, stem_ids: list[str], destination_path: str) -> list[str]:
+def export_stems(
+    context: EngineContext,
+    stem_ids: list[str],
+    destination_path: str | None,
+    export_format: str = "wav",
+) -> list[str]:
     session = get_current_project(context)
     if not session:
         raise TrackExtractError("No project is currently open")
-    destination = Path(destination_path).expanduser()
+    format_key = normalize_export_format(export_format)
+    destination = (
+        Path(destination_path).expanduser() if destination_path else Path(session["rootPath"]) / "renders" / "exports"
+    )
     destination.mkdir(parents=True, exist_ok=True)
     stems = session.get("stems") or []
     selected = stems if not stem_ids else [stem for stem in stems if stem.get("id") in stem_ids]
     exported = []
     for stem in selected:
         source = Path(stem["path"])
-        output = destination / source.name
-        shutil.copy2(source, output)
+        output = destination / daw_friendly_stem_filename(
+            session.get("name") or "Track Extract",
+            stem.get("label") or source.stem,
+            format_key,
+        )
+        export_audio_file(source, output, format_key)
         exported.append(str(output))
     return exported
 
@@ -199,8 +233,54 @@ def sanitize_name(value: str) -> str:
     return cleaned or "Untitled Track"
 
 
-def daw_friendly_stem_filename(project_name: str, stem_label: str) -> str:
-    return f"{sanitize_name(project_name)} - {sanitize_name(stem_label)}.wav"
+def daw_friendly_stem_filename(project_name: str, stem_label: str, export_format: str = "wav") -> str:
+    format_key = normalize_export_format(export_format)
+    return f"{sanitize_name(project_name)} - {sanitize_name(stem_label)}{EXPORT_FORMATS[format_key]['extension']}"
+
+
+def normalize_export_format(export_format: str | None) -> str:
+    format_key = (export_format or "wav").lower().strip().lstrip(".")
+    if format_key == "aif":
+        format_key = "aiff"
+    if format_key not in EXPORT_FORMATS:
+        supported = ", ".join(EXPORT_FORMATS)
+        raise TrackExtractError(f"Unsupported export format: {export_format}. Choose one of: {supported}.")
+    return format_key
+
+
+def export_audio_file(source: Path, output: Path, export_format: str) -> None:
+    if not source.is_file():
+        raise TrackExtractError(f"Stem file is missing: {source}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    format_key = normalize_export_format(export_format)
+    if format_key == "wav" and source.suffix.lower() == ".wav":
+        shutil.copy2(source, output)
+        return
+
+    ffmpeg = find_ffmpeg()
+    if not ffmpeg:
+        raise TrackExtractError("Exporting to this audio format requires ffmpeg. Run the engine setup script again.")
+
+    try:
+        subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                str(source),
+                *EXPORT_FORMATS[format_key]["ffmpeg_args"],
+                str(output),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as error:
+        message = (error.stderr or "").strip() or f"ffmpeg could not export {source.name}"
+        raise TrackExtractError(message) from error
 
 
 def unique_project_path(parent: Path, base_name: str) -> Path:
@@ -418,3 +498,15 @@ def find_ffprobe() -> str | None:
     except Exception:
         pass
     return shutil.which("ffprobe")
+
+
+def find_ffmpeg() -> str | None:
+    if ffmpeg := shutil.which("ffmpeg"):
+        return ffmpeg
+    try:
+        import static_ffmpeg
+
+        static_ffmpeg.add_paths(weak=True)
+    except Exception:
+        pass
+    return shutil.which("ffmpeg")

@@ -349,6 +349,40 @@ def test_export_selected_stems_copies_only_requested_files(tmp_path: Path) -> No
     assert len(list(destination.iterdir())) == 1
 
 
+def test_export_selected_stems_transcodes_requested_format(monkeypatch, tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    engine.import_audio_files({"paths": [str(source)]})
+
+    models = load_models(ctx)
+    ctx.models_path.write_text(json.dumps([installed_stub_model(models[0])]), encoding="utf-8")
+    job = engine.enqueue_separation(
+        {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+    )
+    completed = engine.start_job({"jobId": job["id"]}, lambda *_: None)
+    vocal = next(stem for stem in completed["stems"] if stem["label"] == "Vocals")
+    destination = tmp_path / "export"
+    commands = []
+
+    def fake_run(command, **_kwargs):
+        commands.append(command)
+        Path(command[-1]).write_bytes(b"flac")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr(project_module, "find_ffmpeg", lambda: "/usr/bin/ffmpeg")
+    monkeypatch.setattr(project_module.subprocess, "run", fake_run)
+
+    exported = engine.export_stems({"stemIds": [vocal["id"]], "destinationPath": str(destination), "format": "flac"})
+
+    assert exported == [str(destination / "input - Vocals.flac")]
+    assert Path(exported[0]).read_bytes() == b"flac"
+    assert commands[0][0] == "/usr/bin/ffmpeg"
+    assert "-c:a" in commands[0]
+    assert "flac" in commands[0]
+
+
 def test_cleanup_refuses_to_clear_paths_outside_project(tmp_path: Path) -> None:
     project_root = tmp_path / "project"
     outside = tmp_path / "outside"

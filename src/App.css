@@ -1188,6 +1188,10 @@ input[type="number"] {
   width: 100%;
 }
 
+.export-format-field {
+  margin: 0 0 10px;
+}
+
 .export-count {
   margin-top: 10px;
 }

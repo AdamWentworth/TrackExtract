@@ -423,11 +423,12 @@ fn clear_jobs(state: State<'_, Arc<RuntimeState>>, app: AppHandle) -> Result<Val
 fn export_stems(
     stem_ids: Vec<String>,
     destination_path: String,
+    format: Option<String>,
     state: State<'_, Arc<RuntimeState>>,
 ) -> Result<Vec<String>, String> {
     let value = state.bridge.run_json(
         "export_stems",
-        json!({ "stemIds": stem_ids, "destinationPath": destination_path }),
+        json!({ "stemIds": stem_ids, "destinationPath": destination_path, "format": format.unwrap_or_else(|| "wav".to_string()) }),
     )?;
     serde_json::from_value(value).map_err(|error| error.to_string())
 }

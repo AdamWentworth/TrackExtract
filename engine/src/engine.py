@@ -60,7 +60,12 @@ class Engine:
         return clear_job_history(self.context)
 
     def export_stems(self, args: dict) -> list[str]:
-        return export_stems(self.context, args.get("stemIds") or [], args.get("destinationPath"))
+        return export_stems(
+            self.context,
+            args.get("stemIds") or [],
+            args.get("destinationPath"),
+            args.get("format") or "wav",
+        )
 
     def clear_project_stems(self, _args: dict) -> dict:
         return clear_project_stems(self.context)
