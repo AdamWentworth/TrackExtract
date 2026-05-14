@@ -212,6 +212,11 @@ interface PreviewState {
   volume: number;
 }
 
+interface WaveformData {
+  durationSeconds: number;
+  peaks: number[];
+}
+
 const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
   { value: "vocals_instrumental", label: "Vocals / Instrumental", short: "Vocal split" },
   { value: "full_stem_split", label: "Full Stem Split", short: "6 stems" },
@@ -233,6 +238,7 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
 const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const THEME_STORAGE_KEY = "trackextract_theme";
+const WAVEFORM_PEAK_COUNT = 192;
 const DEV_BRIDGE_PREFIX = "/__trackextract_dev";
 const DEV_BRIDGE_COMMANDS = new Set([
   "bootstrap_app",
@@ -361,6 +367,7 @@ function App() {
   const [selectedStemIds, setSelectedStemIds] = useState<string[]>([]);
   const [renderOptions, setRenderOptions] = useState<Record<string, RenderOptionValue>>({});
   const [previewState, setPreviewState] = useState<Record<string, PreviewState>>({});
+  const [sourceMediaUrls, setSourceMediaUrls] = useState<Record<string, string>>({});
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [modelInstallProgress, setModelInstallProgress] = useState<Record<string, ModelDownloadProgress>>({});
   const [modelManagerOpen, setModelManagerOpen] = useState(false);
@@ -418,6 +425,7 @@ function App() {
         applyProjectSnapshot(imported);
         setSelectedStemIds([]);
         setPreviewState({});
+        setSourceMediaUrls({});
         setMediaUrls({});
         setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
         const refreshedJobs = await command<JobRecord[]>("get_jobs");
@@ -592,6 +600,8 @@ function App() {
 
   useEffect(() => {
     if (!project) {
+      setSourceMediaUrls({});
+      setMediaUrls({});
       return;
     }
 
@@ -609,6 +619,11 @@ function App() {
       return next;
     });
 
+    setSourceMediaUrls((existing) => {
+      const ids = new Set(project.originalFiles.map((source) => source.id));
+      return Object.fromEntries(Object.entries(existing).filter(([id]) => ids.has(id)));
+    });
+
     setMediaUrls((existing) => {
       const ids = new Set(project.stems.map((stem) => stem.id));
       return Object.fromEntries(Object.entries(existing).filter(([id]) => ids.has(id)));
@@ -621,6 +636,19 @@ function App() {
     }
 
     if (!isTauriRuntime() && !isDevBridgeRuntime()) {
+      setSourceMediaUrls((existing) => {
+        const next = Object.fromEntries(
+          project.originalFiles.map((source) => [
+            source.id,
+            existing[source.id] ?? browserStemMediaSrc(source.projectPath || source.sourcePath),
+          ]),
+        );
+        return Object.keys(next).every((id) => next[id] === existing[id]) &&
+          Object.keys(existing).length === Object.keys(next).length
+          ? existing
+          : next;
+      });
+
       setMediaUrls((existing) => {
         const next = Object.fromEntries(
           project.stems.map((stem) => [stem.id, existing[stem.id] ?? browserStemMediaSrc(stem.path)]),
@@ -634,6 +662,24 @@ function App() {
     }
 
     let cancelled = false;
+    for (const source of project.originalFiles) {
+      if (sourceMediaUrls[source.id]) {
+        continue;
+      }
+
+      command<string>("stem_media_url", { path: source.projectPath || source.sourcePath })
+        .then((url) => {
+          if (!cancelled) {
+            setSourceMediaUrls((existing) => ({ ...existing, [source.id]: url }));
+          }
+        })
+        .catch((caught) => {
+          if (!cancelled) {
+            setError(String(caught));
+          }
+        });
+    }
+
     for (const stem of project.stems) {
       if (mediaUrls[stem.id]) {
         continue;
@@ -655,7 +701,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [project, mediaUrls]);
+  }, [project, mediaUrls, sourceMediaUrls]);
 
   const selectedWorkflow = workflows.find((workflow) => workflow.id === selectedWorkflowId);
   const selectedWorkflowStep = selectedWorkflow?.steps[0];
@@ -777,6 +823,7 @@ function App() {
       applyProjectSnapshot(imported);
       setSelectedStemIds([]);
       setPreviewState({});
+      setSourceMediaUrls({});
       setMediaUrls({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
@@ -1106,6 +1153,7 @@ function App() {
       applyProjectSnapshot(updated);
       setSelectedStemIds([]);
       setPreviewState({});
+      setSourceMediaUrls({});
       setMediaUrls({});
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
@@ -1412,6 +1460,24 @@ function App() {
         </aside>
 
         <section className="main-column">
+          {selectedSource ? (
+            <section className="panel source-panel">
+              <div className="panel-heading">
+                <Music2 aria-hidden />
+                <h2>Source Waveform</h2>
+              </div>
+              <div className="source-waveform-header">
+                <strong>{selectedSource.originalName}</strong>
+                <span>{formatAudioSummary(selectedSource)}</span>
+              </div>
+              <AudioWaveform
+                durationSeconds={selectedSource.durationSeconds}
+                label={selectedSource.originalName}
+                mediaUrl={sourceMediaUrls[selectedSource.id]}
+              />
+            </section>
+          ) : null}
+
           <section className="panel run-panel">
             <div>
               <div className="panel-heading">
@@ -2050,6 +2116,242 @@ function RenderOptionControl({
   );
 }
 
+const waveformCache = new Map<string, WaveformData>();
+
+function AudioWaveform({
+  mediaUrl,
+  label,
+  durationSeconds,
+}: {
+  mediaUrl?: string;
+  label: string;
+  durationSeconds?: number | null;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [waveform, setWaveform] = useState<WaveformData | null>(null);
+  const [waveformState, setWaveformState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!mediaUrl) {
+      setWaveform(null);
+      setWaveformState("idle");
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const cached = waveformCache.get(mediaUrl);
+    if (cached) {
+      setWaveform(cached);
+      setWaveformState("ready");
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setWaveform(null);
+    setWaveformState("loading");
+
+    loadWaveformData(mediaUrl)
+      .then((loaded) => {
+        if (cancelled) {
+          return;
+        }
+        waveformCache.set(mediaUrl, loaded);
+        setWaveform(loaded);
+        setWaveformState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setWaveform(null);
+          setWaveformState("error");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mediaUrl]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const draw = () => {
+      drawWaveformCanvas(canvas, waveform?.peaks ?? null, waveformState);
+    };
+
+    draw();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(draw);
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [waveform, waveformState]);
+
+  const displayedDuration = durationSeconds ?? waveform?.durationSeconds;
+  const detail =
+    waveformState === "loading"
+      ? "Reading waveform"
+      : waveformState === "error"
+        ? "Waveform unavailable"
+        : typeof displayedDuration === "number"
+          ? formatDuration(displayedDuration)
+          : "Waiting for audio";
+
+  return (
+    <div className={`waveform-card waveform-${waveformState}`} aria-label={label}>
+      <canvas ref={canvasRef} className="waveform-canvas" />
+      <div className="waveform-meta">
+        <span>{detail}</span>
+      </div>
+    </div>
+  );
+}
+
+async function loadWaveformData(mediaUrl: string): Promise<WaveformData> {
+  if (typeof window === "undefined" || typeof fetch === "undefined") {
+    throw new Error("Waveform decoding is not available.");
+  }
+
+  const AudioContextConstructor =
+    window.AudioContext ??
+    (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioContextConstructor) {
+    throw new Error("This browser cannot decode waveform previews.");
+  }
+
+  const response = await fetch(mediaUrl);
+  if (!response.ok) {
+    throw new Error("Could not load audio for waveform preview.");
+  }
+
+  const bytes = await response.arrayBuffer();
+  const context = new AudioContextConstructor();
+  try {
+    const audioBuffer = await context.decodeAudioData(bytes.slice(0));
+    return {
+      durationSeconds: audioBuffer.duration,
+      peaks: buildWaveformPeaks(audioBuffer, WAVEFORM_PEAK_COUNT),
+    };
+  } finally {
+    void context.close();
+  }
+}
+
+function buildWaveformPeaks(audioBuffer: AudioBuffer, peakCount: number) {
+  const channels = Array.from({ length: Math.min(audioBuffer.numberOfChannels, 2) }, (_, index) =>
+    audioBuffer.getChannelData(index),
+  );
+  if (channels.length === 0 || audioBuffer.length === 0) {
+    return new Array(peakCount).fill(0.03);
+  }
+
+  const blockSize = Math.max(1, Math.floor(audioBuffer.length / peakCount));
+  const peaks = new Array(peakCount).fill(0).map((_, blockIndex) => {
+    const start = blockIndex * blockSize;
+    const end = blockIndex === peakCount - 1 ? audioBuffer.length : Math.min(audioBuffer.length, start + blockSize);
+    const stride = Math.max(1, Math.floor((end - start) / 420));
+    let peak = 0;
+
+    for (const channel of channels) {
+      for (let sampleIndex = start; sampleIndex < end; sampleIndex += stride) {
+        peak = Math.max(peak, Math.abs(channel[sampleIndex] ?? 0));
+      }
+    }
+
+    return peak;
+  });
+
+  const maxPeak = Math.max(...peaks);
+  if (maxPeak <= 0) {
+    return peaks.map(() => 0.03);
+  }
+
+  return peaks.map((peak) => Math.max(0.035, peak / maxPeak));
+}
+
+function drawWaveformCanvas(
+  canvas: HTMLCanvasElement,
+  peaks: number[] | null,
+  state: "idle" | "loading" | "ready" | "error",
+) {
+  const width = Math.max(1, Math.floor(canvas.clientWidth || 480));
+  const height = Math.max(1, Math.floor(canvas.clientHeight || 70));
+  const pixelRatio = window.devicePixelRatio || 1;
+
+  if (canvas.width !== Math.floor(width * pixelRatio) || canvas.height !== Math.floor(height * pixelRatio)) {
+    canvas.width = Math.floor(width * pixelRatio);
+    canvas.height = Math.floor(height * pixelRatio);
+  }
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return;
+  }
+
+  context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  context.clearRect(0, 0, width, height);
+
+  const styles = getComputedStyle(document.documentElement);
+  const activeColor = styles.getPropertyValue("--accent").trim() || "#2dd4bf";
+  const mutedColor = styles.getPropertyValue("--border-soft").trim() || "#333d4d";
+  const warningColor = styles.getPropertyValue("--warning-strong").trim() || "#d6a846";
+  const bars = fitPeaksToCanvas(peaks ?? placeholderWaveformPeaks(), width);
+  const gap = width < 420 ? 1.5 : 2;
+  const barWidth = Math.max(1.5, (width - gap * (bars.length - 1)) / bars.length);
+  const center = height / 2;
+  const verticalPadding = 9;
+  const fill =
+    state === "ready" ? activeColor : state === "error" ? warningColor : state === "loading" ? mutedColor : mutedColor;
+
+  context.fillStyle = fill;
+  for (const [index, peak] of bars.entries()) {
+    const barHeight = Math.max(2, peak * (height - verticalPadding * 2));
+    const x = index * (barWidth + gap);
+    const y = center - barHeight / 2;
+    drawRoundedBar(context, x, y, barWidth, barHeight, Math.min(3, barWidth / 2));
+  }
+}
+
+function fitPeaksToCanvas(peaks: number[], width: number) {
+  const targetCount = Math.min(peaks.length, Math.max(40, Math.floor(width / 4)));
+  if (targetCount >= peaks.length) {
+    return peaks;
+  }
+
+  const bucketSize = peaks.length / targetCount;
+  return new Array(targetCount).fill(0).map((_, bucketIndex) => {
+    const start = Math.floor(bucketIndex * bucketSize);
+    const end = Math.max(start + 1, Math.floor((bucketIndex + 1) * bucketSize));
+    return Math.max(...peaks.slice(start, end));
+  });
+}
+
+function placeholderWaveformPeaks() {
+  return new Array(WAVEFORM_PEAK_COUNT).fill(0).map((_, index) => 0.12 + Math.sin(index * 0.31) ** 2 * 0.34);
+}
+
+function drawRoundedBar(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+  context.fill();
+}
+
 function StemPreview({
   stem,
   state,
@@ -2090,6 +2392,7 @@ function StemPreview({
         <span>{stem.label}</span>
       </label>
       <div className="stem-audio">
+        <AudioWaveform label={`${stem.label} waveform`} mediaUrl={source} />
         <audio
           ref={audioRef}
           controls

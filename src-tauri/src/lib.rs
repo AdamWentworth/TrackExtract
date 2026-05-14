@@ -699,10 +699,12 @@ fn stream_stem_http(
     let path = media_target_path(target)?;
     let canonical_path = path.canonicalize().map_err(|error| error.to_string())?;
 
-    if !is_trackextract_stem_path(&canonical_path) {
-        return Err("Requested media path is outside Track Extract project stems".to_string());
+    if !is_trackextract_media_path(&canonical_path) {
+        return Err("Requested media path is outside Track Extract project media".to_string());
     }
 
+    let content_type = audio_content_type(&canonical_path)
+        .ok_or_else(|| "Requested media file type is not supported".to_string())?;
     let mut file = File::open(&canonical_path).map_err(|error| error.to_string())?;
     let len = file
         .seek(SeekFrom::End(0))
@@ -717,7 +719,7 @@ fn stream_stem_http(
             stream,
             "206 Partial Content",
             &[
-                ("Content-Type", "audio/wav".to_string()),
+                ("Content-Type", content_type.to_string()),
                 ("Accept-Ranges", "bytes".to_string()),
                 ("Content-Length", bytes_to_read.to_string()),
                 ("Content-Range", format!("bytes {start}-{end}/{len}")),
@@ -738,7 +740,7 @@ fn stream_stem_http(
             stream,
             "200 OK",
             &[
-                ("Content-Type", "audio/wav".to_string()),
+                ("Content-Type", content_type.to_string()),
                 ("Accept-Ranges", "bytes".to_string()),
                 ("Content-Length", len.to_string()),
                 ("Access-Control-Allow-Origin", "*".to_string()),
@@ -814,17 +816,27 @@ fn write_headers(
     write!(stream, "\r\n")
 }
 
-fn is_trackextract_stem_path(path: &Path) -> bool {
-    path.extension()
-        .and_then(|extension| extension.to_str())
-        .is_some_and(|extension| extension.eq_ignore_ascii_case("wav"))
+fn is_trackextract_media_path(path: &Path) -> bool {
+    audio_content_type(path).is_some()
         && path
             .components()
             .any(|component| component.as_os_str() == "TrackExtract Projects")
         && path
             .parent()
             .and_then(|parent| parent.file_name())
-            .is_some_and(|name| name == "stems")
+            .is_some_and(|name| name == "stems" || name == "original")
+}
+
+fn audio_content_type(path: &Path) -> Option<&'static str> {
+    match path.extension().and_then(|extension| extension.to_str()) {
+        Some(extension) if extension.eq_ignore_ascii_case("wav") => Some("audio/wav"),
+        Some(extension) if extension.eq_ignore_ascii_case("aif") => Some("audio/aiff"),
+        Some(extension) if extension.eq_ignore_ascii_case("aiff") => Some("audio/aiff"),
+        Some(extension) if extension.eq_ignore_ascii_case("flac") => Some("audio/flac"),
+        Some(extension) if extension.eq_ignore_ascii_case("mp3") => Some("audio/mpeg"),
+        Some(extension) if extension.eq_ignore_ascii_case("m4a") => Some("audio/mp4"),
+        _ => None,
+    }
 }
 
 fn parse_byte_range(range: &str, len: u64) -> Result<(u64, u64), String> {
@@ -960,6 +972,19 @@ mod tests {
             percent_decode(&percent_encode(value)).expect("decode"),
             value
         );
+    }
+
+    #[test]
+    fn media_path_allows_project_stems_and_originals() {
+        assert!(is_trackextract_media_path(Path::new(
+            "/tmp/TrackExtract Projects/Song/stems/Song - Vocals.wav"
+        )));
+        assert!(is_trackextract_media_path(Path::new(
+            "/tmp/TrackExtract Projects/Song/original/Song.flac"
+        )));
+        assert!(!is_trackextract_media_path(Path::new(
+            "/tmp/TrackExtract Projects/Song/logs/Song.wav"
+        )));
     }
 
     #[test]

@@ -344,8 +344,9 @@ async function serveStemFile(request: IncomingMessage, response: ServerResponse,
   }
 
   const resolved = path.resolve(stemPath);
-  if (!isTrackExtractStemPath(resolved)) {
-    sendText(response, 400, "Requested media path is outside Track Extract project stems.");
+  const contentType = audioContentType(resolved);
+  if (!isTrackExtractMediaPath(resolved) || !contentType) {
+    sendText(response, 400, "Requested media path is outside Track Extract project media.");
     return;
   }
 
@@ -358,7 +359,7 @@ async function serveStemFile(request: IncomingMessage, response: ServerResponse,
       "Access-Control-Allow-Origin": "*",
       "Content-Length": end + 1 - start,
       "Content-Range": `bytes ${start}-${end}/${stat.size}`,
-      "Content-Type": "audio/wav",
+      "Content-Type": contentType,
     });
     if (!headOnly) {
       fs.createReadStream(resolved, { start, end }).pipe(response);
@@ -372,7 +373,7 @@ async function serveStemFile(request: IncomingMessage, response: ServerResponse,
     "Accept-Ranges": "bytes",
     "Access-Control-Allow-Origin": "*",
     "Content-Length": stat.size,
-    "Content-Type": "audio/wav",
+    "Content-Type": contentType,
   });
   if (!headOnly) {
     fs.createReadStream(resolved).pipe(response);
@@ -401,13 +402,31 @@ function parseByteRange(range: string, size: number) {
   return { start, end };
 }
 
-function isTrackExtractStemPath(value: string) {
+function isTrackExtractMediaPath(value: string) {
   const parts = value.split(path.sep);
   return (
-    path.extname(value).toLowerCase() === ".wav" &&
+    Boolean(audioContentType(value)) &&
     parts.includes("TrackExtract Projects") &&
-    path.basename(path.dirname(value)) === "stems"
+    ["original", "stems"].includes(path.basename(path.dirname(value)))
   );
+}
+
+function audioContentType(value: string) {
+  switch (path.extname(value).toLowerCase()) {
+    case ".wav":
+      return "audio/wav";
+    case ".aif":
+    case ".aiff":
+      return "audio/aiff";
+    case ".flac":
+      return "audio/flac";
+    case ".mp3":
+      return "audio/mpeg";
+    case ".m4a":
+      return "audio/mp4";
+    default:
+      return null;
+  }
 }
 
 function openLocalPath(value: string) {

@@ -629,6 +629,33 @@ input[type="number"] {
   gap: 10px;
 }
 
+.source-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.source-waveform-header {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.source-waveform-header strong,
+.source-waveform-header span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-waveform-header span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .option-grid {
   display: grid;
   gap: 8px;
@@ -974,7 +1001,7 @@ input[type="number"] {
 
 .stem-audio {
   display: grid;
-  gap: 4px;
+  gap: 7px;
 }
 
 .stem-audio audio {
@@ -991,6 +1018,48 @@ input[type="number"] {
 
 .stem-audio .media-error {
   color: var(--danger-text);
+}
+
+.waveform-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-soft) 78%, transparent), transparent), var(--input-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  display: grid;
+  min-height: 72px;
+  overflow: hidden;
+  position: relative;
+}
+
+.waveform-canvas {
+  display: block;
+  height: 72px;
+  width: 100%;
+}
+
+.waveform-meta {
+  align-items: center;
+  background: color-mix(in srgb, var(--input-bg) 76%, transparent);
+  bottom: 0;
+  color: var(--text-secondary);
+  display: flex;
+  font-size: 0.68rem;
+  font-weight: 800;
+  justify-content: flex-end;
+  left: 0;
+  min-height: 22px;
+  padding: 2px 8px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
+.waveform-loading .waveform-meta {
+  color: var(--info-text);
+}
+
+.waveform-error .waveform-meta {
+  color: var(--warning-text);
 }
 
 .toggle {
