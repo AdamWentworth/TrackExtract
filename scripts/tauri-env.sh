@@ -13,6 +13,7 @@ unset GTK_EXE_PREFIX GTK_IM_MODULE_FILE GTK_MODULES GTK_PATH
 export XDG_DATA_DIRS="${XDG_DATA_DIRS_VSCODE_SNAP_ORIG:-${XDG_DATA_DIRS:-/usr/share/ubuntu:/usr/share/gnome:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop}}"
 export XDG_CONFIG_DIRS="${XDG_CONFIG_DIRS_VSCODE_SNAP_ORIG:-${XDG_CONFIG_DIRS:-/etc/xdg/xdg-ubuntu:/etc/xdg}}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}"
+export GTK_OVERLAY_SCROLLING=0
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="$ROOT_DIR/node_modules/.bin:$PATH"
