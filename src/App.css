@@ -41,6 +41,7 @@
   --modal-backdrop: rgba(4, 8, 14, 0.72);
   --toggle-active-bg: #eef7f5;
   --toggle-active-text: #071312;
+  color-scheme: dark;
   font-family:
     Inter,
     ui-sans-serif,
@@ -100,6 +101,7 @@
   --modal-backdrop: rgba(26, 28, 31, 0.42);
   --toggle-active-bg: #2a2d31;
   --toggle-active-text: #ffffff;
+  color-scheme: light;
 }
 
 * {
@@ -426,17 +428,40 @@ h2 {
 }
 
 select {
-  background: var(--input-bg);
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--input-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+    linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    5px 5px,
+    5px 5px;
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-primary);
   min-height: 38px;
-  padding: 0 10px;
+  padding: 0 32px 0 10px;
+}
+
+select option,
+select optgroup {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+select option:checked {
+  background-color: var(--accent);
+  color: var(--on-accent);
 }
 
 input[type="search"],
 input[type="text"] {
-  background: var(--input-bg);
+  background-color: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-primary);
@@ -446,7 +471,7 @@ input[type="text"] {
 }
 
 input[type="number"] {
-  background: var(--input-bg);
+  background-color: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text-primary);
