@@ -14,6 +14,8 @@ trackextract_prepare_python_venv "$VENV_DIR" "${PYTHON:-python3}"
 
 if [[ "$MODE" == "--check" || "$MODE" == "check" ]]; then
   "$VENV_PYTHON" -m ruff format --check "$ROOT_DIR/engine"
+  "$VENV_PYTHON" -m ruff check --select I "$ROOT_DIR/engine"
 else
+  "$VENV_PYTHON" -m ruff check --select I --fix "$ROOT_DIR/engine"
   "$VENV_PYTHON" -m ruff format "$ROOT_DIR/engine"
 fi
