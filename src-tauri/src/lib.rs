@@ -16,9 +16,11 @@ use tauri::{AppHandle, Emitter, Manager, State};
 const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
 const BUNDLED_WORKFLOWS: &str = include_str!("../../resources/workflows.json");
 
+type RunningChildren = HashMap<String, Arc<Mutex<Child>>>;
+
 struct RuntimeState {
     bridge: PythonEngineBridge,
-    running_children: Mutex<HashMap<String, Arc<Mutex<Child>>>>,
+    running_children: Mutex<RunningChildren>,
     media_server: MediaServer,
 }
 
@@ -32,9 +34,7 @@ impl RuntimeState {
     }
 }
 
-fn lock_children(
-    runtime: &RuntimeState,
-) -> Result<MutexGuard<'_, HashMap<String, Arc<Mutex<Child>>>>, String> {
+fn lock_children(runtime: &RuntimeState) -> Result<MutexGuard<'_, RunningChildren>, String> {
     runtime
         .running_children
         .lock()

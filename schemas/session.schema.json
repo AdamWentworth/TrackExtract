@@ -3,17 +3,7 @@
   "$id": "https://phlosion.com/trackextract/session.schema.json",
   "title": "TrackExtract Project Session",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "id",
-    "name",
-    "rootPath",
-    "createdAt",
-    "updatedAt",
-    "originalFiles",
-    "jobs",
-    "stems"
-  ],
+  "required": ["schemaVersion", "id", "name", "rootPath", "createdAt", "updatedAt", "originalFiles", "jobs", "stems"],
   "properties": {
     "schemaVersion": { "type": "integer", "const": 1 },
     "id": { "type": "string" },

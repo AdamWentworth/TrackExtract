@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
-import sys
 import traceback
 import wave
 from pathlib import Path
@@ -101,9 +100,7 @@ def separate_with_demucs(
         sources = ", ".join(model.sources)
         raise RuntimeError(f'Stem "{args.mode}" is not in selected model. Available: {sources}')
 
-    log.write(
-        f"Decoding audio at {model.samplerate} Hz with {model.audio_channels} channels\n"
-    )
+    log.write(f"Decoding audio at {model.samplerate} Hz with {model.audio_channels} channels\n")
     wav = AudioFile(input_path).read(
         streams=0,
         samplerate=model.samplerate,

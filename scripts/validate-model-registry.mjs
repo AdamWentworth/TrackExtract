@@ -155,7 +155,12 @@ if (!Array.isArray(registry)) {
       }
     }
 
-    if (model.installed && model.path && !managedDownload && !existsSync(new URL(`../${model.path}`, import.meta.url))) {
+    if (
+      model.installed &&
+      model.path &&
+      !managedDownload &&
+      !existsSync(new URL(`../${model.path}`, import.meta.url))
+    ) {
       errors.push(`${label}: installed local path does not exist in repo: ${model.path}`);
     }
   }
@@ -173,19 +178,18 @@ for (const modelId of requiredCatalogModels) {
   }
 }
 
-const publicUvrModelCount = registry.filter((model) =>
-  model.sourceUrl === "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models" &&
-  model.path?.startsWith("models/") &&
-  model.downloadUrl?.startsWith("https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/")
+const publicUvrModelCount = registry.filter(
+  (model) =>
+    model.sourceUrl === "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models" &&
+    model.path?.startsWith("models/") &&
+    model.downloadUrl?.startsWith("https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/"),
 ).length;
 if (publicUvrModelCount < 72) {
   errors.push(`Expected at least 72 public UVR downloadable model entries, found ${publicUvrModelCount}.`);
 }
 
-const mvsepCatalogCount = registry.filter((model) =>
-  model.sourceUrl === "https://mvsep.com/en" &&
-  model.path === "" &&
-  model.backend === "external-process"
+const mvsepCatalogCount = registry.filter(
+  (model) => model.sourceUrl === "https://mvsep.com/en" && model.path === "" && model.backend === "external-process",
 ).length;
 if (mvsepCatalogCount < 95) {
   errors.push(`Expected at least 95 MVSEP catalog entries, found ${mvsepCatalogCount}.`);

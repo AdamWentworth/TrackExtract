@@ -18,7 +18,6 @@ import shutil
 import traceback
 from pathlib import Path
 
-
 COMMON_STEM_ALIASES = {
     "Vocals": ["Vocals", "Vocal", "Lead Vocal", "Lead Vocals"],
     "Instrumental": ["Instrumental", "No Vocals", "No Vocal", "No Lead Vocal"],
@@ -279,7 +278,8 @@ def ensure_ffmpeg_on_path(log) -> None:
         log.write("Using system ffmpeg/ffprobe\n\n")
         return
 
-    log.write("ffmpeg/ffprobe were not found on PATH. audio-separator may still work for WAV input, but compressed formats can fail.\n\n")
+    log.write("ffmpeg/ffprobe were not found on PATH. audio-separator may still work for WAV input, ")
+    log.write("but compressed formats can fail.\n\n")
 
 
 def daw_friendly_stem_filename(project_name: str, stem_label: str) -> str:

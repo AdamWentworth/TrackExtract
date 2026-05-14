@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .errors import TrackExtractError
 from .paths import EngineContext
-from .project import add_project_job, get_current_project, replace_job_stems, save_project
+from .project import add_project_job, get_current_project, replace_job_stems
 from .registry import find_model, load_models
 from .schemas import model_option_defaults, new_id, now_iso
 from .state import load_jobs, save_jobs
@@ -14,12 +14,16 @@ def list_jobs(context: EngineContext) -> list[dict]:
     return load_jobs(context)
 
 
-def enqueue(context: EngineContext, task: str, model_id: str | None, source_id: str | None, options: dict | None) -> dict:
+def enqueue(
+    context: EngineContext, task: str, model_id: str | None, source_id: str | None, options: dict | None
+) -> dict:
     session = get_current_project(context)
     if not session:
         raise TrackExtractError("No project is currently open")
     sources = session.get("originalFiles") or []
-    source = next((candidate for candidate in sources if candidate.get("id") == source_id), sources[0] if sources else None)
+    source = next(
+        (candidate for candidate in sources if candidate.get("id") == source_id), sources[0] if sources else None
+    )
     if not source:
         raise TrackExtractError("Project has no imported audio files")
 

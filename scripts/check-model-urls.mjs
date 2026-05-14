@@ -21,9 +21,7 @@ for (const model of downloadableModels) {
       const lowerBound = expectedBytes * 0.75;
       const upperBound = expectedBytes * 1.35;
       if (contentLength < lowerBound || contentLength > upperBound) {
-        failures.push(
-          `${model.id}: content length ${contentLength} is not near catalog estimate ${expectedBytes}`,
-        );
+        failures.push(`${model.id}: content length ${contentLength} is not near catalog estimate ${expectedBytes}`);
       }
     }
 

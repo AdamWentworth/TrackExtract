@@ -4,18 +4,20 @@ import os
 import sys
 from pathlib import Path
 
-from .worker_common import run_worker
 from ..registry import local_model_path
+from .worker_common import run_worker
 
 
 def run(request: dict, emit) -> tuple[list[dict], Path]:
-    context_payload = request["context"]
     context = request["engineContext"]
     job = request["job"]
     model = request["model"]
     project = request["project"]
     options = job.get("options") or {}
-    worker = Path(os.environ.get("TRACKEXTRACT_AUDIO_SEPARATOR_WORKER") or Path(__file__).resolve().parents[1] / "workers" / "audio_separator_worker.py")
+    worker = Path(
+        os.environ.get("TRACKEXTRACT_AUDIO_SEPARATOR_WORKER")
+        or Path(__file__).resolve().parents[1] / "workers" / "audio_separator_worker.py"
+    )
     model_path = local_model_path(context, model)
     if not model_path:
         raise RuntimeError(f"{model['displayName']} does not have an installed local model file")

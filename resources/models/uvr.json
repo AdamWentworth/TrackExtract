@@ -1,0 +1,5868 @@
+[
+  {
+    "id": "uvr_vr_1_hp_uvr",
+    "displayName": "1 HP UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "1_HP-UVR",
+    "installed": false,
+    "path": "models/audio-separator/1_HP-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/1_HP-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 121,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "1_HP-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_10_sp_uvr_2b_32000_1",
+    "displayName": "10 SP UVR 2B 32000 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 32000,
+    "quality": "balanced",
+    "version": "10_SP-UVR-2B-32000-1",
+    "installed": false,
+    "path": "models/audio-separator/10_SP-UVR-2B-32000-1.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/10_SP-UVR-2B-32000-1.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "10_SP-UVR-2B-32000-1.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_11_sp_uvr_2b_32000_2",
+    "displayName": "11 SP UVR 2B 32000 2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 32000,
+    "quality": "balanced",
+    "version": "11_SP-UVR-2B-32000-2",
+    "installed": false,
+    "path": "models/audio-separator/11_SP-UVR-2B-32000-2.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/11_SP-UVR-2B-32000-2.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "11_SP-UVR-2B-32000-2.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_12_sp_uvr_3b_44100",
+    "displayName": "12 SP UVR 3B 44100",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "12_SP-UVR-3B-44100",
+    "installed": false,
+    "path": "models/audio-separator/12_SP-UVR-3B-44100.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/12_SP-UVR-3B-44100.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "12_SP-UVR-3B-44100.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_13_sp_uvr_4b_44100_1",
+    "displayName": "13 SP UVR 4B 44100 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "13_SP-UVR-4B-44100-1",
+    "installed": false,
+    "path": "models/audio-separator/13_SP-UVR-4B-44100-1.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/13_SP-UVR-4B-44100-1.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "13_SP-UVR-4B-44100-1.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_14_sp_uvr_4b_44100_2",
+    "displayName": "14 SP UVR 4B 44100 2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "14_SP-UVR-4B-44100-2",
+    "installed": false,
+    "path": "models/audio-separator/14_SP-UVR-4B-44100-2.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/14_SP-UVR-4B-44100-2.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "14_SP-UVR-4B-44100-2.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_15_sp_uvr_mid_44100_1",
+    "displayName": "15 SP UVR MID 44100 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "15_SP-UVR-MID-44100-1",
+    "installed": false,
+    "path": "models/audio-separator/15_SP-UVR-MID-44100-1.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/15_SP-UVR-MID-44100-1.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "15_SP-UVR-MID-44100-1.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_16_sp_uvr_mid_44100_2",
+    "displayName": "16 SP UVR MID 44100 2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "16_SP-UVR-MID-44100-2",
+    "installed": false,
+    "path": "models/audio-separator/16_SP-UVR-MID-44100-2.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/16_SP-UVR-MID-44100-2.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "16_SP-UVR-MID-44100-2.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_17_hp_wind_inst_uvr",
+    "displayName": "17 HP Wind Inst UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "17_HP-Wind_Inst-UVR",
+    "installed": false,
+    "path": "models/audio-separator/17_HP-Wind_Inst-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/17_HP-Wind_Inst-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 214,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "17_HP-Wind_Inst-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_2_hp_uvr",
+    "displayName": "2 HP UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "2_HP-UVR",
+    "installed": false,
+    "path": "models/audio-separator/2_HP-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/2_HP-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 121,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "2_HP-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_3_hp_vocal_uvr",
+    "displayName": "3 HP Vocal UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "3_HP-Vocal-UVR",
+    "installed": false,
+    "path": "models/audio-separator/3_HP-Vocal-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/3_HP-Vocal-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 121,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "3_HP-Vocal-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_4_hp_vocal_uvr",
+    "displayName": "4 HP Vocal UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "4_HP-Vocal-UVR",
+    "installed": false,
+    "path": "models/audio-separator/4_HP-Vocal-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/4_HP-Vocal-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 121,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "4_HP-Vocal-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_5_hp_karaoke_uvr",
+    "displayName": "5 HP Karaoke UVR",
+    "backend": "python-engine",
+    "tasks": ["layered_vocal_cleanup", "vocal_cleanup_chain"],
+    "stems": ["Lead Vocal", "Backing Vocals"],
+    "sampleRate": 44100,
+    "quality": "fast",
+    "version": "5_HP-Karaoke-UVR",
+    "installed": false,
+    "path": "models/audio-separator/5_HP-Karaoke-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/5_HP-Karaoke-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 121,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "5_HP-Karaoke-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_6_hp_karaoke_uvr",
+    "displayName": "6 HP Karaoke UVR",
+    "backend": "python-engine",
+    "tasks": ["layered_vocal_cleanup", "vocal_cleanup_chain"],
+    "stems": ["Lead Vocal", "Backing Vocals"],
+    "sampleRate": 44100,
+    "quality": "fast",
+    "version": "6_HP-Karaoke-UVR",
+    "installed": false,
+    "path": "models/audio-separator/6_HP-Karaoke-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/6_HP-Karaoke-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 121,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "6_HP-Karaoke-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_7_hp2_uvr",
+    "displayName": "7 HP2 UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "7_HP2-UVR",
+    "installed": false,
+    "path": "models/audio-separator/7_HP2-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/7_HP2-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 525,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "7_HP2-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_8_hp2_uvr",
+    "displayName": "8 HP2 UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "8_HP2-UVR",
+    "installed": false,
+    "path": "models/audio-separator/8_HP2-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/8_HP2-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 525,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "8_HP2-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_9_hp2_uvr",
+    "displayName": "9 HP2 UVR",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "9_HP2-UVR",
+    "installed": false,
+    "path": "models/audio-separator/9_HP2-UVR.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/9_HP2-UVR.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 525,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "9_HP2-UVR.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_checkpoint_multi_fixed",
+    "displayName": "checkpoint multi fixed",
+    "backend": "python-engine",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Other"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "checkpoint-multi_fixed",
+    "installed": false,
+    "path": "models/audio-separator/checkpoint-multi_fixed.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/checkpoint-multi_fixed.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 143,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "checkpoint-multi_fixed.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_demucs_weight_ebf34a2d",
+    "displayName": "ebf34a2d",
+    "backend": "external-process",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Other"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "ebf34a2d",
+    "installed": false,
+    "path": "models/demucs/ebf34a2d.th",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/ebf34a2d.th",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 160,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Raw Demucs weight asset from the public UVR pack. TrackExtract can download it, but it requires a matching YAML model definition before it can run.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": ""
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_demucs_weight_ebf34a2db",
+    "displayName": "ebf34a2db",
+    "backend": "external-process",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Other"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "ebf34a2db",
+    "installed": false,
+    "path": "models/demucs/ebf34a2db.th",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/ebf34a2db.th",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 160,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Raw Demucs weight asset from the public UVR pack. TrackExtract can download it, but it requires a matching YAML model definition before it can run.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": ""
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kim_inst",
+    "displayName": "Kim Inst",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "Kim_Inst",
+    "installed": false,
+    "path": "models/onnx/Kim_Inst.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/Kim_Inst.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Kim_Inst.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kim_vocal_1",
+    "displayName": "Kim Vocal 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "Kim_Vocal_1",
+    "installed": false,
+    "path": "models/onnx/Kim_Vocal_1.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/Kim_Vocal_1.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Kim_Vocal_1.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kim_vocal_2",
+    "displayName": "Kim Vocal 2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "Kim_Vocal_2",
+    "installed": false,
+    "path": "models/onnx/Kim_Vocal_2.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/Kim_Vocal_2.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Kim_Vocal_2.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_a_bass",
+    "displayName": "kuielab a bass",
+    "backend": "python-engine",
+    "tasks": ["bass_only"],
+    "stems": ["Bass", "No Bass"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_a_bass",
+    "installed": false,
+    "path": "models/onnx/kuielab_a_bass.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_a_bass.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_bass.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_a_drums",
+    "displayName": "kuielab a drums",
+    "backend": "python-engine",
+    "tasks": ["drums_only"],
+    "stems": ["Drums", "No Drums"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_a_drums",
+    "installed": false,
+    "path": "models/onnx/kuielab_a_drums.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_a_drums.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_drums.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_a_other",
+    "displayName": "kuielab a other",
+    "backend": "python-engine",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Other", "Remainder"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_a_other",
+    "installed": false,
+    "path": "models/onnx/kuielab_a_other.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_a_other.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_other.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_a_vocals",
+    "displayName": "kuielab a vocals",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_a_vocals",
+    "installed": false,
+    "path": "models/onnx/kuielab_a_vocals.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_a_vocals.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_vocals.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_b_bass",
+    "displayName": "kuielab b bass",
+    "backend": "python-engine",
+    "tasks": ["bass_only"],
+    "stems": ["Bass", "No Bass"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_b_bass",
+    "installed": false,
+    "path": "models/onnx/kuielab_b_bass.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_b_bass.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_bass.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_b_drums",
+    "displayName": "kuielab b drums",
+    "backend": "python-engine",
+    "tasks": ["drums_only"],
+    "stems": ["Drums", "No Drums"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_b_drums",
+    "installed": false,
+    "path": "models/onnx/kuielab_b_drums.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_b_drums.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 21,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_drums.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_b_other",
+    "displayName": "kuielab b other",
+    "backend": "python-engine",
+    "tasks": ["full_stem_split", "experimental_best_quality"],
+    "stems": ["Other", "Remainder"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_b_other",
+    "installed": false,
+    "path": "models/onnx/kuielab_b_other.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_b_other.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_other.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_kuielab_b_vocals",
+    "displayName": "kuielab b vocals",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "kuielab_b_vocals",
+    "installed": false,
+    "path": "models/onnx/kuielab_b_vocals.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/kuielab_b_vocals.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_vocals.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_mdx23c_d1581",
+    "displayName": "MDX23C D1581",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "MDX23C_D1581",
+    "installed": false,
+    "path": "models/audio-separator/MDX23C_D1581.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MDX23C_D1581.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 175,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MDX23C_D1581.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_mel_band_roformer_karaoke_aufr33_viperx_sdr_10_1956",
+    "displayName": "mel band roformer karaoke aufr33 viperx sdr 10.1956",
+    "backend": "python-engine",
+    "tasks": ["layered_vocal_cleanup", "vocal_cleanup_chain"],
+    "stems": ["Lead Vocal", "Backing Vocals"],
+    "sampleRate": 44100,
+    "quality": "fast",
+    "version": "mel_band_roformer_karaoke_aufr33_viperx_sdr_10.1956",
+    "installed": false,
+    "path": "models/audio-separator/mel_band_roformer_karaoke_aufr33_viperx_sdr_10.1956.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/mel_band_roformer_karaoke_aufr33_viperx_sdr_10.1956.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 871,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "mel_band_roformer_karaoke_aufr33_viperx_sdr_10.1956.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_melband_roformer_inst_v1",
+    "displayName": "melband roformer inst v1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "melband_roformer_inst_v1",
+    "installed": false,
+    "path": "models/audio-separator/melband_roformer_inst_v1.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/melband_roformer_inst_v1.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 871,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_inst_v1.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_melband_roformer_inst_v2",
+    "displayName": "melband roformer inst v2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "melband_roformer_inst_v2",
+    "installed": false,
+    "path": "models/audio-separator/melband_roformer_inst_v2.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/melband_roformer_inst_v2.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 1502,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_inst_v2.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_melband_roformer_instvoc_duality_v1",
+    "displayName": "melband roformer instvoc duality v1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "melband_roformer_instvoc_duality_v1",
+    "installed": false,
+    "path": "models/audio-separator/melband_roformer_instvoc_duality_v1.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/melband_roformer_instvoc_duality_v1.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 1640,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_instvoc_duality_v1.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_melband_roformer_instvox_duality_v2",
+    "displayName": "melband roformer instvox duality v2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "melband_roformer_instvox_duality_v2",
+    "installed": false,
+    "path": "models/audio-separator/melband_roformer_instvox_duality_v2.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/melband_roformer_instvox_duality_v2.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 1640,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_instvox_duality_v2.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_mgm_highend_v4",
+    "displayName": "MGM HIGHEND v4",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "MGM_HIGHEND_v4",
+    "installed": false,
+    "path": "models/audio-separator/MGM_HIGHEND_v4.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MGM_HIGHEND_v4.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_HIGHEND_v4.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_mgm_lowend_a_v4",
+    "displayName": "MGM LOWEND A v4",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "MGM_LOWEND_A_v4",
+    "installed": false,
+    "path": "models/audio-separator/MGM_LOWEND_A_v4.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MGM_LOWEND_A_v4.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_LOWEND_A_v4.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_mgm_lowend_b_v4",
+    "displayName": "MGM LOWEND B v4",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "MGM_LOWEND_B_v4",
+    "installed": false,
+    "path": "models/audio-separator/MGM_LOWEND_B_v4.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MGM_LOWEND_B_v4.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_LOWEND_B_v4.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_mgm_main_v4",
+    "displayName": "MGM MAIN v4",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "MGM_MAIN_v4",
+    "installed": false,
+    "path": "models/audio-separator/MGM_MAIN_v4.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MGM_MAIN_v4.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 31,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_MAIN_v4.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_model_bandit_plus_dnr_sdr_11_47",
+    "displayName": "model bandit plus dnr sdr 11.47",
+    "backend": "python-engine",
+    "tasks": ["experimental_best_quality"],
+    "stems": ["Speech", "Music", "Effects"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "model_bandit_plus_dnr_sdr_11.47",
+    "installed": false,
+    "path": "models/audio-separator/model_bandit_plus_dnr_sdr_11.47.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/model_bandit_plus_dnr_sdr_11.47.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 142,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bandit_plus_dnr_sdr_11.47.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_model_bs_roformer_ep_317_sdr_12_9755",
+    "displayName": "model bs roformer ep 317 sdr 12.9755",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "model_bs_roformer_ep_317_sdr_12.9755",
+    "installed": false,
+    "path": "models/audio-separator/model_bs_roformer_ep_317_sdr_12.9755.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/model_bs_roformer_ep_317_sdr_12.9755.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 610,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bs_roformer_ep_317_sdr_12.9755.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_model_bs_roformer_ep_368_sdr_12_9628",
+    "displayName": "model bs roformer ep 368 sdr 12.9628",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "model_bs_roformer_ep_368_sdr_12.9628",
+    "installed": false,
+    "path": "models/audio-separator/model_bs_roformer_ep_368_sdr_12.9628.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/model_bs_roformer_ep_368_sdr_12.9628.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 610,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bs_roformer_ep_368_sdr_12.9628.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_model_bs_roformer_ep_937_sdr_10_5309",
+    "displayName": "model bs roformer ep 937 sdr 10.5309",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "model_bs_roformer_ep_937_sdr_10.5309",
+    "installed": false,
+    "path": "models/audio-separator/model_bs_roformer_ep_937_sdr_10.5309.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/model_bs_roformer_ep_937_sdr_10.5309.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 375,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bs_roformer_ep_937_sdr_10.5309.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_ckpt_model_mel_band_roformer_ep_3005_sdr_11_4360",
+    "displayName": "model mel band roformer ep 3005 sdr 11.4360",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "model_mel_band_roformer_ep_3005_sdr_11.4360",
+    "installed": false,
+    "path": "models/audio-separator/model_mel_band_roformer_ep_3005_sdr_11.4360.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/model_mel_band_roformer_ep_3005_sdr_11.4360.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 962,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_mel_band_roformer_ep_3005_sdr_11.4360.ckpt"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "onnx_reverb_hq_by_foxjoy",
+    "displayName": "Reverb HQ By FoxJoy ONNX",
+    "backend": "python-engine",
+    "tasks": ["vocal_dereverb", "vocal_cleanup_chain"],
+    "stems": ["Dry Vocal", "Reverb"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "Reverb_HQ_By_FoxJoy",
+    "installed": false,
+    "path": "models/onnx/Reverb_HQ_By_FoxJoy.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/Reverb_HQ_By_FoxJoy.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Dereverb model for drying extracted vocals. Needs the ONNX backend before it can run.",
+    "downloadSizeMb": 64,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Reverb_HQ_By_FoxJoy.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_uvr_bve_4b_sn_44100_1",
+    "displayName": "UVR BVE 4B SN 44100 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-BVE-4B_SN-44100-1",
+    "installed": false,
+    "path": "models/audio-separator/UVR-BVE-4B_SN-44100-1.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-BVE-4B_SN-44100-1.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 214,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-BVE-4B_SN-44100-1.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_uvr_de_echo_aggressive",
+    "displayName": "UVR De Echo Aggressive",
+    "backend": "python-engine",
+    "tasks": ["vocal_dereverb", "vocal_cleanup_chain"],
+    "stems": ["Dry Vocal", "Reverb"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-De-Echo-Aggressive",
+    "installed": false,
+    "path": "models/audio-separator/UVR-De-Echo-Aggressive.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-De-Echo-Aggressive.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 122,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-De-Echo-Aggressive.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_uvr_de_echo_normal",
+    "displayName": "UVR De Echo Normal",
+    "backend": "python-engine",
+    "tasks": ["vocal_dereverb", "vocal_cleanup_chain"],
+    "stems": ["Dry Vocal", "Reverb"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-De-Echo-Normal",
+    "installed": false,
+    "path": "models/audio-separator/UVR-De-Echo-Normal.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-De-Echo-Normal.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 122,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-De-Echo-Normal.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_uvr_deecho_dereverb",
+    "displayName": "UVR DeEcho DeReverb",
+    "backend": "python-engine",
+    "tasks": ["vocal_dereverb", "vocal_cleanup_chain"],
+    "stems": ["Dry Vocal", "Reverb"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-DeEcho-DeReverb",
+    "installed": false,
+    "path": "models/audio-separator/UVR-DeEcho-DeReverb.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-DeEcho-DeReverb.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 214,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-DeEcho-DeReverb.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_denoise",
+    "displayName": "UVR DeNoise",
+    "backend": "python-engine",
+    "tasks": ["vocal_denoise", "vocal_cleanup_chain"],
+    "stems": ["Clean Vocal", "Noise"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-DeNoise",
+    "installed": false,
+    "path": "models/audio-separator/UVR-DeNoise.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-DeNoise.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "VR-style denoise model for the final vocal cleanup pass. Requires a VR/audio-separator backend before it can run.",
+    "downloadSizeMb": 122,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-DeNoise.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_vr_uvr_denoise_lite",
+    "displayName": "UVR DeNoise Lite",
+    "backend": "python-engine",
+    "tasks": ["vocal_denoise", "vocal_cleanup_chain"],
+    "stems": ["Clean Vocal", "Noise"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-DeNoise-Lite",
+    "installed": false,
+    "path": "models/audio-separator/UVR-DeNoise-Lite.pth",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-DeNoise-Lite.pth",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 18,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup when the architecture is supported.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-DeNoise-Lite.pth"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_crowd_hq_1",
+    "displayName": "UVR MDX NET Crowd HQ 1",
+    "backend": "python-engine",
+    "tasks": ["experimental_best_quality"],
+    "stems": ["Crowd", "Other"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-MDX-NET_Crowd_HQ_1",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET_Crowd_HQ_1.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET_Crowd_HQ_1.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 57,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET_Crowd_HQ_1.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_1",
+    "displayName": "UVR MDX NET Inst 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-MDX-NET-Inst_1",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_1.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_1.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_1.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_2",
+    "displayName": "UVR MDX NET Inst 2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-MDX-NET-Inst_2",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_2.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_2.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_2.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_3",
+    "displayName": "UVR MDX NET Inst 3",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-MDX-NET-Inst_3",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_3.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_3.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_3.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_hq_1",
+    "displayName": "UVR MDX NET Inst HQ 1",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "UVR-MDX-NET-Inst_HQ_1",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_HQ_1.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_HQ_1.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_1.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_hq_2",
+    "displayName": "UVR MDX NET Inst HQ 2",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "UVR-MDX-NET-Inst_HQ_2",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_HQ_2.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_HQ_2.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_2.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_hq_3",
+    "displayName": "UVR MDX NET Inst HQ 3",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "UVR-MDX-NET-Inst_HQ_3",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_HQ_3.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_HQ_3.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_3.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_hq_4",
+    "displayName": "UVR MDX NET Inst HQ 4",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "UVR-MDX-NET-Inst_HQ_4",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_HQ_4.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_HQ_4.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 57,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_4.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdx_net_inst_main",
+    "displayName": "UVR MDX NET Inst Main",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-MDX-NET-Inst_Main",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_Main.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_Main.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 51,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_Main.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdxnet_1_9703",
+    "displayName": "UVR MDX-NET 1 9703",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR_MDXNET_1_9703",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_1_9703.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_1_9703.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_1_9703.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdxnet_2_9682",
+    "displayName": "UVR MDX-NET 2 9682",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR_MDXNET_2_9682",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_2_9682.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_2_9682.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_2_9682.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdxnet_3_9662",
+    "displayName": "UVR MDX-NET 3 9662",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR_MDXNET_3_9662",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_3_9662.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_3_9662.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_3_9662.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "onnx_uvr_mdxnet_9482",
+    "displayName": "UVR MDX-NET 9482 ONNX",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "fast",
+    "version": "UVR_MDXNET_9482",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_9482.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_9482.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "MIT per UVR public model pack; verify before redistribution",
+    "notes": "Real ONNX model candidate. TrackExtract needs the ONNX backend before this can run.",
+    "downloadSizeMb": 29,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_9482.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "onnx_uvr_mdxnet_inst_hq_5",
+    "displayName": "UVR MDX-NET Inst HQ 5 ONNX",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR-MDX-NET-Inst_HQ_5",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Inst_HQ_5.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Inst_HQ_5.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "MIT per UVR public model pack; verify before redistribution",
+    "notes": "Real ONNX model candidate. TrackExtract needs the ONNX backend before this can run.",
+    "downloadSizeMb": 57,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_5.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdxnet_kara",
+    "displayName": "UVR MDX-NET KARA",
+    "backend": "python-engine",
+    "tasks": ["layered_vocal_cleanup", "vocal_cleanup_chain"],
+    "stems": ["Lead Vocal", "Backing Vocals"],
+    "sampleRate": 44100,
+    "quality": "fast",
+    "version": "UVR_MDXNET_KARA",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_KARA.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_KARA.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 29,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_KARA.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "onnx_uvr_mdxnet_karaoke_2",
+    "displayName": "UVR MDX-NET Karaoke 2 ONNX",
+    "backend": "python-engine",
+    "tasks": ["layered_vocal_cleanup", "vocal_cleanup_chain"],
+    "stems": ["Lead Vocal", "Backing Vocals"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR_MDXNET_KARA_2",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_KARA_2.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_KARA_2.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Useful for reducing layered or backing vocals after a vocal extraction pass. Needs the ONNX backend before it can run.",
+    "downloadSizeMb": 51,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_KARA_2.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_onnx_uvr_mdxnet_main",
+    "displayName": "UVR MDX-NET Main",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "UVR_MDXNET_Main",
+    "installed": false,
+    "path": "models/onnx/UVR_MDXNET_Main.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR_MDXNET_Main.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "downloadSizeMb": 64,
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Cataloged from the public UVR single-model release. Downloadable into app data, but can run through the Audio Separator worker after setup; native ONNX Runtime remains planned.",
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_Main.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "onnx_uvr_mdxnet_voc_ft",
+    "displayName": "UVR MDX-NET Voc FT ONNX",
+    "backend": "python-engine",
+    "tasks": ["vocal_cleanup_chain", "vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "UVR-MDX-NET-Voc_FT",
+    "installed": false,
+    "path": "models/onnx/UVR-MDX-NET-Voc_FT.onnx",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/UVR-MDX-NET-Voc_FT.onnx",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "Vocal-focused MDX model often used as a refinement pass. Needs the ONNX backend before it can run.",
+    "downloadSizeMb": 64,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "mdxSegmentSize",
+        "displayName": "Segment size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "mdxOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "id": "enableDenoisePass",
+        "displayName": "Denoise pass",
+        "type": "boolean",
+        "defaultValue": false
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Voc_FT.onnx"
+    },
+    "installMethod": "direct-url"
+  },
+  {
+    "id": "uvr_mdx23c_instvoc_hq",
+    "displayName": "UVR MDX23C InstVoc HQ",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental", "vocal_cleanup_chain", "experimental_best_quality"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "MDX23C-8KFFT-InstVoc_HQ",
+    "installed": false,
+    "path": "models/audio-separator/MDX23C-8KFFT-InstVoc_HQ.ckpt",
+    "downloadUrl": "https://github.com/TRvlvr/model_repo/releases/download/all_public_uvr_models/MDX23C-8KFFT-InstVoc_HQ.ckpt",
+    "sourceUrl": "https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models",
+    "license": "UVR public model pack; verify before redistribution",
+    "notes": "High-quality music-backed vocal/instrumental extractor. Requires an MDX23C/audio-separator backend before it can run.",
+    "downloadSizeMb": 428,
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "directml",
+            "label": "DirectML"
+          },
+          {
+            "value": "coreml",
+            "label": "CoreML"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "chunkSize",
+        "displayName": "Chunk size",
+        "type": "integer",
+        "defaultValue": 256,
+        "min": 128,
+        "max": 1024,
+        "step": 128
+      },
+      {
+        "id": "overlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "batchSize",
+        "displayName": "Batch",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 1,
+        "max": 8,
+        "step": 1
+      }
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MDX23C-8KFFT-InstVoc_HQ.ckpt"
+    },
+    "installMethod": "direct-url"
+  }
+]

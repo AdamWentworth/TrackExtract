@@ -142,7 +142,9 @@ def migrate_model(model: dict) -> dict:
 
     if model.get("backend") == "python-engine":
         model.setdefault("installMethod", "source-only")
-        runtime.setdefault("provider", "stub" if model.get("id", "").startswith("stub") else runtime.get("provider", ""))
+        runtime.setdefault(
+            "provider", "stub" if model.get("id", "").startswith("stub") else runtime.get("provider", "")
+        )
 
     model["runtime"] = runtime
     model.setdefault("downloadUrl", "")

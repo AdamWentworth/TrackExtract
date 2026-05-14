@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${TRACKEXTRACT_TEST_VENV:-"$ROOT_DIR/.venv-python-tests"}"
 PYTHON_BIN="${PYTHON:-python3}"
+MODE="${1:-write}"
 
 if [[ ! -x "$VENV_DIR/bin/python" && ! -x "$VENV_DIR/Scripts/python.exe" ]]; then
   "$PYTHON_BIN" -m venv "$VENV_DIR"
@@ -17,4 +18,9 @@ fi
 
 "$VENV_PYTHON" -m pip install --quiet --upgrade pip
 "$VENV_PYTHON" -m pip install --quiet -e "$ROOT_DIR/engine[dev]"
-"$VENV_PYTHON" -m pytest "$ROOT_DIR/engine/tests"
+
+if [[ "$MODE" == "--check" || "$MODE" == "check" ]]; then
+  "$VENV_PYTHON" -m ruff format --check "$ROOT_DIR/engine"
+else
+  "$VENV_PYTHON" -m ruff format "$ROOT_DIR/engine"
+fi

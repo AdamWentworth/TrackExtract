@@ -2,11 +2,29 @@
   "name": "trackextract",
   "private": true,
   "version": "0.1.0",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=24",
+    "npm": ">=11"
+  },
   "scripts": {
+    "check": "npm run format:check && npm run lint && npm run test:all",
     "dev": "vite",
     "dev:browser": "vite",
     "build": "tsc && vite build",
+    "format": "prettier --write . && npm run format:engine && npm run format:rust",
+    "format:check": "prettier --check . && npm run format:engine:check && npm run format:rust:check",
+    "format:engine": "bash scripts/format-python.sh",
+    "format:engine:check": "bash scripts/format-python.sh --check",
+    "format:rust": "bash scripts/format-rust.sh",
+    "format:rust:check": "bash scripts/format-rust.sh --check",
+    "lint": "npm run lint:frontend && npm run lint:engine && npm run lint:rust",
+    "lint:engine": "bash scripts/lint-python.sh",
+    "lint:frontend": "eslint . --max-warnings=0",
+    "lint:rust": "bash scripts/test-rust.sh --lint-only",
+    "models:build": "node scripts/build-model-registry.mjs",
+    "models:check": "node scripts/build-model-registry.mjs --check",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev:clean": "bash scripts/tauri-dev-clean-env.sh",
@@ -15,7 +33,7 @@
     "test:build": "npm run build",
     "test:frontend": "vitest run",
     "test:engine": "bash scripts/test-python.sh",
-    "test:models": "node scripts/validate-model-registry.mjs",
+    "test:models": "npm run models:check && node scripts/validate-model-registry.mjs",
     "test:models:network": "node scripts/check-model-urls.mjs",
     "test:python": "npm run test:engine",
     "test:workflows": "node scripts/validate-workflows.mjs",
@@ -30,15 +48,22 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tauri-apps/cli": "^2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
     "jsdom": "^25.0.1",
+    "prettier": "^3.8.3",
     "typescript": "~5.8.3",
+    "typescript-eslint": "^8.59.3",
     "vite": "^7.0.4",
-    "vitest": "^4.1.6",
-    "@tauri-apps/cli": "^2"
+    "vitest": "^4.1.6"
   }
 }

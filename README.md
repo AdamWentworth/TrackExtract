@@ -22,24 +22,9 @@ The MVP does not include real-time separation, a DAW plugin, cloud processing, a
 
 ## Architecture
 
-```text
-React/Tauri UI
-  -> Tauri commands/events
-  -> thin Rust bridge
-  -> Python TrackExtract engine
-     -> project/session manager
-     -> model registry
-     -> job queue
-     -> audio file handling
-     -> output folder management
-     -> logging/progress events
-     -> backend selection
-        -> Demucs provider
-        -> audio-separator provider
-        -> Stub provider
-```
-
 The canonical engine source lives in `engine/src`, packaged as `trackextract_engine`. It exposes `python -m trackextract_engine` for the Rust bridge and future CLI/service work. Rust is limited to the Tauri shell and local desktop plumbing.
+
+See [docs/architecture.md](docs/architecture.md) for the command/event flow and backend boundaries.
 
 ## Repository Layout
 
@@ -49,6 +34,7 @@ The canonical engine source lives in `engine/src`, packaged as `trackextract_eng
 - `resources/`: Bundled model and workflow registries copied into app data.
 - `schemas/`: JSON schemas for documented registry/session formats.
 - `scripts/`: Setup, validation, and test entrypoints.
+- `docs/`: Architecture, development, model-registry, and packaging notes.
 
 ## Build
 
@@ -74,6 +60,8 @@ scripts/setup-trackextract-engine.sh
 
 TrackExtract auto-detects `.venv-trackextract-engine/bin/python` when launched from this repo. To force a specific Python environment, set `TRACKEXTRACT_ENGINE_PYTHON`. For NVIDIA CUDA support in audio-separator, recreate the environment with `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu`; for Windows DirectML, use `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml`.
 
+See [docs/development.md](docs/development.md) for toolchain pins, `.env` usage, and local check commands.
+
 For browser-only UI iteration with mock project/job data:
 
 ```bash
@@ -87,79 +75,28 @@ symbol lookup error when Tauri starts, run the clean environment helper instead:
 npm run tauri:dev:clean
 ```
 
-Useful checks:
+For the full local suite, use:
 
 ```bash
-npm run build
-npm test
-npm run test:engine
-npm run test:rust
+npm run check
 ```
 
-For the broader local suite, use:
-
-```bash
-npm run test:all
-```
-
-That runs model-registry validation, Python engine tests, frontend tests, the production frontend build, Rust formatting checks, and Rust tests. Network checks for model download URLs are kept opt-in so local tests are not flaky:
+Network checks for model download URLs are kept opt-in so local tests are not flaky:
 
 ```bash
 TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
 ```
 
-## Project Output
-
-A project uses predictable DAW-friendly folders:
-
-```text
-TrackExtract Projects/
-  Artist - Song/
-    original/
-    stems/
-      Artist - Song - Vocals.wav
-      Artist - Song - Drums.wav
-      Artist - Song - Bass.wav
-      Artist - Song - Guitar.wav
-      Artist - Song - Piano.wav
-      Artist - Song - Other.wav
-    renders/
-    logs/
-    session.json
-```
-
 ## Model Registry
 
-The bundled registry lives at `resources/models.json`, and the Python engine copies it into local app data on first launch. On later launches, curated bundled entries are synced into the local registry and old prototype stub/placeholder entries are pruned. User-added model ids are left alone.
+The generated bundled registry lives at `resources/models.json`, and source fragments live under `resources/models/`.
 
-Installed Demucs provider entries are included for real development renders:
+```bash
+npm run models:build
+npm run test:models
+```
 
-- `demucs_htdemucs_vocals_instrumental` uses Demucs `htdemucs` with `--two-stems=vocals`.
-- `demucs_htdemucs_ft_vocals_instrumental` uses fine-tuned `htdemucs_ft` for slower, higher-quality vocal splits.
-- `demucs_htdemucs_6s_full_split` uses Demucs `htdemucs_6s` for vocals, drums, bass, guitar, piano, and other.
-- `demucs_htdemucs_ft_4stem_best_split` uses fine-tuned `htdemucs_ft` for vocals, drums, bass, and other.
-- `demucs_htdemucs_drums_only` and `demucs_htdemucs_bass_only` provide isolated source plus inverse stems.
-- `demucs_htdemucs_6s_guitar_only` and `demucs_htdemucs_6s_piano_only` provide experimental isolated source plus inverse stems.
-- `uvr_mdx23c_instvoc_hq` catalogs MDX23C InstVoc HQ for high-quality vocal/instrumental extraction.
-- `onnx_uvr_mdxnet_karaoke_2` catalogs UVR MDX-NET Karaoke 2 for layered/backing vocal cleanup.
-- `onnx_uvr_mdxnet_voc_ft` catalogs UVR MDX-NET Voc FT for vocal-focused refinement.
-- `onnx_reverb_hq_by_foxjoy` catalogs Reverb HQ By FoxJoy for vocal dereverb.
-- `uvr_denoise` catalogs UVR DeNoise for final vocal cleanup.
-
-The bundled catalog now includes the public UVR single-model release model files as managed downloads, excluding YAML/config sidecars that are not useful as standalone choices in the UI. It also includes MVSEP separation and restoration algorithms as source references so producers can discover RoFormer, SCNet, MDX, drum, guitar, piano, wind, string, percussion, dereverb, denoise, and restoration options without leaving the model manager. ASR, TTS, MIDI extraction, mastering, and music-generation entries from MVSEP are intentionally not modeled as runnable TrackExtract separation tasks yet.
-
-Missing ONNX, RoFormer, MDX23C, and VR rows are real catalog candidates, not fake placeholders. Downloadable `.onnx`, `.pth`, and `.ckpt` entries run through the Python audio-separator provider after setup. Raw `.th` Demucs weights are still cataloged, but they need matching YAML model definitions before TrackExtract can run them. MVSEP rows without direct model files remain source references until a local compatible model or service adapter exists.
-
-Downloadable entries with paths under `models/` can be installed from the UI. audio-separator entries discovered from the Model Library sync can be prefetched through audio-separator itself. TrackExtract stores local files in app data, updates the editable local registry, and emits progress through `model_download_progress`.
-
-Useful public model sources:
-
-- Demucs: https://github.com/facebookresearch/demucs
-- Public UVR single-model release: https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models
-- MVSEP algorithm catalog: https://mvsep.com/en
-- UVR ONNX models via sherpa-onnx: https://k2-fsa.github.io/sherpa/onnx/source-separation/models.html
-- Hugging Face source-separation models: https://huggingface.co/models?other=source-separation
-- RoFormer catalog source: https://huggingface.co/AEmotionStudio/roformer-models
+See [docs/model-registry.md](docs/model-registry.md) for registry structure, model sources, and install-state semantics.
 
 ## Roadmap
 

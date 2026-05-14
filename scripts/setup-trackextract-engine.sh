@@ -17,7 +17,7 @@ else
 fi
 
 "$VENV_PYTHON" -m pip install --upgrade pip wheel
-"$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine[test]"
+"$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine"
 "$VENV_PYTHON" -m pip install static-ffmpeg "demucs==4.0.1" "audio-separator[$AUDIO_SEPARATOR_EXTRA]==$AUDIO_SEPARATOR_VERSION"
 
 "$VENV_PYTHON" - <<'PY'
@@ -25,7 +25,7 @@ from importlib import metadata
 import importlib.util
 
 print("trackextract_engine importable:", importlib.util.find_spec("trackextract_engine") is not None)
-for package in ["demucs", "audio-separator", "pytest"]:
+for package in ["demucs", "audio-separator"]:
     try:
         print(f"{package}: {metadata.version(package)}")
     except Exception as error:

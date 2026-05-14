@@ -12,7 +12,6 @@ from pathlib import Path
 from trackextract_engine.catalog_audio_separator import entry_from_supported_model
 from trackextract_engine.engine import Engine
 from trackextract_engine.paths import EngineContext
-from trackextract_engine.providers.stub import write_silence
 from trackextract_engine.registry import load_models
 
 
@@ -100,7 +99,9 @@ def test_job_lifecycle_and_stub_provider_writes_valid_wav(tmp_path: Path) -> Non
     }
     (ctx.models_path).write_text(json.dumps([stub]), encoding="utf-8")
 
-    job = engine.enqueue_separation({"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}})
+    job = engine.enqueue_separation(
+        {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+    )
     events = []
     completed = engine.start_job({"jobId": job["id"]}, lambda name, payload: events.append((name, payload)))
 
@@ -173,7 +174,9 @@ def test_installer_handles_direct_url_download(tmp_path: Path) -> None:
         }
         ctx.models_path.write_text(json.dumps([model]), encoding="utf-8")
         events = []
-        installed = engine.install_model({"modelId": "direct_model"}, lambda name, payload: events.append((name, payload)))
+        installed = engine.install_model(
+            {"modelId": "direct_model"}, lambda name, payload: events.append((name, payload))
+        )
     finally:
         server.shutdown()
         os.chdir(previous_cwd)
@@ -203,7 +206,9 @@ def test_jsonl_start_job_protocol(tmp_path: Path) -> None:
         "options": [],
     }
     ctx.models_path.write_text(json.dumps([stub]), encoding="utf-8")
-    job = engine.enqueue_separation({"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}})
+    job = engine.enqueue_separation(
+        {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+    )
     payload = {
         "context": {
             "appDataDir": str(ctx.app_data_dir),
@@ -218,8 +223,7 @@ def test_jsonl_start_job_protocol(tmp_path: Path) -> None:
     completed = subprocess.run(
         [sys.executable, "-m", "trackextract_engine", "start_job", "--jsonl"],
         input=json.dumps(payload),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
         env=os.environ,

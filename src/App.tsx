@@ -41,13 +41,7 @@ type TaskType =
   | "vocal_dereverb"
   | "vocal_denoise";
 
-type JobState =
-  | "queued"
-  | "preparing"
-  | "running"
-  | "complete"
-  | "failed"
-  | "cancelled";
+type JobState = "queued" | "preparing" | "running" | "complete" | "failed" | "cancelled";
 
 type BackendKind = "stub" | "onnx" | "pytorch-worker" | "external-process" | "python-engine";
 type InstallMethod = "direct-url" | "audio-separator" | "source-only";
@@ -225,8 +219,7 @@ const TASKS: Array<{ value: TaskType; label: string; short: string }> = [
 ];
 
 const AUDIO_EXTENSIONS = ["wav", "aiff", "aif", "flac", "mp3", "m4a"];
-const SILENT_WAV_DATA_URI =
-  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const MODEL_STATUS_FILTERS: Array<{ value: ModelStatusFilter; label: string }> = [
   { value: "all", label: "All statuses" },
   { value: "runnable", label: "Runnable" },
@@ -255,10 +248,7 @@ async function command<T>(name: string, args?: CommandArgs): Promise<T> {
   return mockCommand<T>(name, args);
 }
 
-async function listenTo<T>(
-  eventName: string,
-  handler: Parameters<typeof listen<T>>[1],
-): Promise<() => void> {
+async function listenTo<T>(eventName: string, handler: Parameters<typeof listen<T>>[1]): Promise<() => void> {
   if (!isTauriRuntime()) {
     return () => undefined;
   }
@@ -511,15 +501,13 @@ function App() {
 
   const selectedWorkflow = workflows.find((workflow) => workflow.id === selectedWorkflowId);
   const selectedWorkflowStep = selectedWorkflow?.steps[0];
-  const compatibleModels = useMemo(
-    () => models.filter((model) => model.tasks.includes(task)),
-    [models, task],
-  );
+  const compatibleModels = useMemo(() => models.filter((model) => model.tasks.includes(task)), [models, task]);
   const selectedModel = compatibleModels.find((model) => model.id === selectedModelId);
   const selectedModelOptions = selectedModel?.options ?? [];
   const runningJob = jobs.find((job) => job.state === "running" || job.state === "preparing");
   const latestJob = jobs[0];
-  const selectedSource = project?.originalFiles.find((source) => source.id === selectedSourceId) ?? project?.originalFiles[0];
+  const selectedSource =
+    project?.originalFiles.find((source) => source.id === selectedSourceId) ?? project?.originalFiles[0];
   const soloActive = Object.values(previewState).some((state) => state.solo);
   const selectedModelRunnable = selectedModel ? isRunnableModel(selectedModel) : false;
   const filteredModels = useMemo(() => {
@@ -528,13 +516,16 @@ function App() {
       .filter((model) => modelMatchesFilters(model, query, modelStatusFilter, modelTaskFilter, modelBackendFilter))
       .sort(compareModelsForLibrary);
   }, [modelBackendFilter, modelFilter, modelStatusFilter, modelTaskFilter, models]);
-  const modelCounts = useMemo(() => ({
-    total: models.length,
-    runnable: models.filter(isRunnableModel).length,
-    installable: models.filter(isInstallableModel).length,
-    pending: models.filter((model) => model.installed && !isRunnableModel(model)).length,
-    missing: models.filter((model) => modelStatusKey(model) === "missing").length,
-  }), [models]);
+  const modelCounts = useMemo(
+    () => ({
+      total: models.length,
+      runnable: models.filter(isRunnableModel).length,
+      installable: models.filter(isInstallableModel).length,
+      pending: models.filter((model) => model.installed && !isRunnableModel(model)).length,
+      missing: models.filter((model) => modelStatusKey(model) === "missing").length,
+    }),
+    [models],
+  );
   useEffect(() => {
     if (!selectedWorkflowStep) {
       return;
@@ -542,7 +533,7 @@ function App() {
 
     setTask(selectedWorkflowStep.task);
     setSelectedModelId(selectedWorkflowStep.modelId);
-  }, [selectedWorkflowStep?.id, selectedWorkflowStep?.modelId, selectedWorkflowStep?.task]);
+  }, [selectedWorkflowStep]);
 
   useEffect(() => {
     setRenderOptions(
@@ -553,7 +544,7 @@ function App() {
           }
         : {},
     );
-  }, [selectedModel?.id, selectedWorkflowId, selectedWorkflowStep?.modelId]);
+  }, [selectedModel, selectedWorkflowStep]);
 
   async function chooseFiles() {
     if (!isTauriRuntime()) {
@@ -582,9 +573,8 @@ function App() {
     }
 
     const files = Array.from(event.dataTransfer.files);
-    const mockPaths = files.length > 0
-      ? files.map((file) => `/mock/${file.name}`)
-      : ["/mock/Artist - Browser Demo.wav"];
+    const mockPaths =
+      files.length > 0 ? files.map((file) => `/mock/${file.name}`) : ["/mock/Artist - Browser Demo.wav"];
     await importAudioPaths(mockPaths);
   }
 
@@ -676,9 +666,7 @@ function App() {
       return;
     }
 
-    const destination = isTauriRuntime()
-      ? await open({ directory: true, multiple: false })
-      : "/mock/export";
+    const destination = isTauriRuntime() ? await open({ directory: true, multiple: false }) : "/mock/export";
     if (!destination || Array.isArray(destination)) {
       return;
     }
@@ -865,8 +853,15 @@ function App() {
             {project ? (
               <div className="project-summary">
                 <strong>{project.name}</strong>
-                <span>{project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"}</span>
-                <button className="icon-button" type="button" onClick={revealCurrentProject} title="Reveal project folder">
+                <span>
+                  {project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"}
+                </span>
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={revealCurrentProject}
+                  title="Reveal project folder"
+                >
                   <ExternalLink aria-hidden />
                 </button>
               </div>
@@ -903,10 +898,7 @@ function App() {
             {project && project.originalFiles.length > 1 ? (
               <label className="field-label">
                 Source
-                <select
-                  value={selectedSourceId}
-                  onChange={(event) => setSelectedSourceId(event.currentTarget.value)}
-                >
+                <select value={selectedSourceId} onChange={(event) => setSelectedSourceId(event.currentTarget.value)}>
                   {project.originalFiles.map((source) => (
                     <option key={source.id} value={source.id}>
                       {source.originalName}
@@ -944,11 +936,21 @@ function App() {
                 {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
                 Run workflow
               </button>
-              <button className="secondary-action inline-action" type="button" onClick={() => setModelManagerOpen(true)}>
+              <button
+                className="secondary-action inline-action"
+                type="button"
+                onClick={() => setModelManagerOpen(true)}
+              >
                 <Database aria-hidden />
                 Model library
               </button>
-              <button className="icon-action" type="button" onClick={cancelRunningJob} disabled={!runningJob} title="Cancel job">
+              <button
+                className="icon-action"
+                type="button"
+                onClick={cancelRunningJob}
+                disabled={!runningJob}
+                title="Cancel job"
+              >
                 <Square aria-hidden />
               </button>
             </div>
@@ -1051,7 +1053,12 @@ function App() {
                 <Database aria-hidden />
                 <h2>Model Setup</h2>
               </span>
-              <button className="icon-button" type="button" onClick={() => setModelManagerOpen(true)} title="Manage models">
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => setModelManagerOpen(true)}
+                title="Manage models"
+              >
                 <Database aria-hidden />
               </button>
             </div>
@@ -1068,7 +1075,9 @@ function App() {
               {selectedModel ? (
                 <>
                   <strong>{selectedModel.displayName}</strong>
-                  <small>{selectedModel.backend} · {selectedModel.quality} · {formatTask(task)}</small>
+                  <small>
+                    {selectedModel.backend} · {selectedModel.quality} · {formatTask(task)}
+                  </small>
                   <ModelStatusPill model={selectedModel} progress={modelInstallProgress[selectedModel.id]} />
                 </>
               ) : (
@@ -1077,13 +1086,17 @@ function App() {
             </div>
 
             <div className="workflow-step-list compact-step-list">
-              {(selectedWorkflow?.steps ?? [{
-                id: "ad_hoc",
-                displayName: "Ad hoc step",
-                task,
-                modelId: selectedModelId,
-                options: renderOptions,
-              }]).map((step, index) => {
+              {(
+                selectedWorkflow?.steps ?? [
+                  {
+                    id: "ad_hoc",
+                    displayName: "Ad hoc step",
+                    task,
+                    modelId: selectedModelId,
+                    options: renderOptions,
+                  },
+                ]
+              ).map((step, index) => {
                 const stepModel = models.find((model) => model.id === step.modelId);
                 return (
                   <article className="workflow-step-row compact-step-row" key={step.id}>
@@ -1091,7 +1104,9 @@ function App() {
                     <div>
                       <strong>{step.displayName}</strong>
                       <small>{stepModel?.displayName ?? step.modelId}</small>
-                      {stepModel ? <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small> : null}
+                      {stepModel ? (
+                        <small>{modelStatusText(stepModel, modelInstallProgress[stepModel.id])}</small>
+                      ) : null}
                     </div>
                   </article>
                 );
@@ -1246,10 +1261,8 @@ function ModelManager({
   statusFilter: ModelStatusFilter;
   taskFilter: ModelTaskFilter;
 }) {
-  const filtersActive = Boolean(filter.trim()) ||
-    statusFilter !== "all" ||
-    taskFilter !== "all" ||
-    backendFilter !== "all";
+  const filtersActive =
+    Boolean(filter.trim()) || statusFilter !== "all" || taskFilter !== "all" || backendFilter !== "all";
 
   return (
     <div className="modal-backdrop" role="presentation">
@@ -1259,7 +1272,9 @@ function ModelManager({
             <Database aria-hidden />
             <span>
               <h2>Model Library</h2>
-              <small>{models.length} of {counts.total} models visible</small>
+              <small>
+                {models.length} of {counts.total} models visible
+              </small>
             </span>
           </span>
           <button className="icon-button" type="button" onClick={onClose} title="Close model library">
@@ -1268,11 +1283,21 @@ function ModelManager({
         </div>
 
         <div className="model-library-stats" aria-label="Model library summary">
-          <span><strong>{counts.total}</strong>Total</span>
-          <span><strong>{counts.runnable}</strong>Runnable</span>
-          <span><strong>{counts.installable}</strong>Installable</span>
-          <span><strong>{counts.pending}</strong>Needs definition</span>
-          <span><strong>{counts.missing}</strong>Catalog only</span>
+          <span>
+            <strong>{counts.total}</strong>Total
+          </span>
+          <span>
+            <strong>{counts.runnable}</strong>Runnable
+          </span>
+          <span>
+            <strong>{counts.installable}</strong>Installable
+          </span>
+          <span>
+            <strong>{counts.pending}</strong>Needs definition
+          </span>
+          <span>
+            <strong>{counts.missing}</strong>Catalog only
+          </span>
         </div>
 
         <div className="model-manager-toolbar">
@@ -1349,7 +1374,11 @@ function ModelManager({
           ) : (
             models.map((model) => (
               <article
-                className={selectedModelId === model.id ? "manager-model-row library-model-row is-selected" : "manager-model-row library-model-row"}
+                className={
+                  selectedModelId === model.id
+                    ? "manager-model-row library-model-row is-selected"
+                    : "manager-model-row library-model-row"
+                }
                 key={model.id}
               >
                 <button className="library-model-title" type="button" onClick={() => onUse(model)}>
@@ -1364,8 +1393,12 @@ function ModelManager({
                 </div>
                 <div className="library-model-meta">
                   <strong>{model.backend}</strong>
-                  <small>{model.quality} · {formatSampleRate(model.sampleRate)}</small>
-                  <small>{model.downloadSizeMb ? `${model.downloadSizeMb} MB` : model.license ?? "No packaged file"}</small>
+                  <small>
+                    {model.quality} · {formatSampleRate(model.sampleRate)}
+                  </small>
+                  <small>
+                    {model.downloadSizeMb ? `${model.downloadSizeMb} MB` : (model.license ?? "No packaged file")}
+                  </small>
                 </div>
                 <div className="library-model-status">
                   <ModelStatusPill model={model} progress={installProgress[model.id]} />
@@ -1383,11 +1416,18 @@ function ModelManager({
                       disabled={Boolean(installProgress[model.id])}
                     >
                       <Download aria-hidden />
-                      {installProgress[model.id] ? `${Math.round(installProgress[model.id].progress * 100)}%` : "Install"}
+                      {installProgress[model.id]
+                        ? `${Math.round(installProgress[model.id].progress * 100)}%`
+                        : "Install"}
                     </button>
                   ) : null}
                   {model.sourceUrl || model.downloadUrl ? (
-                    <button className="icon-button" type="button" onClick={() => onOpenSource(model)} title="Open model source">
+                    <button
+                      className="icon-button"
+                      type="button"
+                      onClick={() => onOpenSource(model)}
+                      title="Open model source"
+                    >
                       <ExternalLink aria-hidden />
                     </button>
                   ) : null}
@@ -1424,11 +1464,7 @@ function RenderOptionControl({
 
   if (option.type === "boolean") {
     return (
-      <input
-        checked={Boolean(value)}
-        onChange={(event) => onChange(event.currentTarget.checked)}
-        type="checkbox"
-      />
+      <input checked={Boolean(value)} onChange={(event) => onChange(event.currentTarget.checked)} type="checkbox" />
     );
   }
 
@@ -1585,10 +1621,7 @@ function formatSampleRate(sampleRate: number) {
 
 function defaultRenderOptions(model: ModelEntry) {
   return Object.fromEntries(
-    (model.options ?? []).map((option) => [
-      option.id,
-      coerceRenderOptionValue(option, option.defaultValue),
-    ]),
+    (model.options ?? []).map((option) => [option.id, coerceRenderOptionValue(option, option.defaultValue)]),
   ) as Record<string, RenderOptionValue>;
 }
 
@@ -1630,33 +1663,37 @@ function clampOptionNumber(option: ModelOptionDefinition, value: number) {
 function formatAudioSummary(source: AudioSource) {
   const sampleRate = source.sampleRate ? `${(source.sampleRate / 1000).toFixed(1)} kHz` : "Unknown rate";
   const channels = source.channels ? `${source.channels} ch` : "Unknown channels";
-  const duration = typeof source.durationSeconds === "number" ? formatDuration(source.durationSeconds) : "Unknown length";
+  const duration =
+    typeof source.durationSeconds === "number" ? formatDuration(source.durationSeconds) : "Unknown length";
   return `${sampleRate} · ${channels} · ${duration}`;
 }
 
 function formatDuration(seconds: number) {
   const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.round(seconds % 60).toString().padStart(2, "0");
+  const remainingSeconds = Math.round(seconds % 60)
+    .toString()
+    .padStart(2, "0");
   return `${minutes}:${remainingSeconds}`;
 }
 
 function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 48) || "workflow";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 48) || "workflow"
+  );
 }
 
 function isRunnableModel(model: ModelEntry) {
   const provider = model.runtime?.provider;
   return Boolean(
     model.installed &&
-    (
-      (model.backend === "python-engine" && (provider === "demucs" || provider === "audio-separator" || provider === "stub")) ||
+    ((model.backend === "python-engine" &&
+      (provider === "demucs" || provider === "audio-separator" || provider === "stub")) ||
       model.backend === "pytorch-worker" ||
-      model.backend === "stub"
-    ),
+      model.backend === "stub"),
   );
 }
 
@@ -1765,17 +1802,17 @@ function modelLibraryRank(model: ModelEntry) {
 }
 
 function isCuratedModel(model: ModelEntry) {
-  return model.id.startsWith("onnx_") ||
+  return (
+    model.id.startsWith("onnx_") ||
     model.id === "uvr_mdx23c_instvoc_hq" ||
     model.id === "uvr_denoise" ||
-    model.id === "catalog_roformer_vocals";
+    model.id === "catalog_roformer_vocals"
+  );
 }
 
 function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
   if (progress) {
-    return progress.totalBytes
-      ? `${progress.message} · ${Math.round(progress.progress * 100)}%`
-      : progress.message;
+    return progress.totalBytes ? `${progress.message} · ${Math.round(progress.progress * 100)}%` : progress.message;
   }
 
   if (isRunnableModel(model)) {
@@ -1895,7 +1932,12 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
         throw new Error(`${model?.displayName ?? "Selected model"} is not installed.`);
       }
 
-      const job = createMockJob(mockProject, task, model.id, (args?.options as Record<string, RenderOptionValue> | undefined) ?? {});
+      const job = createMockJob(
+        mockProject,
+        task,
+        model.id,
+        (args?.options as Record<string, RenderOptionValue> | undefined) ?? {},
+      );
       mockJobs = [job, ...mockJobs];
       mockProject.jobs = [job.id, ...mockProject.jobs];
       return job as T;
@@ -2097,9 +2139,8 @@ function mockPreviewAudioUrl(path: string) {
   writeU32(dataBytes);
 
   for (let frame = 0; frame < frames; frame += 1) {
-    const envelope = Math.sin(Math.PI * frame / frames);
-    const sample =
-      Math.sin(2 * Math.PI * pitch * frame / sampleRate) * envelope * 0.18;
+    const envelope = Math.sin((Math.PI * frame) / frames);
+    const sample = Math.sin((2 * Math.PI * pitch * frame) / sampleRate) * envelope * 0.18;
     view.setInt16(offset, Math.round(sample * i16Max()), true);
     offset += 2;
   }

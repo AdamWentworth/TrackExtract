@@ -17,4 +17,4 @@ fi
 
 "$VENV_PYTHON" -m pip install --quiet --upgrade pip
 "$VENV_PYTHON" -m pip install --quiet -e "$ROOT_DIR/engine[dev]"
-"$VENV_PYTHON" -m pytest "$ROOT_DIR/engine/tests"
+"$VENV_PYTHON" -m ruff check "$ROOT_DIR/engine"

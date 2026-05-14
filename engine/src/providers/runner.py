@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from . import audio_separator, demucs, stub
 from ..errors import TrackExtractError
+from . import audio_separator, demucs, stub
 
 
 def run_provider(request: dict, emit) -> tuple[list[dict], object]:
@@ -13,4 +13,6 @@ def run_provider(request: dict, emit) -> tuple[list[dict], object]:
         return audio_separator.run(request, emit)
     if provider == "stub":
         return stub.run(request, emit)
-    raise TrackExtractError(f"{model.get('displayName')} is installed, but this model asset is not runnable in TrackExtract yet.")
+    raise TrackExtractError(
+        f"{model.get('displayName')} is installed, but this model asset is not runnable in TrackExtract yet."
+    )

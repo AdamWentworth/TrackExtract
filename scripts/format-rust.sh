@@ -6,9 +6,8 @@ if [[ -f "${HOME}/.cargo/env" ]]; then
   source "${HOME}/.cargo/env"
 fi
 
-if [[ "${1:-}" == "--lint-only" ]]; then
-  cargo clippy --workspace --all-targets -- -D warnings
-  exit 0
+if [[ "${1:-}" == "--check" || "${1:-}" == "check" ]]; then
+  cargo fmt --all -- --check
+else
+  cargo fmt --all
 fi
-
-cargo test

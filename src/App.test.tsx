@@ -114,8 +114,9 @@ describe("TrackExtract app", () => {
     const dialog = await screen.findByRole("dialog", { name: "Model Library" });
     const library = within(dialog);
     fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "MDX23C" } });
-    const mdx23cTitle = (await library.findAllByText("UVR MDX23C InstVoc HQ"))
-      .find((element) => element.closest("article"));
+    const mdx23cTitle = (await library.findAllByText("UVR MDX23C InstVoc HQ")).find((element) =>
+      element.closest("article"),
+    );
     if (!mdx23cTitle) {
       throw new Error("Expected UVR MDX23C row in the model library.");
     }
@@ -251,8 +252,7 @@ describe("TrackExtract app", () => {
     const library = within(dialog);
     fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "ebf34a2d" } });
 
-    const demucsWeightTitle = (await library.findAllByText("ebf34a2d"))
-      .find((element) => element.closest("article"));
+    const demucsWeightTitle = (await library.findAllByText("ebf34a2d")).find((element) => element.closest("article"));
     if (!demucsWeightTitle) {
       throw new Error("Expected ebf34a2d row in the model library.");
     }
@@ -262,7 +262,9 @@ describe("TrackExtract app", () => {
 
     expect(await screen.findByText("ebf34a2d installed")).toBeInTheDocument();
     await waitFor(() => {
-      expect(within(demucsWeightRow as HTMLElement).getByText("Installed · needs model definition")).toBeInTheDocument();
+      expect(
+        within(demucsWeightRow as HTMLElement).getByText("Installed · needs model definition"),
+      ).toBeInTheDocument();
     });
   });
 

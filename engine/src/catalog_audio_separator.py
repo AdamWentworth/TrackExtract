@@ -30,8 +30,7 @@ def sync_catalog(context: EngineContext) -> list[dict]:
 def list_supported_models() -> dict:
     completed = subprocess.run(
         [sys.executable, "-m", "audio_separator.utils.cli", "--list_models", "--list_format=json"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
     )
@@ -129,7 +128,31 @@ def default_audio_separator_options() -> list[dict]:
                 {"value": "cpu", "label": "CPU"},
             ],
         },
-        {"id": "mdxSegmentSize", "displayName": "Segment", "type": "integer", "defaultValue": 256, "min": 32, "max": 512, "step": 32},
-        {"id": "mdxOverlap", "displayName": "Overlap", "type": "number", "defaultValue": 0.25, "min": 0.01, "max": 0.99, "step": 0.01},
-        {"id": "batchSize", "displayName": "Batch", "type": "integer", "defaultValue": 1, "min": 1, "max": 16, "step": 1},
+        {
+            "id": "mdxSegmentSize",
+            "displayName": "Segment",
+            "type": "integer",
+            "defaultValue": 256,
+            "min": 32,
+            "max": 512,
+            "step": 32,
+        },
+        {
+            "id": "mdxOverlap",
+            "displayName": "Overlap",
+            "type": "number",
+            "defaultValue": 0.25,
+            "min": 0.01,
+            "max": 0.99,
+            "step": 0.01,
+        },
+        {
+            "id": "batchSize",
+            "displayName": "Batch",
+            "type": "integer",
+            "defaultValue": 1,
+            "min": 1,
+            "max": 16,
+            "step": 1,
+        },
     ]

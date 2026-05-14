@@ -14,7 +14,7 @@ class EngineContext:
     bundled_workflows: str
 
     @classmethod
-    def from_payload(cls, payload: dict) -> "EngineContext":
+    def from_payload(cls, payload: dict) -> EngineContext:
         context = payload.get("context") or {}
         repo_root = Path(context.get("repoRoot") or os.getcwd()).expanduser()
         app_data = Path(context.get("appDataDir") or default_app_data_dir()).expanduser()

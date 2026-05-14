@@ -1,0 +1,594 @@
+[
+  {
+    "id": "demucs_htdemucs_6s_full_split",
+    "displayName": "Demucs HTDemucs 6 Stem Split",
+    "backend": "python-engine",
+    "tasks": ["full_stem_split"],
+    "stems": ["Vocals", "Drums", "Bass", "Guitar", "Piano", "Other"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "demucs-4.0.1/htdemucs_6s",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Experimental Demucs v4 six-source model. Guitar is usable; piano may bleed.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs_6s",
+      "demucsMode": "full",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_6s"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_6s_guitar_only",
+    "displayName": "Demucs HTDemucs 6s Guitar / No Guitar",
+    "backend": "python-engine",
+    "tasks": ["guitar_only"],
+    "stems": ["Guitar", "No Guitar"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "demucs-4.0.1/htdemucs_6s",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Experimental six-source Demucs preset for guitar isolation.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs_6s",
+      "demucsMode": "guitar",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_6s"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_6s_piano_only",
+    "displayName": "Demucs HTDemucs 6s Piano / No Piano",
+    "backend": "python-engine",
+    "tasks": ["piano_only"],
+    "stems": ["Piano", "No Piano"],
+    "sampleRate": 44100,
+    "quality": "experimental",
+    "version": "demucs-4.0.1/htdemucs_6s",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Experimental six-source Demucs preset for piano isolation. Expect bleed.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs_6s",
+      "demucsMode": "piano",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_6s"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_bass_only",
+    "displayName": "Demucs HTDemucs Bass / No Bass",
+    "backend": "python-engine",
+    "tasks": ["bass_only"],
+    "stems": ["Bass", "No Bass"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "demucs-4.0.1/htdemucs",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Real Demucs source-isolation preset for bass.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs",
+      "demucsMode": "bass",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_drums_only",
+    "displayName": "Demucs HTDemucs Drums / No Drums",
+    "backend": "python-engine",
+    "tasks": ["drums_only"],
+    "stems": ["Drums", "No Drums"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "demucs-4.0.1/htdemucs",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Real Demucs source-isolation preset for drums.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs",
+      "demucsMode": "drums",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_ft_4stem_best_split",
+    "displayName": "Demucs HTDemucs FT 4 Stem Best Split",
+    "backend": "python-engine",
+    "tasks": ["experimental_best_quality"],
+    "stems": ["Vocals", "Drums", "Bass", "Other"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "demucs-4.0.1/htdemucs_ft",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Fine-tuned four-stem Demucs render. Slower than HTDemucs, usually cleaner.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs_ft",
+      "demucsMode": "full",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_ft"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_ft_vocals_instrumental",
+    "displayName": "Demucs HTDemucs FT Vocals / Instrumental",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "best",
+    "version": "demucs-4.0.1/htdemucs_ft",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Fine-tuned Demucs v4 vocal split. Higher quality, substantially slower.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs_ft",
+      "demucsMode": "vocals",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_ft"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  },
+  {
+    "id": "demucs_htdemucs_vocals_instrumental",
+    "displayName": "Demucs HTDemucs Vocals / Instrumental",
+    "backend": "python-engine",
+    "tasks": ["vocals_instrumental"],
+    "stems": ["Vocals", "Instrumental"],
+    "sampleRate": 44100,
+    "quality": "balanced",
+    "version": "demucs-4.0.1/htdemucs",
+    "installed": true,
+    "path": "engine/src/workers/demucs_worker.py",
+    "downloadUrl": "https://pypi.org/project/demucs/",
+    "sourceUrl": "https://github.com/facebookresearch/demucs",
+    "license": "MIT",
+    "notes": "Real Demucs v4 model loaded through the isolated PyTorch worker.",
+    "runtime": {
+      "workerScript": "engine/src/workers/demucs_worker.py",
+      "demucsModel": "htdemucs",
+      "demucsMode": "vocals",
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs"
+    },
+    "options": [
+      {
+        "id": "device",
+        "displayName": "Device",
+        "type": "select",
+        "defaultValue": "auto",
+        "choices": [
+          {
+            "value": "auto",
+            "label": "Auto"
+          },
+          {
+            "value": "cuda",
+            "label": "CUDA"
+          },
+          {
+            "value": "cpu",
+            "label": "CPU"
+          }
+        ]
+      },
+      {
+        "id": "demucsShifts",
+        "displayName": "Shifts",
+        "type": "integer",
+        "defaultValue": 1,
+        "min": 0,
+        "max": 4,
+        "step": 1
+      },
+      {
+        "id": "demucsOverlap",
+        "displayName": "Overlap",
+        "type": "number",
+        "defaultValue": 0.25,
+        "min": 0.05,
+        "max": 0.75,
+        "step": 0.05
+      },
+      {
+        "id": "demucsSegmentSeconds",
+        "displayName": "Segment",
+        "type": "integer",
+        "defaultValue": 0,
+        "min": 0,
+        "max": 30,
+        "step": 1
+      }
+    ],
+    "installMethod": "source-only"
+  }
+]

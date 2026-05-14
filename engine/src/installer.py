@@ -18,7 +18,9 @@ def install_model(context: EngineContext, model_id: str, emit) -> dict:
 
     method = model.get("installMethod") or infer_install_method(model)
     if method == "source-only":
-        raise TrackExtractError(f"{model['displayName']} is a source reference and does not have a managed local install yet")
+        raise TrackExtractError(
+            f"{model['displayName']} is a source reference and does not have a managed local install yet"
+        )
     if method == "audio-separator" and not model.get("downloadUrl"):
         prefetch_audio_separator_model(context, model, emit)
     else:
@@ -64,7 +66,9 @@ def download_direct_model(context: EngineContext, model: dict, emit) -> None:
             progress = downloaded / total if total else 0
             emit_progress(emit, model, progress, downloaded, total, f"Downloading {model['displayName']}")
     temp.replace(destination)
-    emit_progress(emit, model, 1, destination.stat().st_size, destination.stat().st_size, f"Installed {model['displayName']}")
+    emit_progress(
+        emit, model, 1, destination.stat().st_size, destination.stat().st_size, f"Installed {model['displayName']}"
+    )
 
 
 def prefetch_audio_separator_model(context: EngineContext, model: dict, emit) -> None:
@@ -97,7 +101,9 @@ def prefetch_audio_separator_model(context: EngineContext, model: dict, emit) ->
     emit_progress(emit, model, 1, 0, None, f"Installed {model['displayName']}")
 
 
-def emit_progress(emit, model: dict, progress: float, bytes_downloaded: int, total_bytes: int | None, message: str) -> None:
+def emit_progress(
+    emit, model: dict, progress: float, bytes_downloaded: int, total_bytes: int | None, message: str
+) -> None:
     emit(
         "model_download_progress",
         {
