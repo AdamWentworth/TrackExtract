@@ -14,8 +14,7 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     project = request["project"]
     options = job.get("options") or {}
     runtime = model.get("runtime") or {}
-    repo_root = Path(context["repoRoot"])
-    worker = Path(os.environ.get("TRACKEXTRACT_DEMUCS_WORKER") or repo_root / "workers" / "demucs_worker.py")
+    worker = Path(os.environ.get("TRACKEXTRACT_DEMUCS_WORKER") or Path(__file__).resolve().parents[1] / "workers" / "demucs_worker.py")
     logs_dir = Path(project["rootPath"]) / "logs"
     stems_dir = Path(project["rootPath"]) / "stems"
     work_dir = logs_dir / f"demucs-work-{job['id']}"

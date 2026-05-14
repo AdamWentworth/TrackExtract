@@ -33,7 +33,7 @@
     "resources": [
       "../resources/models.json",
       "../resources/workflows.json",
-      "../workers/demucs_worker.py",
+      "../engine/src/trackextract_engine",
       "../schemas/model_registry.schema.json",
       "../schemas/workflows.schema.json",
       "../schemas/session.schema.json"

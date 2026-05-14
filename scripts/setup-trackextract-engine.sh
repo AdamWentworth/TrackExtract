@@ -17,9 +17,10 @@ else
 fi
 
 "$VENV_PYTHON" -m pip install --upgrade pip wheel
-"$VENV_PYTHON" -m pip install pytest static-ffmpeg "demucs==4.0.1" "audio-separator[$AUDIO_SEPARATOR_EXTRA]==$AUDIO_SEPARATOR_VERSION"
+"$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine[test]"
+"$VENV_PYTHON" -m pip install static-ffmpeg "demucs==4.0.1" "audio-separator[$AUDIO_SEPARATOR_EXTRA]==$AUDIO_SEPARATOR_VERSION"
 
-PYTHONPATH="$ROOT_DIR/python" "$VENV_PYTHON" - <<'PY'
+"$VENV_PYTHON" - <<'PY'
 from importlib import metadata
 import importlib.util
 

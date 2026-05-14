@@ -14,9 +14,10 @@
     "test:all": "bash scripts/test-all.sh",
     "test:build": "npm run build",
     "test:frontend": "vitest run",
+    "test:engine": "bash scripts/test-python.sh",
     "test:models": "node scripts/validate-model-registry.mjs",
     "test:models:network": "node scripts/check-model-urls.mjs",
-    "test:python": "bash scripts/test-python.sh",
+    "test:python": "npm run test:engine",
     "test:workflows": "node scripts/validate-workflows.mjs",
     "test:rust": "bash scripts/test-rust.sh"
   },

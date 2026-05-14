@@ -15,5 +15,6 @@ else
   VENV_PYTHON="$VENV_DIR/Scripts/python.exe"
 fi
 
-"$VENV_PYTHON" -m pip install --quiet --upgrade pip pytest
-PYTHONPATH="$ROOT_DIR/python" "$VENV_PYTHON" -m pytest "$ROOT_DIR/python/tests"
+"$VENV_PYTHON" -m pip install --quiet --upgrade pip
+"$VENV_PYTHON" -m pip install --quiet -e "$ROOT_DIR/engine[test]"
+"$VENV_PYTHON" -m pytest "$ROOT_DIR/engine/tests"

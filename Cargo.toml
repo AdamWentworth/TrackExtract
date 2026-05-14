@@ -1,6 +1,5 @@
 [workspace]
 members = [
-  "crates/trackextract-core",
   "src-tauri",
 ]
 resolver = "2"

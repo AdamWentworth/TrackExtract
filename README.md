@@ -39,7 +39,16 @@ React/Tauri UI
         -> Stub provider
 ```
 
-The canonical engine package is `python/trackextract_engine`. It exposes `python -m trackextract_engine` for the Rust bridge and future CLI/service work. The old Rust `trackextract-core` crate remains in the repo for now as tested legacy code, but the Tauri app no longer depends on it.
+The canonical engine package lives in `engine/` using the standard Python `src/` layout. It exposes `python -m trackextract_engine` for the Rust bridge and future CLI/service work. Rust is limited to the Tauri shell and local desktop plumbing.
+
+## Repository Layout
+
+- `src/`: React/TypeScript frontend.
+- `src-tauri/`: Tauri 2 shell, command bridge, event forwarding, cancellation, and local media server.
+- `engine/`: Python package in standard `src/` layout. This is the product engine.
+- `resources/`: Bundled model and workflow registries copied into app data.
+- `schemas/`: JSON schemas for documented registry/session formats.
+- `scripts/`: Setup, validation, and test entrypoints.
 
 ## Build
 
@@ -83,7 +92,8 @@ Useful checks:
 ```bash
 npm run build
 npm test
-cargo test
+npm run test:engine
+npm run test:rust
 ```
 
 For the broader local suite, use:

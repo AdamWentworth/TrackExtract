@@ -8,7 +8,7 @@ fi
 
 npm run test:models
 npm run test:workflows
-npm run test:python
+npm run test:engine
 npm run test:frontend
 npm run test:build
 npm run test:rust

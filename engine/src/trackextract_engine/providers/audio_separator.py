@@ -15,8 +15,7 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     model = request["model"]
     project = request["project"]
     options = job.get("options") or {}
-    repo_root = Path(context_payload["repoRoot"])
-    worker = Path(os.environ.get("TRACKEXTRACT_AUDIO_SEPARATOR_WORKER") or repo_root / "workers" / "audio_separator_worker.py")
+    worker = Path(os.environ.get("TRACKEXTRACT_AUDIO_SEPARATOR_WORKER") or Path(__file__).resolve().parents[1] / "workers" / "audio_separator_worker.py")
     model_path = local_model_path(context, model)
     if not model_path:
         raise RuntimeError(f"{model['displayName']} does not have an installed local model file")

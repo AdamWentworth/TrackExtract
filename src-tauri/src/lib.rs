@@ -86,7 +86,7 @@ impl PythonEngineBridge {
             .arg("-m")
             .arg("trackextract_engine")
             .arg(command)
-            .env("PYTHONPATH", self.repo_root.join("python"))
+            .env("PYTHONPATH", self.repo_root.join("engine/src"))
             .current_dir(&self.repo_root)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -438,12 +438,6 @@ fn resolve_engine_python(repo_root: &Path) -> PathBuf {
     for relative in [
         ".venv-trackextract-engine/bin/python",
         ".venv-trackextract-engine/Scripts/python.exe",
-        ".venv-audio-separator/bin/python",
-        ".venv-audio-separator/Scripts/python.exe",
-        ".venv-demucs/bin/python",
-        ".venv-demucs/Scripts/python.exe",
-        ".venv/bin/python",
-        ".venv/Scripts/python.exe",
     ] {
         let candidate = repo_root.join(relative);
         if candidate.exists() {
@@ -471,7 +465,7 @@ fn find_repo_root() -> Result<PathBuf, String> {
 
     for candidate in candidates {
         for ancestor in candidate.ancestors() {
-            if ancestor.join("python/trackextract_engine").is_dir()
+            if ancestor.join("engine/src/trackextract_engine").is_dir()
                 && ancestor.join("resources/models.json").is_file()
             {
                 return Ok(ancestor.to_path_buf());
