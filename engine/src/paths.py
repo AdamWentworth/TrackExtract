@@ -43,10 +43,10 @@ class EngineContext:
 def default_app_data_dir() -> Path:
     home = Path.home()
     if os.name == "nt":
-        return Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")) / "TrackExtract"
+        return Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")) / "com.trackextract.app"
     if sys_platform() == "darwin":
-        return home / "Library" / "Application Support" / "TrackExtract"
-    return home / ".local" / "share" / "trackextract"
+        return home / "Library" / "Application Support" / "com.trackextract.app"
+    return Path(os.environ.get("XDG_DATA_HOME", home / ".local" / "share")) / "com.trackextract.app"
 
 
 def default_project_root() -> Path:

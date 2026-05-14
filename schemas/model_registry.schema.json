@@ -22,7 +22,7 @@
       "displayName": { "type": "string", "minLength": 1 },
       "backend": {
         "type": "string",
-        "enum": ["stub", "onnx", "pytorch-worker", "external-process"]
+        "enum": ["stub", "onnx", "pytorch-worker", "external-process", "python-engine"]
       },
       "tasks": {
         "type": "array",
@@ -59,9 +59,18 @@
       "license": { "type": "string" },
       "notes": { "type": "string" },
       "downloadSizeMb": { "type": "integer", "minimum": 1 },
+      "installMethod": {
+        "type": "string",
+        "enum": ["direct-url", "audio-separator", "source-only"]
+      },
       "runtime": {
         "type": "object",
         "properties": {
+          "provider": {
+            "type": "string",
+            "enum": ["demucs", "audio-separator", "stub", ""]
+          },
+          "modelFilename": { "type": "string" },
           "workerScript": { "type": "string" },
           "demucsModel": { "type": "string" },
           "demucsMode": { "type": "string" },

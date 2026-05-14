@@ -13,7 +13,7 @@ from pathlib import Path
 
 from trackextract_engine.catalog_audio_separator import entry_from_supported_model
 from trackextract_engine.engine import Engine
-from trackextract_engine.paths import EngineContext
+from trackextract_engine.paths import EngineContext, default_app_data_dir
 from trackextract_engine.providers.worker_common import run_worker
 from trackextract_engine.registry import load_models
 from trackextract_engine.state import save_jobs
@@ -50,6 +50,12 @@ def test_bootstrap_copies_registries_and_writes_state(tmp_path: Path) -> None:
     assert snapshot["models"]
     assert snapshot["workflows"]
     assert (tmp_path / "app-data").is_dir()
+
+
+def test_default_app_data_dir_matches_desktop_identifier(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg-data"))
+
+    assert default_app_data_dir() == tmp_path / "xdg-data" / "com.trackextract.app"
 
 
 def test_registry_migration_accepts_current_models(tmp_path: Path) -> None:

@@ -586,35 +586,6 @@ fn legacy_app_data_dirs() -> Vec<PathBuf> {
         .ok();
     let mut paths = Vec::new();
 
-    if cfg!(target_os = "windows") {
-        if let Ok(local_data) = env::var("LOCALAPPDATA") {
-            paths.push(
-                PathBuf::from(local_data)
-                    .join("Phlosion")
-                    .join("TrackExtract"),
-            );
-        }
-    } else if cfg!(target_os = "macos") {
-        if let Some(home) = &home {
-            paths.push(
-                home.join("Library")
-                    .join("Application Support")
-                    .join("com.Phlosion.TrackExtract"),
-            );
-        }
-    } else if let Some(home) = &home {
-        paths.push(
-            home.join(".local")
-                .join("share")
-                .join("com.phlosion.trackextract"),
-        );
-        paths.push(
-            home.join(".local")
-                .join("share")
-                .join("com.Phlosion.TrackExtract"),
-        );
-    }
-
     if let Some(home) = &home {
         paths.push(home.join(".local").join("share").join("trackextract"));
     }
