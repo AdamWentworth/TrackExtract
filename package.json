@@ -16,6 +16,7 @@
     "test:frontend": "vitest run",
     "test:models": "node scripts/validate-model-registry.mjs",
     "test:models:network": "node scripts/check-model-urls.mjs",
+    "test:python": "bash scripts/test-python.sh",
     "test:workflows": "node scripts/validate-workflows.mjs",
     "test:rust": "bash scripts/test-rust.sh"
   },

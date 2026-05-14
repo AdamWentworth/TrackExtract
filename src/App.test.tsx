@@ -164,7 +164,7 @@ describe("TrackExtract app", () => {
     const library = within(dialog);
 
     fireEvent.change(library.getByLabelText("Task filter"), { target: { value: "vocal_dereverb" } });
-    fireEvent.change(library.getByLabelText("Backend filter"), { target: { value: "onnx" } });
+    fireEvent.change(library.getByLabelText("Backend filter"), { target: { value: "python-engine" } });
 
     expect(await library.findByText("Reverb HQ By FoxJoy ONNX")).toBeInTheDocument();
     expect(library.queryByText("Demucs HTDemucs Vocals / Instrumental")).not.toBeInTheDocument();
@@ -231,6 +231,16 @@ describe("TrackExtract app", () => {
     fireEvent.click(await screen.findByText("Refresh"));
 
     expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
+  });
+
+  it("syncs audio-separator catalog models from the model manager", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Sync audio-separator"));
+
+    expect(await screen.findByText("audio-separator catalog synced")).toBeInTheDocument();
+    expect(await screen.findByText("Mock audio-separator RoFormer")).toBeInTheDocument();
   });
 
   it("keeps raw Demucs weight assets marked as needing model definitions", async () => {

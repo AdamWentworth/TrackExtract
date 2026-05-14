@@ -19,7 +19,8 @@ const taskTypes = new Set([
   "vocal_denoise",
 ]);
 
-const backendKinds = new Set(["stub", "onnx", "pytorch-worker", "external-process"]);
+const backendKinds = new Set(["stub", "onnx", "pytorch-worker", "external-process", "python-engine"]);
+const installMethods = new Set(["direct-url", "audio-separator", "source-only"]);
 const optionTypes = new Set(["select", "integer", "number", "boolean"]);
 const deprecatedIds = new Set([
   "stub_full_stem_split",
@@ -99,6 +100,10 @@ if (!Array.isArray(registry)) {
       errors.push(`${label}: unsupported backend "${model.backend}".`);
     }
 
+    if (model.installMethod !== undefined && !installMethods.has(model.installMethod)) {
+      errors.push(`${label}: unsupported installMethod "${model.installMethod}".`);
+    }
+
     if (!Array.isArray(model.tasks) || model.tasks.length === 0) {
       errors.push(`${label}: tasks must be a non-empty array.`);
     } else {
@@ -127,6 +132,10 @@ if (!Array.isArray(registry)) {
 
     if (model.options !== undefined) {
       validateOptions(label, model.options);
+    }
+
+    if (model.runtime !== undefined) {
+      validateRuntime(label, model.runtime);
     }
 
     if (model.path && isUnsafeRelativePath(model.path)) {
@@ -275,5 +284,20 @@ function validateOptions(label, options) {
         errors.push(`${optionLabel}: defaultValue is above max.`);
       }
     }
+  }
+}
+
+function validateRuntime(label, runtime) {
+  if (typeof runtime !== "object" || runtime === null || Array.isArray(runtime)) {
+    errors.push(`${label}: runtime must be an object when present.`);
+    return;
+  }
+
+  if (runtime.provider !== undefined && typeof runtime.provider !== "string") {
+    errors.push(`${label}: runtime.provider must be a string when present.`);
+  }
+
+  if (runtime.modelFilename !== undefined && typeof runtime.modelFilename !== "string") {
+    errors.push(`${label}: runtime.modelFilename must be a string when present.`);
   }
 }

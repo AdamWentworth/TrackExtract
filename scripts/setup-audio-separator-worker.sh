@@ -2,6 +2,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "TrackExtract now uses scripts/setup-trackextract-engine.sh for the primary Python runtime."
+echo "Continuing with the legacy audio-separator-only environment setup."
+
 VENV_DIR="${TRACKEXTRACT_AUDIO_SEPARATOR_VENV:-"$ROOT_DIR/.venv-audio-separator"}"
 PYTHON_BIN="${PYTHON:-python3}"
 AUDIO_SEPARATOR_VERSION="${TRACKEXTRACT_AUDIO_SEPARATOR_VERSION:-0.44.1}"

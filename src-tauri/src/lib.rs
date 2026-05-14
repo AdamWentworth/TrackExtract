@@ -1,179 +1,258 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     env,
     fs::File,
     io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
     net::{TcpListener, TcpStream},
     path::{Path, PathBuf},
-    process::Command,
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc, Mutex, MutexGuard,
-    },
+    process::{Child, Command, Stdio},
+    sync::{Arc, Mutex, MutexGuard},
     thread,
 };
 
-use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
-use trackextract_core::{
-    download_model_file, AudioSeparatorBackend, BackendKind, BackendProgress, BootstrapState,
-    Engine, JobRecord, ModelDownloadProgress, ModelEntry, ProjectSession, PythonWorkerBackend,
-    SeparationBackend, StubSeparationBackend, TaskType, TrackExtractError, WorkflowEntry,
-};
+use serde_json::{json, Value};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 const BUNDLED_MODELS: &str = include_str!("../../resources/models.json");
 const BUNDLED_WORKFLOWS: &str = include_str!("../../resources/workflows.json");
 
 struct RuntimeState {
-    engine: Mutex<Engine>,
-    cancellations: Mutex<HashMap<String, Arc<AtomicBool>>>,
-    model_installs: Mutex<HashSet<String>>,
+    bridge: PythonEngineBridge,
+    running_children: Mutex<HashMap<String, Arc<Mutex<Child>>>>,
     media_server: MediaServer,
 }
 
 impl RuntimeState {
-    fn new() -> trackextract_core::Result<Self> {
-        let media_server = MediaServer::start()?;
-
+    fn new(app: &AppHandle) -> Result<Self, String> {
         Ok(Self {
-            engine: Mutex::new(Engine::bootstrap(BUNDLED_MODELS, BUNDLED_WORKFLOWS)?),
-            cancellations: Mutex::new(HashMap::new()),
-            model_installs: Mutex::new(HashSet::new()),
-            media_server,
+            bridge: PythonEngineBridge::new(app)?,
+            running_children: Mutex::new(HashMap::new()),
+            media_server: MediaServer::start().map_err(|error| error.to_string())?,
         })
     }
 }
 
-fn lock_engine(runtime: &RuntimeState) -> Result<MutexGuard<'_, Engine>, String> {
-    runtime
-        .engine
-        .lock()
-        .map_err(|_| "TrackExtract engine state is unavailable".to_string())
-}
-
-fn lock_cancellations(
+fn lock_children(
     runtime: &RuntimeState,
-) -> Result<MutexGuard<'_, HashMap<String, Arc<AtomicBool>>>, String> {
+) -> Result<MutexGuard<'_, HashMap<String, Arc<Mutex<Child>>>>, String> {
     runtime
-        .cancellations
+        .running_children
         .lock()
-        .map_err(|_| "TrackExtract cancellation state is unavailable".to_string())
+        .map_err(|_| "TrackExtract child process state is unavailable".to_string())
 }
 
-fn lock_model_installs(runtime: &RuntimeState) -> Result<MutexGuard<'_, HashSet<String>>, String> {
-    runtime
-        .model_installs
-        .lock()
-        .map_err(|_| "TrackExtract model installer state is unavailable".to_string())
+#[derive(Debug, Clone)]
+struct PythonEngineBridge {
+    python: PathBuf,
+    repo_root: PathBuf,
+    app_data_dir: PathBuf,
+    project_root: PathBuf,
 }
 
-fn command_error(error: TrackExtractError) -> String {
-    error.to_string()
+impl PythonEngineBridge {
+    fn new(app: &AppHandle) -> Result<Self, String> {
+        let repo_root = find_repo_root()?;
+        let app_data_dir = app
+            .path()
+            .app_data_dir()
+            .map_err(|error| error.to_string())?;
+        let project_root = default_project_root()?;
+        let python = resolve_engine_python(&repo_root);
+
+        Ok(Self {
+            python,
+            repo_root,
+            app_data_dir,
+            project_root,
+        })
+    }
+
+    fn request_payload(&self, args: Value) -> Value {
+        json!({
+            "context": {
+                "appDataDir": self.app_data_dir,
+                "projectRoot": self.project_root,
+                "repoRoot": self.repo_root,
+                "bundledModels": BUNDLED_MODELS,
+                "bundledWorkflows": BUNDLED_WORKFLOWS,
+            },
+            "args": args,
+        })
+    }
+
+    fn command(&self, command: &str) -> Command {
+        let mut process = Command::new(&self.python);
+        process
+            .arg("-m")
+            .arg("trackextract_engine")
+            .arg(command)
+            .env("PYTHONPATH", self.repo_root.join("python"))
+            .current_dir(&self.repo_root)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+        process
+    }
+
+    fn run_json(&self, command: &str, args: Value) -> Result<Value, String> {
+        let mut child = self
+            .command(command)
+            .spawn()
+            .map_err(|error| format!("Could not start TrackExtract Python engine: {error}"))?;
+        write_child_stdin(&mut child, &self.request_payload(args))?;
+        let output = child
+            .wait_with_output()
+            .map_err(|error| error.to_string())?;
+
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            return Err(if stderr.is_empty() { stdout } else { stderr });
+        }
+
+        serde_json::from_slice(&output.stdout).map_err(|error| {
+            format!(
+                "Python engine returned invalid JSON for {command}: {error}. Output: {}",
+                String::from_utf8_lossy(&output.stdout)
+            )
+        })
+    }
+
+    fn run_jsonl(
+        &self,
+        command: &str,
+        args: Value,
+        app: &AppHandle,
+        runtime: &Arc<RuntimeState>,
+        running_key: Option<String>,
+    ) -> Result<Value, String> {
+        let mut process = self.command(command);
+        process.arg("--jsonl");
+        let mut child = process
+            .spawn()
+            .map_err(|error| format!("Could not start TrackExtract Python engine: {error}"))?;
+        write_child_stdin(&mut child, &self.request_payload(args))?;
+
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| "Python engine stdout is unavailable".to_string())?;
+        let stderr = child
+            .stderr
+            .take()
+            .ok_or_else(|| "Python engine stderr is unavailable".to_string())?;
+        let child = Arc::new(Mutex::new(child));
+
+        if let Some(key) = &running_key {
+            lock_children(runtime)?.insert(key.clone(), child.clone());
+        }
+
+        let stderr_reader = thread::spawn(move || {
+            let mut text = String::new();
+            let mut reader = BufReader::new(stderr);
+            let _ = reader.read_to_string(&mut text);
+            text
+        });
+
+        let mut result = None;
+        for line in BufReader::new(stdout).lines() {
+            let line = line.map_err(|error| error.to_string())?;
+            if line.trim().is_empty() {
+                continue;
+            }
+            let envelope: Value = serde_json::from_str(&line)
+                .map_err(|error| format!("Python engine emitted invalid JSONL: {error}: {line}"))?;
+            match envelope.get("type").and_then(Value::as_str) {
+                Some("event") => {
+                    let name = envelope
+                        .get("name")
+                        .and_then(Value::as_str)
+                        .ok_or_else(|| "Python event envelope is missing a name".to_string())?;
+                    let payload = envelope.get("payload").cloned().unwrap_or(Value::Null);
+                    app.emit(name, payload).map_err(|error| error.to_string())?;
+                }
+                Some("result") => {
+                    result = Some(envelope.get("payload").cloned().unwrap_or(Value::Null));
+                }
+                Some("error") => {
+                    if let Some(key) = &running_key {
+                        let _ = lock_children(runtime).map(|mut children| children.remove(key));
+                    }
+                    return Err(envelope
+                        .get("message")
+                        .and_then(Value::as_str)
+                        .unwrap_or("Python engine command failed")
+                        .to_string());
+                }
+                _ => return Err(format!("Python engine emitted an unknown envelope: {line}")),
+            }
+        }
+
+        let status = child
+            .lock()
+            .map_err(|_| "Python engine process is unavailable".to_string())?
+            .wait()
+            .map_err(|error| error.to_string())?;
+
+        if let Some(key) = &running_key {
+            lock_children(runtime)?.remove(key);
+        }
+
+        let stderr = stderr_reader.join().unwrap_or_default();
+        if !status.success() {
+            return Err(if stderr.trim().is_empty() {
+                format!("Python engine exited with {status}")
+            } else {
+                stderr.trim().to_string()
+            });
+        }
+
+        result.ok_or_else(|| "Python engine did not return a result".to_string())
+    }
+}
+
+fn write_child_stdin(child: &mut Child, payload: &Value) -> Result<(), String> {
+    let mut stdin = child
+        .stdin
+        .take()
+        .ok_or_else(|| "Python engine stdin is unavailable".to_string())?;
+    stdin
+        .write_all(
+            serde_json::to_string(payload)
+                .map_err(|error| error.to_string())?
+                .as_bytes(),
+        )
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
-fn bootstrap_app(state: State<'_, Arc<RuntimeState>>) -> Result<BootstrapState, String> {
-    Ok(lock_engine(&state)?.snapshot())
+fn bootstrap_app(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
+    state.bridge.run_json("bootstrap_app", json!({}))
 }
 
 #[tauri::command]
-fn list_models(state: State<'_, Arc<RuntimeState>>) -> Result<Vec<ModelEntry>, String> {
-    Ok(lock_engine(&state)?.list_models())
+fn list_models(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
+    state.bridge.run_json("list_models", json!({}))
 }
 
 #[tauri::command]
-fn list_workflows(state: State<'_, Arc<RuntimeState>>) -> Result<Vec<WorkflowEntry>, String> {
-    Ok(lock_engine(&state)?.list_workflows())
+fn list_workflows(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
+    state.bridge.run_json("list_workflows", json!({}))
 }
 
 #[tauri::command]
 fn save_custom_workflow(
-    workflow: WorkflowEntry,
+    workflow: Value,
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
-) -> Result<WorkflowEntry, String> {
-    let (workflow, workflows) = {
-        let mut engine = lock_engine(&state)?;
-        let workflow = engine
-            .save_custom_workflow(workflow)
-            .map_err(command_error)?;
-        let workflows = engine.list_workflows();
-        (workflow, workflows)
-    };
-
-    app.emit("workflows_updated", &workflows)
+) -> Result<Value, String> {
+    let workflow = state
+        .bridge
+        .run_json("save_custom_workflow", json!({ "workflow": workflow }))?;
+    let workflows = state.bridge.run_json("list_workflows", json!({}))?;
+    app.emit("workflows_updated", workflows)
         .map_err(|error| error.to_string())?;
     Ok(workflow)
-}
-
-#[tauri::command]
-async fn install_model(
-    model_id: String,
-    state: State<'_, Arc<RuntimeState>>,
-    app: AppHandle,
-) -> Result<ModelEntry, String> {
-    let runtime = state.inner().clone();
-    {
-        let mut installs = lock_model_installs(&runtime)?;
-        if !installs.insert(model_id.clone()) {
-            return Err("That model is already installing".to_string());
-        }
-    }
-
-    let result = install_model_inner(model_id.clone(), runtime.clone(), app).await;
-    if let Ok(mut installs) = lock_model_installs(&runtime) {
-        installs.remove(&model_id);
-    }
-    result
-}
-
-async fn install_model_inner(
-    model_id: String,
-    runtime: Arc<RuntimeState>,
-    app: AppHandle,
-) -> Result<ModelEntry, String> {
-    let request = {
-        let engine = lock_engine(&runtime)?;
-        engine
-            .prepare_model_install(&model_id)
-            .map_err(command_error)?
-    };
-
-    let runtime_for_install = runtime.clone();
-    let app_for_install = app.clone();
-    let model_id_for_install = model_id.clone();
-    let destination = tauri::async_runtime::spawn_blocking(move || {
-        let progress_handler = |progress: ModelDownloadProgress| {
-            let _ = app_for_install.emit("model_download_progress", &progress);
-        };
-
-        download_model_file(request, &progress_handler, Arc::new(AtomicBool::new(false)))
-    })
-    .await
-    .map_err(|error| error.to_string())?
-    .map_err(command_error)?;
-
-    let (model, models) = {
-        let mut engine = lock_engine(&runtime_for_install)?;
-        let model = engine
-            .complete_model_install(&model_id_for_install)
-            .map_err(command_error)?;
-        let models = engine.list_models();
-        (model, models)
-    };
-
-    app.emit("models_updated", &models)
-        .map_err(|error| error.to_string())?;
-    app.emit(
-        "log_entry",
-        format!(
-            "Installed {} at {}",
-            model.display_name,
-            destination.display()
-        ),
-    )
-    .map_err(|error| error.to_string())?;
-
-    Ok(model)
 }
 
 #[tauri::command]
@@ -181,12 +260,10 @@ fn import_audio_files(
     paths: Vec<String>,
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
-) -> Result<ProjectSession, String> {
-    let paths = paths.into_iter().map(PathBuf::from).collect::<Vec<_>>();
-    let project = lock_engine(&state)?
-        .import_audio_files(paths)
-        .map_err(command_error)?;
-
+) -> Result<Value, String> {
+    let project = state
+        .bridge
+        .run_json("import_audio_files", json!({ "paths": paths }))?;
     app.emit("project_updated", &project)
         .map_err(|error| error.to_string())?;
     Ok(project)
@@ -194,17 +271,22 @@ fn import_audio_files(
 
 #[tauri::command]
 fn enqueue_separation(
-    task: TaskType,
+    task: String,
     model_id: Option<String>,
     source_id: Option<String>,
-    options: Option<serde_json::Value>,
+    options: Option<Value>,
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
-) -> Result<JobRecord, String> {
-    let job = lock_engine(&state)?
-        .enqueue_separation(task, model_id, source_id, options)
-        .map_err(command_error)?;
-
+) -> Result<Value, String> {
+    let job = state.bridge.run_json(
+        "enqueue_separation",
+        json!({
+            "task": task,
+            "modelId": model_id,
+            "sourceId": source_id,
+            "options": options.unwrap_or_else(|| json!({})),
+        }),
+    )?;
     app.emit("job_state_changed", &job)
         .map_err(|error| error.to_string())?;
     Ok(job)
@@ -215,92 +297,44 @@ async fn start_job(
     job_id: String,
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
-) -> Result<JobRecord, String> {
+) -> Result<Value, String> {
     let runtime = state.inner().clone();
-    let cancel_token = Arc::new(AtomicBool::new(false));
-
-    {
-        lock_cancellations(&runtime)?.insert(job_id.clone(), cancel_token.clone());
-    }
-
-    let request = {
-        let mut engine = lock_engine(&runtime)?;
-        let (job, request) = engine.prepare_job(&job_id).map_err(command_error)?;
-        app.emit("job_state_changed", &job)
-            .map_err(|error| error.to_string())?;
-
-        let running_job = engine.mark_job_running(&job_id).map_err(command_error)?;
-        app.emit("job_state_changed", &running_job)
-            .map_err(|error| error.to_string())?;
-        request
-    };
-
-    let runtime_for_job = runtime.clone();
+    let bridge = runtime.bridge.clone();
     let app_for_job = app.clone();
     let job_id_for_job = job_id.clone();
-    let backend_result = tauri::async_runtime::spawn_blocking(move || {
-        let progress_handler = |progress: BackendProgress| {
-            let updated_job = lock_engine(&runtime_for_job).and_then(|mut engine| {
-                engine
-                    .update_job_progress(
-                        &progress.job_id,
-                        progress.progress,
-                        progress.message.clone(),
-                    )
-                    .map_err(command_error)
-            });
-
-            if let Ok(job) = updated_job {
-                let _ = app_for_job.emit("job_progress", &progress);
-                let _ = app_for_job.emit("job_state_changed", &job);
-            }
-        };
-
-        match request.model.backend.clone() {
-            BackendKind::Stub => {
-                let backend = StubSeparationBackend;
-                backend.run(request, &progress_handler, cancel_token)
-            }
-            BackendKind::PytorchWorker => {
-                let backend = PythonWorkerBackend;
-                backend.run(request, &progress_handler, cancel_token)
-            }
-            BackendKind::Onnx | BackendKind::ExternalProcess => {
-                let backend = AudioSeparatorBackend;
-                backend.run(request, &progress_handler, cancel_token)
-            }
-        }
+    tauri::async_runtime::spawn_blocking(move || {
+        bridge.run_jsonl(
+            "start_job",
+            json!({ "jobId": job_id_for_job }),
+            &app_for_job,
+            &runtime,
+            Some(job_id),
+        )
     })
     .await
-    .map_err(|error| error.to_string())?;
+    .map_err(|error| error.to_string())?
+}
 
-    lock_cancellations(&runtime)?.remove(&job_id_for_job);
-
-    let final_job = {
-        let mut engine = lock_engine(&runtime)?;
-        match backend_result {
-            Ok(output) => {
-                let job = engine
-                    .complete_job(&job_id_for_job, output)
-                    .map_err(command_error)?;
-                if let Some(project) = engine.current_project() {
-                    app.emit("project_updated", &project)
-                        .map_err(|error| error.to_string())?;
-                }
-                job
-            }
-            Err(TrackExtractError::Cancelled) => {
-                engine.cancel_job(&job_id_for_job).map_err(command_error)?
-            }
-            Err(error) => engine
-                .fail_job(&job_id_for_job, error.to_string())
-                .map_err(command_error)?,
-        }
-    };
-
-    app.emit("job_state_changed", &final_job)
-        .map_err(|error| error.to_string())?;
-    Ok(final_job)
+#[tauri::command]
+async fn install_model(
+    model_id: String,
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<Value, String> {
+    let runtime = state.inner().clone();
+    let bridge = runtime.bridge.clone();
+    let app_for_install = app.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        bridge.run_jsonl(
+            "install_model",
+            json!({ "modelId": model_id }),
+            &app_for_install,
+            &runtime,
+            None,
+        )
+    })
+    .await
+    .map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -308,27 +342,43 @@ fn cancel_job(
     job_id: String,
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
-) -> Result<JobRecord, String> {
-    if let Some(token) = lock_cancellations(&state)?.get(&job_id) {
-        token.store(true, Ordering::Relaxed);
+) -> Result<Value, String> {
+    if let Some(child) = lock_children(&state)?.remove(&job_id) {
+        if let Ok(mut child) = child.lock() {
+            let _ = child.kill();
+        }
     }
-
-    let job = lock_engine(&state)?
-        .cancel_job(&job_id)
-        .map_err(command_error)?;
+    let job = state
+        .bridge
+        .run_json("cancel_job", json!({ "jobId": job_id }))?;
     app.emit("job_state_changed", &job)
         .map_err(|error| error.to_string())?;
     Ok(job)
 }
 
 #[tauri::command]
-fn get_project(state: State<'_, Arc<RuntimeState>>) -> Result<Option<ProjectSession>, String> {
-    Ok(lock_engine(&state)?.current_project())
+fn sync_audio_separator_catalog(
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<Value, String> {
+    let models = state
+        .bridge
+        .run_json("sync_audio_separator_catalog", json!({}))?;
+    app.emit("models_updated", &models)
+        .map_err(|error| error.to_string())?;
+    app.emit("log_entry", "Synced audio-separator catalog")
+        .map_err(|error| error.to_string())?;
+    Ok(models)
 }
 
 #[tauri::command]
-fn get_jobs(state: State<'_, Arc<RuntimeState>>) -> Result<Vec<JobRecord>, String> {
-    Ok(lock_engine(&state)?.jobs())
+fn get_project(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
+    state.bridge.run_json("get_project", json!({}))
+}
+
+#[tauri::command]
+fn get_jobs(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
+    state.bridge.run_json("get_jobs", json!({}))
 }
 
 #[tauri::command]
@@ -337,14 +387,11 @@ fn export_stems(
     destination_path: String,
     state: State<'_, Arc<RuntimeState>>,
 ) -> Result<Vec<String>, String> {
-    let exported = lock_engine(&state)?
-        .export_stems(&stem_ids, &PathBuf::from(destination_path))
-        .map_err(command_error)?;
-
-    Ok(exported
-        .into_iter()
-        .map(|path| path.to_string_lossy().to_string())
-        .collect())
+    let value = state.bridge.run_json(
+        "export_stems",
+        json!({ "stemIds": stem_ids, "destinationPath": destination_path }),
+    )?;
+    serde_json::from_value(value).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -381,6 +428,69 @@ fn open_path(path: &PathBuf) -> Result<(), String> {
 
     command.spawn().map_err(|error| error.to_string())?;
     Ok(())
+}
+
+fn resolve_engine_python(repo_root: &Path) -> PathBuf {
+    if let Ok(path) = env::var("TRACKEXTRACT_ENGINE_PYTHON") {
+        return PathBuf::from(path);
+    }
+
+    for relative in [
+        ".venv-trackextract-engine/bin/python",
+        ".venv-trackextract-engine/Scripts/python.exe",
+        ".venv-audio-separator/bin/python",
+        ".venv-audio-separator/Scripts/python.exe",
+        ".venv-demucs/bin/python",
+        ".venv-demucs/Scripts/python.exe",
+        ".venv/bin/python",
+        ".venv/Scripts/python.exe",
+    ] {
+        let candidate = repo_root.join(relative);
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+
+    PathBuf::from("python3")
+}
+
+fn find_repo_root() -> Result<PathBuf, String> {
+    if let Ok(root) = env::var("TRACKEXTRACT_REPO_ROOT") {
+        return Ok(PathBuf::from(root));
+    }
+
+    let mut candidates = Vec::new();
+    if let Ok(current) = env::current_dir() {
+        candidates.push(current);
+    }
+    if let Ok(exe) = env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            candidates.push(parent.to_path_buf());
+        }
+    }
+
+    for candidate in candidates {
+        for ancestor in candidate.ancestors() {
+            if ancestor.join("python/trackextract_engine").is_dir()
+                && ancestor.join("resources/models.json").is_file()
+            {
+                return Ok(ancestor.to_path_buf());
+            }
+        }
+    }
+
+    Err("Could not find the TrackExtract repo root. Set TRACKEXTRACT_REPO_ROOT.".to_string())
+}
+
+fn default_project_root() -> Result<PathBuf, String> {
+    let home = env::var("HOME")
+        .or_else(|_| env::var("USERPROFILE"))
+        .map(PathBuf::from)
+        .map_err(|_| "Could not find a home directory".to_string())?;
+    let music = home.join("Music");
+    let documents = home.join("Documents");
+    let base = if music.exists() { music } else { documents };
+    Ok(base.join("TrackExtract Projects"))
 }
 
 #[derive(Debug)]
@@ -689,19 +799,10 @@ fn hex_value(byte: u8) -> Option<u8> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let runtime = RuntimeState::new().expect("failed to initialize TrackExtract runtime");
-
     tauri::Builder::default()
-        .manage(Arc::new(runtime))
         .setup(|app| {
-            if let Ok(worker_path) = app
-                .path()
-                .resolve("demucs_worker.py", BaseDirectory::Resource)
-            {
-                if worker_path.exists() {
-                    env::set_var("TRACKEXTRACT_DEMUCS_WORKER", worker_path);
-                }
-            }
+            let runtime = RuntimeState::new(app.handle())?;
+            app.manage(Arc::new(runtime));
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
@@ -716,6 +817,7 @@ pub fn run() {
             enqueue_separation,
             start_job,
             cancel_job,
+            sync_audio_separator_catalog,
             get_project,
             get_jobs,
             export_stems,
@@ -724,4 +826,33 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn percent_encoding_roundtrips_paths() {
+        let value = "/tmp/TrackExtract Projects/Song/stems/Song - Vocals.wav";
+        assert_eq!(
+            percent_decode(&percent_encode(value)).expect("decode"),
+            value
+        );
+    }
+
+    #[test]
+    fn python_resolution_prefers_env() {
+        env::set_var("TRACKEXTRACT_ENGINE_PYTHON", "/custom/python");
+        assert_eq!(
+            resolve_engine_python(Path::new("/tmp")),
+            PathBuf::from("/custom/python")
+        );
+        env::remove_var("TRACKEXTRACT_ENGINE_PYTHON");
+    }
+
+    #[test]
+    fn byte_range_parses_open_ended_range() {
+        assert_eq!(parse_byte_range("bytes=10-", 100).expect("range"), (10, 99));
+    }
 }

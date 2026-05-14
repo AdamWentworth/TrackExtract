@@ -2,7 +2,7 @@
   {
     "id": "demucs_htdemucs_6s_full_split",
     "displayName": "Demucs HTDemucs 6 Stem Split",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "full_stem_split"
     ],
@@ -27,7 +27,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs_6s",
       "demucsMode": "full",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_6s"
     },
     "options": [
       {
@@ -77,12 +79,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_6s_guitar_only",
     "displayName": "Demucs HTDemucs 6s Guitar / No Guitar",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "guitar_only"
     ],
@@ -103,7 +106,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs_6s",
       "demucsMode": "guitar",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_6s"
     },
     "options": [
       {
@@ -153,12 +158,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_6s_piano_only",
     "displayName": "Demucs HTDemucs 6s Piano / No Piano",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "piano_only"
     ],
@@ -179,7 +185,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs_6s",
       "demucsMode": "piano",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_6s"
     },
     "options": [
       {
@@ -229,12 +237,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_bass_only",
     "displayName": "Demucs HTDemucs Bass / No Bass",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "bass_only"
     ],
@@ -255,7 +264,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs",
       "demucsMode": "bass",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs"
     },
     "options": [
       {
@@ -305,12 +316,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_drums_only",
     "displayName": "Demucs HTDemucs Drums / No Drums",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "drums_only"
     ],
@@ -331,7 +343,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs",
       "demucsMode": "drums",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs"
     },
     "options": [
       {
@@ -381,12 +395,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_ft_4stem_best_split",
     "displayName": "Demucs HTDemucs FT 4 Stem Best Split",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "experimental_best_quality"
     ],
@@ -409,7 +424,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs_ft",
       "demucsMode": "full",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_ft"
     },
     "options": [
       {
@@ -459,12 +476,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_ft_vocals_instrumental",
     "displayName": "Demucs HTDemucs FT Vocals / Instrumental",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -485,7 +503,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs_ft",
       "demucsMode": "vocals",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs_ft"
     },
     "options": [
       {
@@ -535,12 +555,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "demucs_htdemucs_vocals_instrumental",
     "displayName": "Demucs HTDemucs Vocals / Instrumental",
-    "backend": "pytorch-worker",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -561,7 +582,9 @@
       "workerScript": "workers/demucs_worker.py",
       "demucsModel": "htdemucs",
       "demucsMode": "vocals",
-      "device": "auto"
+      "device": "auto",
+      "provider": "demucs",
+      "modelFilename": "htdemucs"
     },
     "options": [
       {
@@ -611,12 +634,13 @@
         "max": 30,
         "step": 1
       }
-    ]
+    ],
+    "installMethod": "source-only"
   },
   {
     "id": "uvr_vr_1_hp_uvr",
     "displayName": "1 HP UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -690,12 +714,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "1_HP-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_10_sp_uvr_2b_32000_1",
     "displayName": "10 SP UVR 2B 32000 1",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -769,12 +798,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "10_SP-UVR-2B-32000-1.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_11_sp_uvr_2b_32000_2",
     "displayName": "11 SP UVR 2B 32000 2",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -848,12 +882,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "11_SP-UVR-2B-32000-2.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_12_sp_uvr_3b_44100",
     "displayName": "12 SP UVR 3B 44100",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -927,12 +966,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "12_SP-UVR-3B-44100.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_13_sp_uvr_4b_44100_1",
     "displayName": "13 SP UVR 4B 44100 1",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1006,12 +1050,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "13_SP-UVR-4B-44100-1.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_14_sp_uvr_4b_44100_2",
     "displayName": "14 SP UVR 4B 44100 2",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1085,12 +1134,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "14_SP-UVR-4B-44100-2.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_15_sp_uvr_mid_44100_1",
     "displayName": "15 SP UVR MID 44100 1",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1164,12 +1218,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "15_SP-UVR-MID-44100-1.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_16_sp_uvr_mid_44100_2",
     "displayName": "16 SP UVR MID 44100 2",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1243,12 +1302,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "16_SP-UVR-MID-44100-2.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_17_hp_wind_inst_uvr",
     "displayName": "17 HP Wind Inst UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1322,12 +1386,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "17_HP-Wind_Inst-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_2_hp_uvr",
     "displayName": "2 HP UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1401,12 +1470,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "2_HP-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_3_hp_vocal_uvr",
     "displayName": "3 HP Vocal UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1480,12 +1554,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "3_HP-Vocal-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_4_hp_vocal_uvr",
     "displayName": "4 HP Vocal UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1559,12 +1638,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "4_HP-Vocal-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_5_hp_karaoke_uvr",
     "displayName": "5 HP Karaoke UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "layered_vocal_cleanup",
       "vocal_cleanup_chain"
@@ -1639,12 +1723,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "5_HP-Karaoke-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_6_hp_karaoke_uvr",
     "displayName": "6 HP Karaoke UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "layered_vocal_cleanup",
       "vocal_cleanup_chain"
@@ -1719,12 +1808,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "6_HP-Karaoke-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_7_hp2_uvr",
     "displayName": "7 HP2 UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1798,12 +1892,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "7_HP2-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_8_hp2_uvr",
     "displayName": "8 HP2 UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1877,12 +1976,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "8_HP2-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_9_hp2_uvr",
     "displayName": "9 HP2 UVR",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -1956,12 +2060,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "9_HP2-UVR.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_checkpoint_multi_fixed",
     "displayName": "checkpoint multi fixed",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "full_stem_split",
       "experimental_best_quality"
@@ -2038,7 +2147,12 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "checkpoint-multi_fixed.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_demucs_weight_ebf34a2d",
@@ -2120,7 +2234,11 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": ""
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_demucs_weight_ebf34a2db",
@@ -2202,12 +2320,16 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": ""
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kim_inst",
     "displayName": "Kim Inst",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -2287,12 +2409,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Kim_Inst.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kim_vocal_1",
     "displayName": "Kim Vocal 1",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -2372,12 +2499,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Kim_Vocal_1.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kim_vocal_2",
     "displayName": "Kim Vocal 2",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -2457,12 +2589,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Kim_Vocal_2.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_a_bass",
     "displayName": "kuielab a bass",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "bass_only"
     ],
@@ -2542,12 +2679,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_bass.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_a_drums",
     "displayName": "kuielab a drums",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "drums_only"
     ],
@@ -2627,12 +2769,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_drums.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_a_other",
     "displayName": "kuielab a other",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "full_stem_split",
       "experimental_best_quality"
@@ -2713,12 +2860,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_other.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_a_vocals",
     "displayName": "kuielab a vocals",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -2798,12 +2950,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_a_vocals.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_b_bass",
     "displayName": "kuielab b bass",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "bass_only"
     ],
@@ -2883,12 +3040,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_bass.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_b_drums",
     "displayName": "kuielab b drums",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "drums_only"
     ],
@@ -2968,12 +3130,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_drums.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_b_other",
     "displayName": "kuielab b other",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "full_stem_split",
       "experimental_best_quality"
@@ -3054,12 +3221,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_other.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_kuielab_b_vocals",
     "displayName": "kuielab b vocals",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -3139,12 +3311,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "kuielab_b_vocals.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_mdx23c_d1581",
     "displayName": "MDX23C D1581",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -3219,12 +3396,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MDX23C_D1581.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_mel_band_roformer_karaoke_aufr33_viperx_sdr_10_1956",
     "displayName": "mel band roformer karaoke aufr33 viperx sdr 10.1956",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "layered_vocal_cleanup",
       "vocal_cleanup_chain"
@@ -3299,12 +3481,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "mel_band_roformer_karaoke_aufr33_viperx_sdr_10.1956.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_melband_roformer_inst_v1",
     "displayName": "melband roformer inst v1",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -3379,12 +3566,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_inst_v1.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_melband_roformer_inst_v2",
     "displayName": "melband roformer inst v2",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -3459,12 +3651,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_inst_v2.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_melband_roformer_instvoc_duality_v1",
     "displayName": "melband roformer instvoc duality v1",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -3539,12 +3736,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_instvoc_duality_v1.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_melband_roformer_instvox_duality_v2",
     "displayName": "melband roformer instvox duality v2",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -3619,12 +3821,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "melband_roformer_instvox_duality_v2.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_mgm_highend_v4",
     "displayName": "MGM HIGHEND v4",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -3698,12 +3905,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_HIGHEND_v4.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_mgm_lowend_a_v4",
     "displayName": "MGM LOWEND A v4",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -3777,12 +3989,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_LOWEND_A_v4.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_mgm_lowend_b_v4",
     "displayName": "MGM LOWEND B v4",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -3856,12 +4073,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_LOWEND_B_v4.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_mgm_main_v4",
     "displayName": "MGM MAIN v4",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -3935,12 +4157,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MGM_MAIN_v4.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_model_bandit_plus_dnr_sdr_11_47",
     "displayName": "model bandit plus dnr sdr 11.47",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "experimental_best_quality"
     ],
@@ -4015,12 +4242,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bandit_plus_dnr_sdr_11.47.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_model_bs_roformer_ep_317_sdr_12_9755",
     "displayName": "model bs roformer ep 317 sdr 12.9755",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -4095,12 +4327,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bs_roformer_ep_317_sdr_12.9755.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_model_bs_roformer_ep_368_sdr_12_9628",
     "displayName": "model bs roformer ep 368 sdr 12.9628",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -4175,12 +4412,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bs_roformer_ep_368_sdr_12.9628.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_model_bs_roformer_ep_937_sdr_10_5309",
     "displayName": "model bs roformer ep 937 sdr 10.5309",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -4255,12 +4497,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_bs_roformer_ep_937_sdr_10.5309.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_ckpt_model_mel_band_roformer_ep_3005_sdr_11_4360",
     "displayName": "model mel band roformer ep 3005 sdr 11.4360",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -4335,12 +4582,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "model_mel_band_roformer_ep_3005_sdr_11.4360.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "onnx_reverb_hq_by_foxjoy",
     "displayName": "Reverb HQ By FoxJoy ONNX",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocal_dereverb",
       "vocal_cleanup_chain"
@@ -4421,12 +4673,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "Reverb_HQ_By_FoxJoy.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_uvr_bve_4b_sn_44100_1",
     "displayName": "UVR BVE 4B SN 44100 1",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -4500,12 +4757,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-BVE-4B_SN-44100-1.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_uvr_de_echo_aggressive",
     "displayName": "UVR De Echo Aggressive",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocal_dereverb",
       "vocal_cleanup_chain"
@@ -4580,12 +4842,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-De-Echo-Aggressive.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_uvr_de_echo_normal",
     "displayName": "UVR De Echo Normal",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocal_dereverb",
       "vocal_cleanup_chain"
@@ -4660,12 +4927,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-De-Echo-Normal.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_uvr_deecho_dereverb",
     "displayName": "UVR DeEcho DeReverb",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocal_dereverb",
       "vocal_cleanup_chain"
@@ -4740,12 +5012,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-DeEcho-DeReverb.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_denoise",
     "displayName": "UVR DeNoise",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocal_denoise",
       "vocal_cleanup_chain"
@@ -4820,12 +5097,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-DeNoise.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_vr_uvr_denoise_lite",
     "displayName": "UVR DeNoise Lite",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocal_denoise",
       "vocal_cleanup_chain"
@@ -4900,12 +5182,17 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-DeNoise-Lite.pth"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_crowd_hq_1",
     "displayName": "UVR MDX NET Crowd HQ 1",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "experimental_best_quality"
     ],
@@ -4985,12 +5272,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET_Crowd_HQ_1.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_1",
     "displayName": "UVR MDX NET Inst 1",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5070,12 +5362,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_1.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_2",
     "displayName": "UVR MDX NET Inst 2",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5155,12 +5452,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_2.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_3",
     "displayName": "UVR MDX NET Inst 3",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5240,12 +5542,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_3.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_hq_1",
     "displayName": "UVR MDX NET Inst HQ 1",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -5326,12 +5633,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_1.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_hq_2",
     "displayName": "UVR MDX NET Inst HQ 2",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -5412,12 +5724,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_2.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_hq_3",
     "displayName": "UVR MDX NET Inst HQ 3",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -5498,12 +5815,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_3.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_hq_4",
     "displayName": "UVR MDX NET Inst HQ 4",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "experimental_best_quality"
@@ -5584,12 +5906,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_4.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdx_net_inst_main",
     "displayName": "UVR MDX NET Inst Main",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5669,12 +5996,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_Main.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdxnet_1_9703",
     "displayName": "UVR MDX-NET 1 9703",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5754,12 +6086,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_1_9703.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdxnet_2_9682",
     "displayName": "UVR MDX-NET 2 9682",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5839,12 +6176,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_2_9682.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdxnet_3_9662",
     "displayName": "UVR MDX-NET 3 9662",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -5924,12 +6266,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_3_9662.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "onnx_uvr_mdxnet_9482",
     "displayName": "UVR MDX-NET 9482 ONNX",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -6009,12 +6356,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_9482.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "onnx_uvr_mdxnet_inst_hq_5",
     "displayName": "UVR MDX-NET Inst HQ 5 ONNX",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -6094,12 +6446,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Inst_HQ_5.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdxnet_kara",
     "displayName": "UVR MDX-NET KARA",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "layered_vocal_cleanup",
       "vocal_cleanup_chain"
@@ -6180,12 +6537,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_KARA.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "onnx_uvr_mdxnet_karaoke_2",
     "displayName": "UVR MDX-NET Karaoke 2 ONNX",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "layered_vocal_cleanup",
       "vocal_cleanup_chain"
@@ -6266,12 +6628,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_KARA_2.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_onnx_uvr_mdxnet_main",
     "displayName": "UVR MDX-NET Main",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental"
     ],
@@ -6351,12 +6718,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR_MDXNET_Main.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "onnx_uvr_mdxnet_voc_ft",
     "displayName": "UVR MDX-NET Voc FT ONNX",
-    "backend": "onnx",
+    "backend": "python-engine",
     "tasks": [
       "vocal_cleanup_chain",
       "vocals_instrumental"
@@ -6437,12 +6809,17 @@
         "type": "boolean",
         "defaultValue": false
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "UVR-MDX-NET-Voc_FT.onnx"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "uvr_mdx23c_instvoc_hq",
     "displayName": "UVR MDX23C InstVoc HQ",
-    "backend": "external-process",
+    "backend": "python-engine",
     "tasks": [
       "vocals_instrumental",
       "vocal_cleanup_chain",
@@ -6518,7 +6895,12 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {
+      "provider": "audio-separator",
+      "modelFilename": "MDX23C-8KFFT-InstVoc_HQ.ckpt"
+    },
+    "installMethod": "direct-url"
   },
   {
     "id": "catalog_roformer_vocals",
@@ -6597,7 +6979,9 @@
         "max": 8,
         "step": 1
       }
-    ]
+    ],
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_accordion",
@@ -6619,7 +7003,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_acoustic_guitar",
@@ -6640,7 +7026,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_apollo_enhancers",
@@ -6660,7 +7048,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_aspiration",
@@ -6680,7 +7070,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_audiosr",
@@ -6700,7 +7092,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bagpipes",
@@ -6721,7 +7115,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bandit_plus",
@@ -6743,7 +7139,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bandit_v2",
@@ -6765,7 +7163,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_banjo",
@@ -6787,7 +7187,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bass",
@@ -6808,7 +7210,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bassoon",
@@ -6829,7 +7233,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bells",
@@ -6850,7 +7256,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bowed_strings",
@@ -6871,7 +7279,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_braam",
@@ -6892,7 +7302,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_brass",
@@ -6913,7 +7325,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bs_polarformer_vocals",
@@ -6934,7 +7348,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bs_roformer_sw",
@@ -6960,7 +7376,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_bs_roformer_vocals",
@@ -6981,7 +7399,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_byte_dance",
@@ -7004,7 +7424,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_celesta",
@@ -7025,7 +7447,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_cello",
@@ -7046,7 +7470,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_choir",
@@ -7067,7 +7493,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_clarinet",
@@ -7088,7 +7516,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_congas",
@@ -7109,7 +7539,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_crowd_removal",
@@ -7130,7 +7562,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_danna_sep",
@@ -7153,7 +7587,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_demucs2",
@@ -7176,7 +7612,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_demucs3_old",
@@ -7199,7 +7637,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_demucs4_ht",
@@ -7222,7 +7662,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_demucs4_vocals_2023",
@@ -7243,7 +7685,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_demucs4ht_dnr",
@@ -7265,7 +7709,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_denoise_aufr33_gabox",
@@ -7287,7 +7733,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_digital_piano",
@@ -7308,7 +7756,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_old_dnr",
@@ -7330,7 +7780,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_dnr_v3",
@@ -7352,7 +7804,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_dobro",
@@ -7374,7 +7828,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_double_bass",
@@ -7396,7 +7852,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_drums",
@@ -7417,7 +7875,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_drumsep",
@@ -7444,7 +7904,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_electric_guitar",
@@ -7465,7 +7927,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_ensemble_five_stem",
@@ -7490,7 +7954,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_ensemble_all_in",
@@ -7519,7 +7985,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_ensemble_vocals_instrumental",
@@ -7541,7 +8009,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_flashsr",
@@ -7561,7 +8031,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_flute",
@@ -7582,7 +8054,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_french_horn",
@@ -7603,7 +8077,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_fx",
@@ -7624,7 +8100,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_glockenspiel",
@@ -7645,7 +8123,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_guitar",
@@ -7666,7 +8146,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_harmonica",
@@ -7687,7 +8169,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_harp",
@@ -7709,7 +8193,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_harpsichord",
@@ -7731,7 +8217,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_karaoke",
@@ -7752,7 +8240,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_keys",
@@ -7774,7 +8264,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_larsnet",
@@ -7799,7 +8291,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_lead_rhythm_guitar",
@@ -7821,7 +8315,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_male_female_vocals",
@@ -7842,7 +8338,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_mandolin",
@@ -7864,7 +8362,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_marimba",
@@ -7885,7 +8385,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_mdx_ab_old",
@@ -7908,7 +8410,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_mdx_b_vocals",
@@ -7929,7 +8433,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_mdx_b_karaoke",
@@ -7950,7 +8456,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_mdx23c_vocals",
@@ -7971,7 +8479,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_medley_vox",
@@ -7993,7 +8503,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_melband_roformer_vocals",
@@ -8014,7 +8526,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_multichannel_bs",
@@ -8035,7 +8549,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_multispeaker_mdx23c",
@@ -8056,7 +8572,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_oboe",
@@ -8077,7 +8595,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_old_vocal_model",
@@ -8098,7 +8618,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_organ",
@@ -8120,7 +8642,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_percussion",
@@ -8141,7 +8665,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_phantom_centre",
@@ -8162,7 +8688,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_piano",
@@ -8183,7 +8711,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_plucked_strings",
@@ -8205,7 +8735,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_reverb_removal",
@@ -8227,7 +8759,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_satb_choir",
@@ -8250,7 +8784,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_saxophone",
@@ -8271,7 +8807,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_scnet_vocals",
@@ -8292,7 +8830,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_sitar",
@@ -8314,7 +8854,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_synth",
@@ -8335,7 +8877,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_tambourine",
@@ -8356,7 +8900,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_timpani",
@@ -8377,7 +8923,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_triangle",
@@ -8398,7 +8946,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_trombone",
@@ -8419,7 +8969,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_trumpet",
@@ -8440,7 +8992,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_tuba",
@@ -8461,7 +9015,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_ukulele",
@@ -8483,7 +9039,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_uvr_vr_vocals",
@@ -8511,7 +9069,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_unmix",
@@ -8532,7 +9092,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_uvrv5_demucs",
@@ -8553,7 +9115,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_viola",
@@ -8574,7 +9138,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_violin",
@@ -8595,7 +9161,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_vit_large_23",
@@ -8616,7 +9184,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_wind",
@@ -8637,7 +9207,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_wind_chimes",
@@ -8658,7 +9230,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_woodwind",
@@ -8679,7 +9253,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_xylophone",
@@ -8700,7 +9276,9 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   },
   {
     "id": "mvsep_zero_shot_query",
@@ -8721,6 +9299,8 @@
     "downloadUrl": "https://mvsep.com/en",
     "sourceUrl": "https://mvsep.com/en",
     "license": "MVSep hosted algorithm; local model file and redistribution terms are not bundled with TrackExtract.",
-    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired."
+    "notes": "Cataloged from the MVSEP public algorithm list. TrackExtract shows this as a source reference until a compatible local backend or model source is wired.",
+    "runtime": {},
+    "installMethod": "source-only"
   }
 ]

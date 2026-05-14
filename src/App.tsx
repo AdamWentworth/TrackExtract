@@ -49,7 +49,9 @@ type JobState =
   | "failed"
   | "cancelled";
 
-type BackendKind = "stub" | "onnx" | "pytorch-worker" | "external-process";
+type BackendKind = "stub" | "onnx" | "pytorch-worker" | "external-process" | "python-engine";
+type InstallMethod = "direct-url" | "audio-separator" | "source-only";
+type RuntimeProvider = "demucs" | "audio-separator" | "stub" | "";
 type ModelOptionType = "select" | "integer" | "number" | "boolean";
 type RenderOptionValue = string | number | boolean;
 type WorkflowKind = "preset" | "custom" | "template";
@@ -91,6 +93,15 @@ interface ModelEntry {
   license?: string;
   notes?: string;
   downloadSizeMb?: number;
+  installMethod?: InstallMethod;
+  runtime?: {
+    provider?: RuntimeProvider;
+    modelFilename?: string;
+    workerScript?: string;
+    demucsModel?: string;
+    demucsMode?: string;
+    device?: string;
+  };
   options?: ModelOptionDefinition[];
 }
 
@@ -226,6 +237,7 @@ const MODEL_STATUS_FILTERS: Array<{ value: ModelStatusFilter; label: string }> =
 const MODEL_BACKEND_FILTERS: Array<{ value: ModelBackendFilter; label: string }> = [
   { value: "all", label: "All backends" },
   { value: "pytorch-worker", label: "PyTorch worker" },
+  { value: "python-engine", label: "Python engine" },
   { value: "onnx", label: "ONNX" },
   { value: "external-process", label: "External process" },
   { value: "stub", label: "Stub" },
@@ -580,6 +592,19 @@ function App() {
     const refreshed = await command<ModelEntry[]>("list_models");
     setModels(refreshed);
     setStatus("Model registry refreshed");
+  }
+
+  async function syncAudioSeparatorCatalog() {
+    setStatus("Syncing audio-separator catalog");
+    setError(null);
+    try {
+      const refreshed = await command<ModelEntry[]>("sync_audio_separator_catalog");
+      setModels(refreshed);
+      setStatus("audio-separator catalog synced");
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Catalog sync failed");
+    }
   }
 
   async function refreshWorkflows() {
@@ -1161,6 +1186,7 @@ function App() {
           onInstall={installModel}
           onOpenSource={openModelSource}
           onRefresh={refreshModels}
+          onSyncCatalog={syncAudioSeparatorCatalog}
           onStatusFilterChange={setModelStatusFilter}
           onTaskFilterChange={setModelTaskFilter}
           onUse={useModelFromManager}
@@ -1186,6 +1212,7 @@ function ModelManager({
   onInstall,
   onOpenSource,
   onRefresh,
+  onSyncCatalog,
   onStatusFilterChange,
   onTaskFilterChange,
   onUse,
@@ -1211,6 +1238,7 @@ function ModelManager({
   onInstall: (model: ModelEntry) => void;
   onOpenSource: (model: ModelEntry) => void;
   onRefresh: () => void;
+  onSyncCatalog: () => void;
   onStatusFilterChange: (value: ModelStatusFilter) => void;
   onTaskFilterChange: (value: ModelTaskFilter) => void;
   onUse: (model: ModelEntry) => void;
@@ -1292,6 +1320,10 @@ function ModelManager({
           <button className="secondary-action inline-action" type="button" onClick={onRefresh}>
             <RefreshCw aria-hidden />
             Refresh
+          </button>
+          <button className="secondary-action inline-action" type="button" onClick={onSyncCatalog}>
+            <Database aria-hidden />
+            Sync audio-separator
           </button>
           {filtersActive ? (
             <button className="secondary-action inline-action" type="button" onClick={onClearFilters}>
@@ -1526,7 +1558,7 @@ function ModelStatusIcon({ model }: { model: ModelEntry }) {
   }
 
   if (model.sourceUrl || model.downloadUrl) {
-    return <ExternalLink aria-label="Catalog reference" />;
+    return <ExternalLink aria-label="Source reference" />;
   }
 
   return <X aria-label="Unavailable" />;
@@ -1617,24 +1649,27 @@ function slugify(value: string) {
 }
 
 function isRunnableModel(model: ModelEntry) {
-  return model.installed && (
-    model.backend === "pytorch-worker" ||
-    model.backend === "stub" ||
-    isAudioSeparatorRunnableModel(model)
-  );
-}
-
-function isAudioSeparatorRunnableModel(model: ModelEntry) {
-  const path = model.path.toLowerCase();
-  return (
-    (model.backend === "onnx" || model.backend === "external-process") &&
-    model.path.startsWith("models/") &&
-    (path.endsWith(".onnx") || path.endsWith(".pth") || path.endsWith(".ckpt"))
+  const provider = model.runtime?.provider;
+  return Boolean(
+    model.installed &&
+    (
+      (model.backend === "python-engine" && (provider === "demucs" || provider === "audio-separator" || provider === "stub")) ||
+      model.backend === "pytorch-worker" ||
+      model.backend === "stub"
+    ),
   );
 }
 
 function isInstallableModel(model: ModelEntry) {
-  return !model.installed && Boolean(model.downloadUrl) && model.path.startsWith("models/");
+  if (model.installed) {
+    return false;
+  }
+
+  if (model.installMethod === "audio-separator") {
+    return model.runtime?.provider === "audio-separator" && Boolean(model.runtime.modelFilename);
+  }
+
+  return model.installMethod === "direct-url" && Boolean(model.downloadUrl) && model.path.startsWith("models/");
 }
 
 function modelStatusKey(model: ModelEntry): ModelStatusKey {
@@ -1756,10 +1791,10 @@ function modelStatusText(model: ModelEntry, progress?: ModelDownloadProgress) {
   }
 
   if (model.sourceUrl || model.downloadUrl) {
-    return "Catalog reference";
+    return "Source reference";
   }
 
-  return "Unavailable";
+  return model.backend === "python-engine" ? "Engine unavailable" : "Unavailable";
 }
 
 function cloneMockData<T>(value: T): T {
@@ -1790,6 +1825,35 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
 
     case "list_models":
       return mockModels as T;
+
+    case "sync_audio_separator_catalog": {
+      const synced: ModelEntry = {
+        id: "audio_separator_mock_roformer",
+        displayName: "Mock audio-separator RoFormer",
+        backend: "python-engine",
+        tasks: ["vocals_instrumental"],
+        stems: ["Vocals", "Instrumental"],
+        sampleRate: 44100,
+        quality: "best",
+        version: "mock_roformer.ckpt",
+        installed: false,
+        path: "",
+        downloadUrl: "",
+        sourceUrl: "https://github.com/nomadkaraoke/python-audio-separator",
+        license: "Model-specific",
+        notes: "Mock synced model.",
+        installMethod: "audio-separator",
+        runtime: {
+          provider: "audio-separator",
+          modelFilename: "mock_roformer.ckpt",
+        },
+        options: [],
+      };
+      if (!mockModels.some((model) => model.id === synced.id)) {
+        mockModels.push(synced);
+      }
+      return [...mockModels] as T;
+    }
 
     case "list_workflows":
       return mockWorkflows as T;
