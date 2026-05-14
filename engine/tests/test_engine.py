@@ -12,6 +12,7 @@ from io import StringIO
 from pathlib import Path
 
 from trackextract_engine import installer
+from trackextract_engine import project as project_module
 from trackextract_engine.catalog_audio_separator import entry_from_supported_model
 from trackextract_engine.engine import Engine
 from trackextract_engine.paths import EngineContext, default_app_data_dir
@@ -158,6 +159,65 @@ def test_project_import_creates_folder_tree_and_session(tmp_path: Path) -> None:
     assert (root / "logs").is_dir()
     assert (root / "session.json").is_file()
     assert session["originalFiles"][0]["sampleRate"] == 44100
+
+
+def test_project_import_reuses_existing_project_for_same_source(tmp_path: Path) -> None:
+    engine = Engine(context(tmp_path))
+    source = tmp_path / "input.wav"
+    write_wav(source)
+
+    first = engine.import_audio_files({"paths": [str(source)]})
+    second = engine.import_audio_files({"paths": [str(source)]})
+
+    assert second["id"] == first["id"]
+    assert second["rootPath"] == first["rootPath"]
+    assert [path.name for path in (tmp_path / "projects").iterdir()] == ["input"]
+
+
+def test_get_current_project_refreshes_missing_audio_metadata(tmp_path: Path) -> None:
+    engine = Engine(context(tmp_path))
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    imported = engine.import_audio_files({"paths": [str(source)]})
+
+    session_path = Path(imported["rootPath"]) / "session.json"
+    imported["originalFiles"][0]["sampleRate"] = None
+    imported["originalFiles"][0]["channels"] = None
+    imported["originalFiles"][0]["durationSeconds"] = None
+    session_path.write_text(json.dumps(imported), encoding="utf-8")
+
+    refreshed = engine.get_project({})
+
+    assert refreshed["originalFiles"][0]["sampleRate"] == 44100
+    assert refreshed["originalFiles"][0]["channels"] == 1
+    assert refreshed["originalFiles"][0]["durationSeconds"] is not None
+
+
+def test_audio_metadata_uses_ffprobe_for_non_wav(monkeypatch, tmp_path: Path) -> None:
+    source = tmp_path / "input.flac"
+    source.write_bytes(b"not really flac, ffprobe is mocked")
+
+    monkeypatch.setattr(
+        project_module.shutil,
+        "which",
+        lambda name: f"/usr/bin/{name}" if name == "ffprobe" else None,
+    )
+
+    def fake_run(*_args, **_kwargs):
+        return types.SimpleNamespace(
+            stdout=json.dumps(
+                {
+                    "streams": [{"sample_rate": "48000", "channels": 2, "duration": "12.5"}],
+                    "format": {"duration": "12.5"},
+                }
+            )
+        )
+
+    monkeypatch.setattr(project_module.subprocess, "run", fake_run)
+
+    metadata = project_module.read_audio_metadata(source)
+
+    assert metadata == {"sampleRate": 48000, "channels": 2, "durationSeconds": 12.5}
 
 
 def test_job_lifecycle_and_stub_provider_writes_valid_wav(tmp_path: Path) -> None:

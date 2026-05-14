@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import shutil
+import subprocess
 import wave
 from pathlib import Path
 
@@ -22,7 +24,18 @@ def import_audio_files(context: EngineContext, paths: list[str]) -> dict:
 
     context.project_root.mkdir(parents=True, exist_ok=True)
     name = sanitize_name(source_paths[0].stem or "Untitled Track")
-    root_path = unique_project_path(context.project_root, name)
+    existing_session = find_existing_project_for_sources(context, name, source_paths)
+    if existing_session:
+        existing_session = refresh_imported_sources(existing_session, source_paths)
+        save_project(existing_session)
+        session_path = Path(existing_session["rootPath"]) / "session.json"
+        if current_project_path(context) == session_path:
+            set_current_project(context, session_path)
+        else:
+            set_current_project(context, session_path, jobs=[])
+        return existing_session
+
+    root_path = reusable_project_path(context.project_root, name) or unique_project_path(context.project_root, name)
     for child in ["original", "stems", "renders", "logs"]:
         (root_path / child).mkdir(parents=True, exist_ok=True)
 
@@ -64,7 +77,8 @@ def get_current_project(context: EngineContext) -> dict | None:
     path = current_project_path(context)
     if not path:
         return None
-    return read_json(path, None)
+    session = read_json(path, None)
+    return refresh_project_metadata(session) if session else None
 
 
 def save_project(session: dict) -> None:
@@ -198,6 +212,17 @@ def unique_project_path(parent: Path, base_name: str) -> Path:
     return candidate
 
 
+def reusable_project_path(parent: Path, base_name: str) -> Path | None:
+    candidate = parent / base_name
+    session_path = candidate / "session.json"
+    if not session_path.is_file():
+        return None
+    session = read_json(session_path, None) or {}
+    if session.get("originalFiles") or session.get("stems") or session.get("jobs"):
+        return None
+    return candidate
+
+
 def unique_file_path(parent: Path, file_name: str) -> Path:
     candidate = parent / file_name
     if not candidate.exists():
@@ -213,9 +238,97 @@ def unique_file_path(parent: Path, file_name: str) -> Path:
         index += 1
 
 
+def find_existing_project_for_sources(context: EngineContext, name: str, source_paths: list[Path]) -> dict | None:
+    requested = [canonical_path(path) for path in source_paths]
+    current_path = current_project_path(context)
+    matches = []
+
+    for session_path in project_session_paths(context.project_root):
+        session = read_json(session_path, None)
+        if not session or session.get("name") != name:
+            continue
+        existing = [canonical_path(Path(source.get("sourcePath", ""))) for source in session.get("originalFiles") or []]
+        if existing == requested:
+            matches.append((session_path, session))
+
+    if current_path:
+        for session_path, session in matches:
+            if session_path == current_path:
+                return session
+
+    if not matches:
+        return None
+
+    matches.sort(key=lambda item: project_path_sort_key(Path(item[1].get("rootPath") or item[0].parent)))
+    return matches[0][1]
+
+
+def project_session_paths(project_root: Path) -> list[Path]:
+    if not project_root.exists():
+        return []
+    return sorted(path for path in project_root.glob("*/session.json") if path.is_file())
+
+
+def project_path_sort_key(path: Path) -> tuple[int, str]:
+    name = path.name
+    parts = name.rsplit(" ", 1)
+    if len(parts) == 2 and parts[1].isdigit():
+        return (int(parts[1]), name)
+    return (1, name)
+
+
+def canonical_path(path: Path) -> str:
+    try:
+        return str(path.expanduser().resolve())
+    except OSError:
+        return str(path.expanduser().absolute())
+
+
+def refresh_imported_sources(session: dict, source_paths: list[Path]) -> dict:
+    root_path = Path(session["rootPath"])
+    for child in ["original", "stems", "renders", "logs"]:
+        (root_path / child).mkdir(parents=True, exist_ok=True)
+
+    sources = session.get("originalFiles") or []
+    source_by_path = {canonical_path(Path(source.get("sourcePath", ""))): source for source in sources}
+    refreshed_sources = []
+    for source_path in source_paths:
+        source = source_by_path.get(canonical_path(source_path))
+        if not source:
+            continue
+        project_path = Path(source.get("projectPath") or "")
+        if not project_path.is_file():
+            project_path = unique_file_path(root_path / "original", source_path.name)
+            shutil.copy2(source_path, project_path)
+            source["projectPath"] = str(project_path)
+        refreshed_sources.append(source)
+
+    if refreshed_sources:
+        session["originalFiles"] = refreshed_sources
+
+    return refresh_project_metadata(session)
+
+
+def refresh_project_metadata(session: dict) -> dict:
+    changed = False
+    for source in session.get("originalFiles") or []:
+        if source.get("sampleRate") and source.get("channels") and source.get("durationSeconds"):
+            continue
+        audio_path = Path(source.get("projectPath") or source.get("sourcePath") or "")
+        metadata = read_audio_metadata(audio_path)
+        for key in ["sampleRate", "channels", "durationSeconds"]:
+            if metadata.get(key) is not None and source.get(key) != metadata[key]:
+                source[key] = metadata[key]
+                changed = True
+
+    if changed:
+        save_project(session)
+    return session
+
+
 def read_audio_metadata(path: Path) -> dict:
-    if path.suffix.lower() != ".wav":
-        return {"sampleRate": None, "channels": None, "durationSeconds": None}
+    if not path.is_file():
+        return empty_audio_metadata()
     try:
         with wave.open(str(path), "rb") as wav:
             frames = wav.getnframes()
@@ -226,4 +339,82 @@ def read_audio_metadata(path: Path) -> dict:
                 "durationSeconds": frames / rate if rate else None,
             }
     except Exception:
-        return {"sampleRate": None, "channels": None, "durationSeconds": None}
+        pass
+
+    metadata = read_audio_metadata_with_soundfile(path)
+    if metadata["sampleRate"]:
+        return metadata
+
+    return read_audio_metadata_with_ffprobe(path)
+
+
+def empty_audio_metadata() -> dict:
+    return {"sampleRate": None, "channels": None, "durationSeconds": None}
+
+
+def read_audio_metadata_with_soundfile(path: Path) -> dict:
+    try:
+        import soundfile as sf
+
+        info = sf.info(str(path))
+        return {
+            "sampleRate": int(info.samplerate) if info.samplerate else None,
+            "channels": int(info.channels) if info.channels else None,
+            "durationSeconds": (float(info.frames) / float(info.samplerate))
+            if info.frames and info.samplerate
+            else None,
+        }
+    except Exception:
+        return empty_audio_metadata()
+
+
+def read_audio_metadata_with_ffprobe(path: Path) -> dict:
+    ffprobe = find_ffprobe()
+    if not ffprobe:
+        return empty_audio_metadata()
+
+    try:
+        completed = subprocess.run(
+            [
+                ffprobe,
+                "-v",
+                "error",
+                "-select_streams",
+                "a:0",
+                "-show_entries",
+                "stream=sample_rate,channels,duration",
+                "-show_entries",
+                "format=duration",
+                "-of",
+                "json",
+                str(path),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=20,
+        )
+        payload = json.loads(completed.stdout or "{}")
+        stream = next(iter(payload.get("streams") or []), {})
+        duration = stream.get("duration") or (payload.get("format") or {}).get("duration")
+        sample_rate = stream.get("sample_rate")
+        channels = stream.get("channels")
+        return {
+            "sampleRate": int(sample_rate) if sample_rate else None,
+            "channels": int(channels) if channels else None,
+            "durationSeconds": float(duration) if duration else None,
+        }
+    except Exception:
+        return empty_audio_metadata()
+
+
+def find_ffprobe() -> str | None:
+    if ffprobe := shutil.which("ffprobe"):
+        return ffprobe
+    try:
+        import static_ffmpeg
+
+        static_ffmpeg.add_paths(weak=True)
+    except Exception:
+        pass
+    return shutil.which("ffprobe")
