@@ -21,6 +21,7 @@ import {
   Save,
   SlidersHorizontal,
   Square,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -369,6 +370,9 @@ function App() {
       const unlistenWorkflowsUpdated = await listenTo<WorkflowEntry[]>("workflows_updated", (event) => {
         setWorkflows(event.payload);
       });
+      const unlistenJobsUpdated = await listenTo<JobRecord[]>("jobs_updated", (event) => {
+        setJobs(event.payload);
+      });
 
       cleanup = () => {
         unlistenProgress();
@@ -378,6 +382,7 @@ function App() {
         unlistenModelProgress();
         unlistenModelsUpdated();
         unlistenWorkflowsUpdated();
+        unlistenJobsUpdated();
       };
     }
 
@@ -604,7 +609,7 @@ function App() {
   }
 
   async function runSeparation() {
-    if (!project || !selectedModel) {
+    if (!project || !selectedSource || !selectedModel) {
       setError("Import an audio file and choose a runnable model first.");
       return;
     }
@@ -688,6 +693,73 @@ function App() {
       await command("reveal_path", { path: project.rootPath });
     } else if (boot) {
       await command("reveal_path", { path: boot.projectRoot });
+    }
+  }
+
+  async function clearGeneratedStems() {
+    if (!project || project.stems.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Clear generated stems from this workspace? This removes files in the stems folder.",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+    setStatus("Clearing generated stems");
+
+    try {
+      const updated = await command<ProjectSession>("clear_project_stems");
+      setProject(updated);
+      setSelectedStemIds([]);
+      setPreviewState({});
+      setMediaUrls({});
+      const refreshedJobs = await command<JobRecord[]>("get_jobs");
+      setJobs(refreshedJobs);
+      setStatus("Generated stems cleared");
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Could not clear stems");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  async function clearSourceAudio() {
+    if (!project || project.originalFiles.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Clear the source audio from this workspace? This also clears generated stems and job history. Your original file outside TrackExtract is not touched.",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+    setStatus("Clearing source audio");
+
+    try {
+      const updated = await command<ProjectSession>("clear_project_source");
+      setProject(updated);
+      setSelectedSourceId("");
+      setSelectedStemIds([]);
+      setPreviewState({});
+      setMediaUrls({});
+      const refreshedJobs = await command<JobRecord[]>("get_jobs");
+      setJobs(refreshedJobs);
+      setStatus("Source audio cleared");
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Could not clear source");
+    } finally {
+      setIsBusy(false);
     }
   }
 
@@ -851,19 +923,42 @@ function App() {
             </button>
 
             {project ? (
-              <div className="project-summary">
-                <strong>{project.name}</strong>
-                <span>
-                  {project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"}
-                </span>
-                <button
-                  className="icon-button"
-                  type="button"
-                  onClick={revealCurrentProject}
-                  title="Reveal project folder"
-                >
-                  <ExternalLink aria-hidden />
-                </button>
+              <div className="project-block">
+                <div className="project-summary">
+                  <strong>{project.name}</strong>
+                  <span>
+                    {project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"} ·{" "}
+                    {project.stems.length} stem{project.stems.length === 1 ? "" : "s"}
+                  </span>
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={revealCurrentProject}
+                    title="Reveal project folder"
+                  >
+                    <ExternalLink aria-hidden />
+                  </button>
+                </div>
+                <div className="workspace-cleanup" aria-label="Workspace cleanup">
+                  <button
+                    className="secondary-action inline-action"
+                    type="button"
+                    onClick={clearGeneratedStems}
+                    disabled={isBusy || project.stems.length === 0 || Boolean(runningJob)}
+                  >
+                    <Trash2 aria-hidden />
+                    Clear stems
+                  </button>
+                  <button
+                    className="danger-action inline-action"
+                    type="button"
+                    onClick={clearSourceAudio}
+                    disabled={isBusy || project.originalFiles.length === 0 || Boolean(runningJob)}
+                  >
+                    <Trash2 aria-hidden />
+                    Clear source
+                  </button>
+                </div>
               </div>
             ) : (
               <p className="empty-copy">Start with a full mix or batch of tracks.</p>
@@ -931,7 +1026,7 @@ function App() {
                 className="primary-action"
                 type="button"
                 onClick={runSeparation}
-                disabled={!project || !selectedModelRunnable || isBusy}
+                disabled={!project || !selectedSource || !selectedModelRunnable || isBusy}
               >
                 {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
                 Run workflow
@@ -1017,9 +1112,20 @@ function App() {
           </section>
 
           <section className="panel preview-panel">
-            <div className="panel-heading">
-              <Music2 aria-hidden />
-              <h2>Stem Preview</h2>
+            <div className="panel-heading with-action">
+              <span>
+                <Music2 aria-hidden />
+                <h2>Stem Preview</h2>
+              </span>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={clearGeneratedStems}
+                disabled={!project || project.stems.length === 0 || isBusy || Boolean(runningJob)}
+                title="Clear generated stems"
+              >
+                <Trash2 aria-hidden />
+              </button>
             </div>
 
             {!project || project.stems.length === 0 ? (
@@ -2002,6 +2108,33 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
 
     case "get_jobs":
       return mockJobs as T;
+
+    case "clear_project_stems":
+      if (mockProject) {
+        const clearedJobIds = new Set(mockProject.stems.map((stem) => stem.sourceJobId));
+        mockProject = {
+          ...mockProject,
+          stems: [],
+          updatedAt: new Date().toISOString(),
+        };
+        mockJobs = mockJobs.map((job) =>
+          clearedJobIds.has(job.id) ? { ...job, stems: [], updatedAt: new Date().toISOString() } : job,
+        );
+      }
+      return mockProject as T;
+
+    case "clear_project_source":
+      if (mockProject) {
+        mockProject = {
+          ...mockProject,
+          originalFiles: [],
+          jobs: [],
+          stems: [],
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      mockJobs = [];
+      return mockProject as T;
 
     case "export_stems": {
       const destinationPath = (args?.destinationPath as string | undefined) ?? "/mock/export";

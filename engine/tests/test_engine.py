@@ -112,6 +112,50 @@ def test_job_lifecycle_and_stub_provider_writes_valid_wav(tmp_path: Path) -> Non
             assert wav.getframerate() == 44100
 
 
+def test_workspace_cleanup_clears_stems_and_source(tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    imported = engine.import_audio_files({"paths": [str(source)]})
+
+    models = load_models(ctx)
+    stub = {
+        **models[0],
+        "id": "test_stub",
+        "displayName": "Test Stub",
+        "backend": "python-engine",
+        "tasks": ["vocals_instrumental"],
+        "stems": ["Vocals", "Instrumental"],
+        "installed": True,
+        "path": "",
+        "installMethod": "source-only",
+        "runtime": {"provider": "stub"},
+        "options": [],
+    }
+    ctx.models_path.write_text(json.dumps([stub]), encoding="utf-8")
+    job = engine.enqueue_separation(
+        {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+    )
+    completed = engine.start_job({"jobId": job["id"]}, lambda *_: None)
+    stem_paths = [Path(stem["path"]) for stem in completed["stems"]]
+
+    cleared_stems = engine.clear_project_stems({})
+
+    assert cleared_stems["originalFiles"] == imported["originalFiles"]
+    assert cleared_stems["stems"] == []
+    assert all(not path.exists() for path in stem_paths)
+    assert engine.get_jobs({})[0]["stems"] == []
+
+    cleared_source = engine.clear_project_source({})
+
+    assert cleared_source["originalFiles"] == []
+    assert cleared_source["jobs"] == []
+    assert cleared_source["stems"] == []
+    assert engine.get_jobs({}) == []
+    assert not Path(imported["originalFiles"][0]["projectPath"]).exists()
+
+
 def test_audio_separator_catalog_mapping() -> None:
     entry = entry_from_supported_model(
         "model_bs_roformer_ep_317_sdr_12.9755.ckpt",

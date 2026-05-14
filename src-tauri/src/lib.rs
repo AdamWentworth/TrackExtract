@@ -394,6 +394,35 @@ fn export_stems(
 }
 
 #[tauri::command]
+fn clear_project_stems(
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<Value, String> {
+    let project = state.bridge.run_json("clear_project_stems", json!({}))?;
+    app.emit("project_updated", &project)
+        .map_err(|error| error.to_string())?;
+    app.emit("log_entry", "Cleared generated stems")
+        .map_err(|error| error.to_string())?;
+    Ok(project)
+}
+
+#[tauri::command]
+fn clear_project_source(
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<Value, String> {
+    let project = state.bridge.run_json("clear_project_source", json!({}))?;
+    let jobs = state.bridge.run_json("get_jobs", json!({}))?;
+    app.emit("project_updated", &project)
+        .map_err(|error| error.to_string())?;
+    app.emit("jobs_updated", jobs)
+        .map_err(|error| error.to_string())?;
+    app.emit("log_entry", "Cleared source audio and dependent stems")
+        .map_err(|error| error.to_string())?;
+    Ok(project)
+}
+
+#[tauri::command]
 fn stem_media_url(path: String, state: State<'_, Arc<RuntimeState>>) -> Result<String, String> {
     Ok(state.media_server.url_for_path(&PathBuf::from(path)))
 }
@@ -815,6 +844,8 @@ pub fn run() {
             get_project,
             get_jobs,
             export_stems,
+            clear_project_stems,
+            clear_project_source,
             stem_media_url,
             reveal_path
         ])

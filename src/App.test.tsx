@@ -198,7 +198,7 @@ describe("TrackExtract app", () => {
     fireEvent.click(await screen.findByText("Drop audio here"));
 
     expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
-    expect(await screen.findByText("1 source file")).toBeInTheDocument();
+    expect(await screen.findByText(/1 source file .* 0 stems/)).toBeInTheDocument();
   });
 
   it("runs the browser mock separation and shows generated stems", async () => {
@@ -212,6 +212,28 @@ describe("TrackExtract app", () => {
     expect(await screen.findByText("Separation complete")).toBeInTheDocument();
     expect((await screen.findAllByText("Vocals")).length).toBeGreaterThan(0);
     expect((await screen.findAllByText("Instrumental")).length).toBeGreaterThan(0);
+  });
+
+  it("clears generated stems and source audio from the workspace", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<App />);
+
+    fireEvent.click(await screen.findByText("Drop audio here"));
+    const runButton = await screen.findByText("Run workflow");
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    fireEvent.click(runButton);
+    expect(await screen.findByText("Separation complete")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear stems" }));
+    expect(await screen.findByText("Generated stems cleared")).toBeInTheDocument();
+    expect(screen.getByText("Generated stems will appear here.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear source" }));
+    expect(await screen.findByText("Source audio cleared")).toBeInTheDocument();
+    expect(await screen.findByText(/0 source files .* 0 stems/)).toBeInTheDocument();
+    expect(screen.getByText("No jobs queued yet")).toBeInTheDocument();
+
+    confirmSpy.mockRestore();
   });
 
   it("opens model source links in the browser runtime", async () => {

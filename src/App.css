@@ -234,6 +234,11 @@ h2 {
   padding-top: 12px;
 }
 
+.project-block {
+  display: grid;
+  gap: 8px;
+}
+
 .project-summary span {
   color: #6b7068;
   font-size: 0.8rem;
@@ -357,6 +362,7 @@ input[type="number"] {
 
 .primary-action,
 .secondary-action,
+.danger-action,
 .icon-action,
 .icon-button,
 .toggle {
@@ -388,6 +394,19 @@ input[type="number"] {
   width: auto;
 }
 
+.danger-action {
+  background: #f3ddd7;
+  color: #8f3329;
+  font-weight: 800;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.danger-action.inline-action {
+  margin-top: 0;
+  width: auto;
+}
+
 .secondary-action.compact-action {
   font-size: 0.78rem;
   min-height: 32px;
@@ -404,9 +423,21 @@ input[type="number"] {
 .icon-action svg,
 .icon-button svg,
 .primary-action svg,
-.secondary-action svg {
+.secondary-action svg,
+.danger-action svg {
   height: 17px;
   width: 17px;
+}
+
+.workspace-cleanup {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-cleanup button {
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .queue-panel {

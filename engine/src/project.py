@@ -7,7 +7,7 @@ from pathlib import Path
 from .errors import TrackExtractError
 from .paths import EngineContext
 from .schemas import new_id, now_iso, read_json, write_json
-from .state import current_project_path, set_current_project
+from .state import current_project_path, load_jobs, save_jobs, set_current_project
 
 SESSION_SCHEMA_VERSION = 1
 
@@ -102,6 +102,80 @@ def export_stems(context: EngineContext, stem_ids: list[str], destination_path: 
         shutil.copy2(source, output)
         exported.append(str(output))
     return exported
+
+
+def clear_project_stems(context: EngineContext) -> dict:
+    session = require_current_project(context)
+    ensure_no_active_jobs(context)
+    root_path = Path(session["rootPath"])
+    source_job_ids = {stem.get("sourceJobId") for stem in session.get("stems", []) if stem.get("sourceJobId")}
+
+    clear_project_child_directory(root_path, "stems")
+    session["stems"] = []
+    save_project(session)
+
+    if source_job_ids:
+        jobs = []
+        for job in load_jobs(context):
+            if job.get("id") in source_job_ids:
+                job = {**job, "stems": [], "updatedAt": now_iso()}
+            jobs.append(job)
+        save_jobs(context, jobs)
+
+    return session
+
+
+def clear_project_source(context: EngineContext) -> dict:
+    session = require_current_project(context)
+    ensure_no_active_jobs(context)
+    root_path = Path(session["rootPath"])
+
+    clear_project_child_directory(root_path, "original")
+    clear_project_child_directory(root_path, "stems")
+    clear_project_child_directory(root_path, "renders")
+
+    session["originalFiles"] = []
+    session["jobs"] = []
+    session["stems"] = []
+    save_project(session)
+    set_current_project(context, root_path / "session.json", jobs=[])
+    return session
+
+
+def require_current_project(context: EngineContext) -> dict:
+    session = get_current_project(context)
+    if not session:
+        raise TrackExtractError("No project is currently open")
+    return session
+
+
+def ensure_no_active_jobs(context: EngineContext) -> None:
+    active = next((job for job in load_jobs(context) if job.get("state") in {"preparing", "running"}), None)
+    if active:
+        raise TrackExtractError("Cancel the running job before clearing workspace files")
+
+
+def clear_project_child_directory(root_path: Path, child_name: str) -> None:
+    target = root_path / child_name
+    if not target.exists():
+        target.mkdir(parents=True, exist_ok=True)
+        return
+    if not is_within(root_path, target):
+        raise TrackExtractError(f"Refusing to clear a folder outside this project: {target}")
+
+    for child in target.iterdir():
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child)
+        else:
+            child.unlink(missing_ok=True)
+
+
+def is_within(parent: Path, child: Path) -> bool:
+    try:
+        child.resolve().relative_to(parent.resolve())
+        return True
+    except ValueError:
+        return False
 
 
 def sanitize_name(value: str) -> str:

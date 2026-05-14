@@ -51,6 +51,8 @@ def dispatch_sync(engine: Engine, command: str, args: dict) -> Any:
         "get_project": engine.get_project,
         "get_jobs": engine.get_jobs,
         "export_stems": engine.export_stems,
+        "clear_project_stems": engine.clear_project_stems,
+        "clear_project_source": engine.clear_project_source,
         "sync_audio_separator_catalog": engine.sync_audio_separator_catalog,
     }
     if command not in commands:
