@@ -22,11 +22,9 @@ Create the managed Python engine environment:
 scripts/setup-trackextract-engine.sh
 ```
 
-Copy `.env.example` if you need local overrides:
-
-```bash
-cp .env.example .env
-```
+Local overrides are supplied as shell environment variables. The project does
+not load a committed `.env.example`; keeping those values explicit avoids
+confusion between Vite, npm scripts, Rust, and Python subprocesses.
 
 ## Python Dependencies
 
@@ -52,6 +50,14 @@ python -m pip install -e "engine[runtime-dml]"
 
 The setup script chooses the matching extra from
 `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA`.
+
+Examples:
+
+```bash
+TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh
+TRACKEXTRACT_ENGINE_PYTHON=/absolute/path/to/python npm run tauri dev
+TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
+```
 
 ## Automation Scripts
 

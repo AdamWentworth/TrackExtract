@@ -60,7 +60,7 @@ scripts/setup-trackextract-engine.sh
 
 Track Extract auto-detects `.venv-trackextract-engine/bin/python` when launched from this repo. To force a specific Python environment, set `TRACKEXTRACT_ENGINE_PYTHON`. For NVIDIA CUDA support in audio-separator, install/update the environment with `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu`; for Windows DirectML, use `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml`.
 
-See [docs/development.md](docs/development.md) for toolchain pins, `.env` usage, and local check commands.
+See [docs/development.md](docs/development.md) for toolchain pins, environment overrides, and local check commands.
 
 For browser-only UI iteration with mock project/job data:
 
