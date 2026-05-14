@@ -5,8 +5,10 @@ import os
 import subprocess
 import sys
 import threading
+import types
 import wave
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from io import StringIO
 from pathlib import Path
 
 from trackextract_engine.catalog_audio_separator import entry_from_supported_model
@@ -15,6 +17,7 @@ from trackextract_engine.paths import EngineContext
 from trackextract_engine.providers.worker_common import run_worker
 from trackextract_engine.registry import load_models
 from trackextract_engine.state import save_jobs
+from trackextract_engine.workers import audio_separator_worker
 
 
 def context(tmp_path: Path) -> EngineContext:
@@ -300,6 +303,25 @@ def test_worker_common_emits_heartbeat_progress(tmp_path: Path) -> None:
     assert stems == []
     assert returned_log_path == log_path
     assert any("Running test worker" in message for _, message in events)
+
+
+def test_audio_separator_worker_uses_static_ffmpeg_when_system_ffmpeg_is_missing(monkeypatch) -> None:
+    ready = {"value": False}
+
+    def fake_which(name: str) -> str | None:
+        return f"/static/{name}" if ready["value"] and name in {"ffmpeg", "ffprobe"} else None
+
+    def fake_add_paths(weak: bool = True) -> None:
+        assert weak is True
+        ready["value"] = True
+
+    monkeypatch.setattr(audio_separator_worker.shutil, "which", fake_which)
+    monkeypatch.setitem(sys.modules, "static_ffmpeg", types.SimpleNamespace(add_paths=fake_add_paths))
+    log = StringIO()
+
+    audio_separator_worker.ensure_ffmpeg_on_path(log)
+
+    assert "Using static-ffmpeg ffmpeg/ffprobe" in log.getvalue()
 
 
 def test_installer_rejects_source_only(tmp_path: Path) -> None:

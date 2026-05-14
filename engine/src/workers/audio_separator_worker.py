@@ -278,8 +278,18 @@ def ensure_ffmpeg_on_path(log) -> None:
         log.write("Using system ffmpeg/ffprobe\n\n")
         return
 
-    log.write("ffmpeg/ffprobe were not found on PATH. audio-separator may still work for WAV input, ")
-    log.write("but compressed formats can fail.\n\n")
+    try:
+        import static_ffmpeg
+
+        static_ffmpeg.add_paths(weak=True)
+    except Exception as error:
+        log.write(f"Could not prepare bundled ffmpeg: {error}\n\n")
+        return
+
+    if shutil.which("ffmpeg") and shutil.which("ffprobe"):
+        log.write("Using static-ffmpeg ffmpeg/ffprobe\n\n")
+    else:
+        log.write("ffmpeg/ffprobe are still unavailable\n\n")
 
 
 def daw_friendly_stem_filename(project_name: str, stem_label: str) -> str:
