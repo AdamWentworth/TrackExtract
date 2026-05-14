@@ -222,7 +222,7 @@ def test_jsonl_start_job_protocol(tmp_path: Path) -> None:
         stderr=subprocess.PIPE,
         text=True,
         check=False,
-        env={**os.environ, "PYTHONPATH": str(Path.cwd() / "engine")},
+        env=os.environ,
     )
 
     assert completed.returncode == 0, completed.stderr

@@ -33,7 +33,7 @@
     "resources": [
       "../resources/models.json",
       "../resources/workflows.json",
-      "../engine/trackextract_engine",
+      "../engine/src",
       "../schemas/model_registry.schema.json",
       "../schemas/workflows.schema.json",
       "../schemas/session.schema.json"
