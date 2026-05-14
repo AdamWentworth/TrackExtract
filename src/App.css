@@ -273,15 +273,19 @@ h2 {
 
 .main-column {
   overscroll-behavior: contain;
+  padding-bottom: 22px;
   overflow-y: auto;
   padding-right: 2px;
+  scroll-padding-bottom: 22px;
   scrollbar-gutter: stable;
 }
 
 .rail {
   overscroll-behavior: contain;
+  padding-bottom: 22px;
   overflow-y: auto;
   padding-right: 2px;
+  scroll-padding-bottom: 22px;
   scrollbar-gutter: stable;
 }
 
