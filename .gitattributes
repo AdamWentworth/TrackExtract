@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+*.icns binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.wav binary
+*.flac binary
+*.mp3 binary
+*.m4a binary
+*.aiff binary

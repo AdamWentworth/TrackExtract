@@ -81,9 +81,18 @@ def test_bootstrap_copies_registries_and_writes_state(tmp_path: Path) -> None:
 
 
 def test_default_app_data_dir_matches_desktop_identifier(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local-app-data"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg-data"))
 
-    assert default_app_data_dir() == tmp_path / "xdg-data" / "com.trackextract.app"
+    if os.name == "nt":
+        expected = tmp_path / "local-app-data" / "com.trackextract.app"
+    elif sys.platform == "darwin":
+        expected = tmp_path / "home" / "Library" / "Application Support" / "com.trackextract.app"
+    else:
+        expected = tmp_path / "xdg-data" / "com.trackextract.app"
+
+    assert default_app_data_dir() == expected
 
 
 def test_registry_migration_accepts_current_models(tmp_path: Path) -> None:
