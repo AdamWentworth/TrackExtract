@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 import sys
 import urllib.request
-from pathlib import Path
+from pathlib import PurePosixPath
 
 from .errors import TrackExtractError
 from .paths import EngineContext
@@ -97,7 +97,7 @@ def prefetch_audio_separator_model(context: EngineContext, model: dict, emit) ->
     )
     if completed.returncode != 0:
         raise TrackExtractError(completed.stderr.strip() or f"audio-separator could not download {filename}")
-    model["path"] = str(Path("models") / "audio-separator" / filename)
+    model["path"] = str(PurePosixPath("models") / "audio-separator" / filename)
     emit_progress(emit, model, 1, 0, None, f"Installed {model['displayName']}")
 
 
