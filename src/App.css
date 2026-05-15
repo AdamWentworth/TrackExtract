@@ -1202,6 +1202,10 @@ input[type="number"] {
   width: 90px;
 }
 
+.stem-delete {
+  color: var(--danger-text);
+}
+
 @media (max-width: 1320px) {
   .workspace {
     grid-template-columns: minmax(250px, 0.76fr) minmax(470px, 1.48fr) minmax(300px, 0.9fr);
@@ -1221,7 +1225,8 @@ input[type="number"] {
     min-width: 0;
   }
 
-  .stem-controls .toggle {
+  .stem-controls .toggle,
+  .stem-controls .stem-delete {
     min-height: 30px;
     padding: 0 8px;
     width: 100%;

@@ -53,6 +53,7 @@ def dispatch_sync(engine: Engine, command: str, args: dict) -> Any:
         "clear_jobs": engine.clear_jobs,
         "export_stems": engine.export_stems,
         "clear_project_stems": engine.clear_project_stems,
+        "delete_project_stem": engine.delete_project_stem,
         "clear_project_source": engine.clear_project_source,
         "sync_audio_separator_catalog": engine.sync_audio_separator_catalog,
     }

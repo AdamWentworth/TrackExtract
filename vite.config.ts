@@ -26,6 +26,7 @@ const ENGINE_SYNC_COMMANDS = new Set([
   "clear_jobs",
   "export_stems",
   "clear_project_stems",
+  "delete_project_stem",
   "clear_project_source",
   "sync_audio_separator_catalog",
 ]);

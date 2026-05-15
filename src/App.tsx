@@ -269,6 +269,7 @@ const DEV_BRIDGE_COMMANDS = new Set([
   "clear_jobs",
   "export_stems",
   "clear_project_stems",
+  "delete_project_stem",
   "clear_project_source",
   "sync_audio_separator_catalog",
   "stem_media_url",
@@ -1158,6 +1159,47 @@ function App() {
     }
   }
 
+  async function deleteGeneratedStem(stem: StemFile) {
+    if (!project) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete the ${stem.label} stem from this workspace? This removes the generated stem file.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setIsBusy(true);
+    setError(null);
+    setStatus(`Deleting ${stem.label} stem`);
+
+    try {
+      const updated = await command<ProjectSession>("delete_project_stem", { stemId: stem.id });
+      applyProjectSnapshot(updated);
+      setSelectedStemIds((selected) => selected.filter((id) => id !== stem.id));
+      setPreviewState((existing) => {
+        const next = { ...existing };
+        delete next[stem.id];
+        return next;
+      });
+      setMediaUrls((existing) => {
+        const next = { ...existing };
+        delete next[stem.id];
+        return next;
+      });
+      const refreshedJobs = await command<JobRecord[]>("get_jobs");
+      setJobs(refreshedJobs);
+      setStatus(`${stem.label} stem deleted`);
+    } catch (caught) {
+      setError(String(caught));
+      setStatus("Could not delete stem");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
   async function clearSourceAudio() {
     if (!project || project.originalFiles.length === 0) {
       return;
@@ -1636,6 +1678,8 @@ function App() {
                       mediaUrl={mediaUrls[stem.id]}
                       onSelect={() => toggleStemSelection(stem.id)}
                       onUpdate={(patch) => setStemPreview(stem.id, patch)}
+                      onDelete={() => deleteGeneratedStem(stem)}
+                      deleteDisabled={isBusy || Boolean(runningJob)}
                     />
                   ))}
                 </div>
@@ -2697,6 +2741,8 @@ function StemPreview({
   mediaUrl,
   onSelect,
   onUpdate,
+  onDelete,
+  deleteDisabled,
 }: {
   stem: StemFile;
   state: PreviewState;
@@ -2705,6 +2751,8 @@ function StemPreview({
   mediaUrl?: string;
   onSelect: () => void;
   onUpdate: (patch: Partial<PreviewState>) => void;
+  onDelete: () => void;
+  deleteDisabled: boolean;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [mediaError, setMediaError] = useState<string | null>(null);
@@ -2779,6 +2827,16 @@ function StemPreview({
           type="range"
           value={state.volume}
         />
+        <button
+          className="icon-button stem-delete"
+          type="button"
+          onClick={onDelete}
+          disabled={deleteDisabled}
+          aria-label={`Delete ${stem.label} stem`}
+          title={`Delete ${stem.label} stem`}
+        >
+          <Trash2 aria-hidden />
+        </button>
       </div>
     </article>
   );
@@ -3333,6 +3391,30 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
         );
       }
       return mockProject as T;
+
+    case "delete_project_stem": {
+      if (mockProject) {
+        const stemId = args?.stemId as string | undefined;
+        const deletedStem = mockProject.stems.find((stem) => stem.id === stemId);
+        mockProject = {
+          ...mockProject,
+          stems: mockProject.stems.filter((stem) => stem.id !== stemId),
+          updatedAt: new Date().toISOString(),
+        };
+        if (deletedStem) {
+          mockJobs = mockJobs.map((job) =>
+            job.id === deletedStem.sourceJobId
+              ? {
+                  ...job,
+                  stems: job.stems.filter((stem) => stem.id !== stemId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : job,
+          );
+        }
+      }
+      return mockProject as T;
+    }
 
     case "clear_project_source":
       if (mockProject) {

@@ -173,6 +173,39 @@ def clear_project_stems(context: EngineContext) -> dict:
     return session
 
 
+def delete_project_stem(context: EngineContext, stem_id: str | None) -> dict:
+    session = require_current_project(context)
+    ensure_no_active_jobs(context)
+    if not stem_id:
+        raise TrackExtractError("Choose a stem to delete")
+
+    stems = session.get("stems") or []
+    stem = next((candidate for candidate in stems if candidate.get("id") == stem_id), None)
+    if not stem:
+        raise TrackExtractError("Stem not found in the current project")
+
+    root_path = Path(session["rootPath"])
+    stems_dir = root_path / "stems"
+    stem_path = Path(stem.get("path") or "")
+    if stem_path and is_within(stems_dir, stem_path):
+        stem_path.unlink(missing_ok=True)
+
+    session["stems"] = [candidate for candidate in stems if candidate.get("id") != stem_id]
+    save_project(session)
+
+    source_job_id = stem.get("sourceJobId")
+    if source_job_id:
+        jobs = []
+        for job in load_jobs(context):
+            if job.get("id") == source_job_id:
+                job_stems = [candidate for candidate in job.get("stems", []) if candidate.get("id") != stem_id]
+                job = {**job, "stems": job_stems, "updatedAt": now_iso()}
+            jobs.append(job)
+        save_jobs(context, jobs)
+
+    return session
+
+
 def clear_project_source(context: EngineContext) -> dict:
     session = require_current_project(context)
     ensure_no_active_jobs(context)

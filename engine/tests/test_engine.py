@@ -326,6 +326,32 @@ def test_workspace_cleanup_clears_stems_and_source(tmp_path: Path) -> None:
     assert not Path(imported["originalFiles"][0]["projectPath"]).exists()
 
 
+def test_delete_project_stem_removes_only_selected_stem(tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    engine.import_audio_files({"paths": [str(source)]})
+
+    models = load_models(ctx)
+    stub = installed_stub_model(models[0])
+    ctx.models_path.write_text(json.dumps([stub]), encoding="utf-8")
+    job = engine.enqueue_separation(
+        {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+    )
+    completed = engine.start_job({"jobId": job["id"]}, lambda *_: None)
+    vocal = next(stem for stem in completed["stems"] if stem["label"] == "Vocals")
+    instrumental = next(stem for stem in completed["stems"] if stem["label"] == "Instrumental")
+
+    updated = engine.delete_project_stem({"stemId": vocal["id"]})
+
+    assert [stem["label"] for stem in updated["stems"]] == ["Instrumental"]
+    assert not Path(vocal["path"]).exists()
+    assert Path(instrumental["path"]).exists()
+    refreshed_job = next(candidate for candidate in engine.get_jobs({}) if candidate["id"] == job["id"])
+    assert [stem["id"] for stem in refreshed_job["stems"]] == [instrumental["id"]]
+
+
 def test_export_selected_stems_copies_only_requested_files(tmp_path: Path) -> None:
     ctx = context(tmp_path)
     engine = Engine(ctx)

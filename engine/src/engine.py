@@ -7,7 +7,14 @@ from .errors import TrackExtractError
 from .installer import install_model
 from .jobs import cancel, clear_job_history, complete, enqueue, fail, list_jobs, set_progress, set_state
 from .paths import EngineContext
-from .project import clear_project_source, clear_project_stems, export_stems, get_current_project, import_audio_files
+from .project import (
+    clear_project_source,
+    clear_project_stems,
+    delete_project_stem,
+    export_stems,
+    get_current_project,
+    import_audio_files,
+)
 from .providers import run_provider
 from .registry import bootstrap_registries, find_model, load_models, load_workflows, upsert_custom_workflow
 
@@ -69,6 +76,9 @@ class Engine:
 
     def clear_project_stems(self, _args: dict) -> dict:
         return clear_project_stems(self.context)
+
+    def delete_project_stem(self, args: dict) -> dict:
+        return delete_project_stem(self.context, args.get("stemId"))
 
     def clear_project_source(self, _args: dict) -> dict:
         return clear_project_source(self.context)

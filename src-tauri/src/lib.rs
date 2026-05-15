@@ -447,6 +447,25 @@ fn clear_project_stems(
 }
 
 #[tauri::command]
+fn delete_project_stem(
+    stem_id: String,
+    state: State<'_, Arc<RuntimeState>>,
+    app: AppHandle,
+) -> Result<Value, String> {
+    let project = state
+        .bridge
+        .run_json("delete_project_stem", json!({ "stemId": stem_id }))?;
+    let jobs = state.bridge.run_json("get_jobs", json!({}))?;
+    app.emit("project_updated", &project)
+        .map_err(|error| error.to_string())?;
+    app.emit("jobs_updated", jobs)
+        .map_err(|error| error.to_string())?;
+    app.emit("log_entry", "Deleted generated stem")
+        .map_err(|error| error.to_string())?;
+    Ok(project)
+}
+
+#[tauri::command]
 fn clear_project_source(
     state: State<'_, Arc<RuntimeState>>,
     app: AppHandle,
@@ -954,6 +973,7 @@ pub fn run() {
             clear_jobs,
             export_stems,
             clear_project_stems,
+            delete_project_stem,
             clear_project_source,
             stem_media_url,
             reveal_path

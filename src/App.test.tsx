@@ -266,6 +266,11 @@ describe("Track Extract app", () => {
     expect(screen.getByText("No jobs queued yet")).toBeInTheDocument();
     expect((await screen.findAllByText("Vocals")).length).toBeGreaterThan(0);
 
+    fireEvent.click(screen.getByRole("button", { name: "Delete Vocals stem" }));
+    expect(await screen.findByText("Vocals stem deleted")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Delete Vocals stem" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete Instrumental stem" })).toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("button", { name: "Clear generated stems" }));
     expect(await screen.findByText("Generated stems cleared")).toBeInTheDocument();
     expect(screen.getByText("Generated stems will appear here.")).toBeInTheDocument();
