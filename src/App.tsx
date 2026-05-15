@@ -1650,14 +1650,13 @@ function App() {
                   <h2>Stem Preview</h2>
                 </span>
                 <button
-                  className="icon-button"
+                  className="secondary-action inline-action"
                   type="button"
                   onClick={clearGeneratedStems}
                   disabled={!project || project.stems.length === 0 || isBusy || Boolean(runningJob)}
-                  aria-label="Clear generated stems"
-                  title="Clear generated stems"
                 >
                   <Trash2 aria-hidden />
+                  Clear stems
                 </button>
               </div>
 

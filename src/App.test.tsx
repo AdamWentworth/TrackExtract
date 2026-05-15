@@ -271,7 +271,7 @@ describe("Track Extract app", () => {
     expect(screen.queryByRole("button", { name: "Delete Vocals stem" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Delete Instrumental stem" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear generated stems" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear stems" }));
     expect(await screen.findByText("Generated stems cleared")).toBeInTheDocument();
     expect(screen.getByText("Generated stems will appear here.")).toBeInTheDocument();
 
