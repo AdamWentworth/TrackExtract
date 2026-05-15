@@ -8,11 +8,12 @@ use std::{
     process::{Child, Command, Stdio},
     sync::{Arc, Mutex, MutexGuard},
     thread,
-    time::Duration,
 };
 
 #[cfg(unix)]
 use std::os::unix::process::CommandExt;
+#[cfg(unix)]
+use std::time::Duration;
 
 use serde_json::{json, Value};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -230,12 +231,13 @@ fn write_child_stdin(child: &mut Child, payload: &Value) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
+#[cfg(unix)]
 fn configure_long_running_process(process: &mut Command) {
-    #[cfg(unix)]
-    {
-        process.process_group(0);
-    }
+    process.process_group(0);
 }
+
+#[cfg(not(unix))]
+fn configure_long_running_process(_process: &mut Command) {}
 
 fn terminate_child_process(child: &mut Child) {
     #[cfg(unix)]
