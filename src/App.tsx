@@ -1411,27 +1411,10 @@ function App() {
                       {project.originalFiles.length} source file{project.originalFiles.length === 1 ? "" : "s"} ·{" "}
                       {project.stems.length} stem{project.stems.length === 1 ? "" : "s"}
                     </span>
-                    <button
-                      className="icon-button"
-                      type="button"
-                      onClick={revealCurrentProject}
-                      title="Reveal project folder"
-                    >
-                      <ExternalLink aria-hidden />
-                    </button>
                   </div>
                   <div className="workspace-cleanup" aria-label="Workspace cleanup">
                     <button
-                      className="secondary-action inline-action"
-                      type="button"
-                      onClick={clearGeneratedStems}
-                      disabled={isBusy || project.stems.length === 0 || Boolean(runningJob)}
-                    >
-                      <Trash2 aria-hidden />
-                      Clear stems
-                    </button>
-                    <button
-                      className="danger-action inline-action"
+                      className="danger-action"
                       type="button"
                       onClick={clearSourceAudio}
                       disabled={isBusy || project.originalFiles.length === 0 || Boolean(runningJob)}
@@ -1500,7 +1483,7 @@ function App() {
               <div>
                 <div className="panel-heading">
                   <ListMusic aria-hidden />
-                  <h2>Queue</h2>
+                  <h2>Run</h2>
                 </div>
                 <p className="panel-copy">
                   {selectedWorkflow
@@ -1528,23 +1511,6 @@ function App() {
                 >
                   {runningJob ? <Pause aria-hidden /> : <Play aria-hidden />}
                   Run workflow
-                </button>
-                <button
-                  className="secondary-action inline-action"
-                  type="button"
-                  onClick={() => setModelManagerOpen(true)}
-                >
-                  <Database aria-hidden />
-                  Model library
-                </button>
-                <button
-                  className="icon-action"
-                  type="button"
-                  onClick={cancelRunningJob}
-                  disabled={!runningJob}
-                  title="Cancel job"
-                >
-                  <Square aria-hidden />
                 </button>
               </div>
             </section>
@@ -1646,6 +1612,7 @@ function App() {
                   type="button"
                   onClick={clearGeneratedStems}
                   disabled={!project || project.stems.length === 0 || isBusy || Boolean(runningJob)}
+                  aria-label="Clear generated stems"
                   title="Clear generated stems"
                 >
                   <Trash2 aria-hidden />
@@ -1681,19 +1648,9 @@ function App() {
         <div className="scroll-shell rail-shell model-shell">
           <aside className="rail model-rail" ref={rightRailRef}>
             <section className="panel model-summary-panel">
-              <div className="panel-heading with-action">
-                <span>
-                  <Database aria-hidden />
-                  <h2>Model Setup</h2>
-                </span>
-                <button
-                  className="icon-button"
-                  type="button"
-                  onClick={() => setModelManagerOpen(true)}
-                  title="Manage models"
-                >
-                  <Database aria-hidden />
-                </button>
+              <div className="panel-heading">
+                <Database aria-hidden />
+                <h2>Model Setup</h2>
               </div>
 
               <div className="model-summary-strip" aria-label="Model registry summary">
@@ -1803,10 +1760,6 @@ function App() {
                 <Download aria-hidden />
                 Export selected
               </button>
-              <button className="secondary-action" type="button" onClick={revealCurrentProject}>
-                <FolderOpen aria-hidden />
-                Open project folder
-              </button>
               <p className="export-count">
                 {selectedStemIds.length || 0} of {project?.stems.length ?? 0} stems selected
               </p>
@@ -1848,6 +1801,15 @@ function App() {
                     <dd>{boot?.modelRegistryPath ?? "Loading"}</dd>
                   </div>
                 </dl>
+                <button
+                  className="secondary-action"
+                  type="button"
+                  onClick={revealCurrentProject}
+                  disabled={!project && !boot?.projectRoot}
+                >
+                  <FolderOpen aria-hidden />
+                  Open project folder
+                </button>
                 {logEntries.length > 0 ? (
                   <ul className="log-list">
                     {logEntries.map((entry) => (
@@ -2056,11 +2018,11 @@ function ModelManager({
                 }
                 key={model.id}
               >
-                <button className="library-model-title" type="button" onClick={() => onUse(model)}>
+                <div className="library-model-title">
                   <strong>{model.displayName}</strong>
                   <small>{model.id}</small>
                   <small>{model.version}</small>
-                </button>
+                </div>
                 <div className="library-task-list">
                   {model.tasks.map((task) => (
                     <span key={task}>{formatTask(task)}</span>

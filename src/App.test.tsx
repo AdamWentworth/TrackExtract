@@ -80,7 +80,7 @@ describe("Track Extract app", () => {
     expect(screen.getByRole("heading", { name: "Workflow" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Model Setup" })).toBeInTheDocument();
     expect(screen.getByText("Manage models")).toBeInTheDocument();
-    expect(screen.getByText("Queue")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Run" })).toBeInTheDocument();
     expect(screen.getByText("Stem Preview")).toBeInTheDocument();
     expect(screen.getByText("Render Options")).toBeInTheDocument();
     expect(screen.getByText("Export")).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe("Track Extract app", () => {
     render(<App />);
 
     fireEvent.click(await screen.findByText("Clean Lead Vocal Chain"));
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     const dialog = await screen.findByRole("dialog", { name: "Model Library" });
     const library = within(dialog);
     fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "MDX23C" } });
@@ -166,7 +166,7 @@ describe("Track Extract app", () => {
   it("filters denoise models in the model manager", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     fireEvent.change(await screen.findByLabelText("Filter models"), { target: { value: "denoise" } });
 
     expect((await screen.findAllByText("UVR DeNoise")).length).toBeGreaterThan(0);
@@ -175,7 +175,7 @@ describe("Track Extract app", () => {
   it("uses status, task, and backend filters inside the full model library", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     const dialog = await screen.findByRole("dialog", { name: "Model Library" });
     const library = within(dialog);
 
@@ -266,7 +266,7 @@ describe("Track Extract app", () => {
     expect(screen.getByText("No jobs queued yet")).toBeInTheDocument();
     expect((await screen.findAllByText("Vocals")).length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear stems" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear generated stems" }));
     expect(await screen.findByText("Generated stems cleared")).toBeInTheDocument();
     expect(screen.getByText("Generated stems will appear here.")).toBeInTheDocument();
 
@@ -282,7 +282,7 @@ describe("Track Extract app", () => {
     const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     fireEvent.click((await screen.findAllByTitle("Open model source"))[0]);
 
     expect(openSpy).toHaveBeenCalledWith(expect.stringContaining("github.com"), "_blank", "noopener,noreferrer");
@@ -292,7 +292,7 @@ describe("Track Extract app", () => {
   it("refreshes the model registry from the toolbar action", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     const dialog = await screen.findByRole("dialog", { name: "Model Library" });
     fireEvent.click(within(dialog).getByRole("button", { name: "Refresh" }));
 
@@ -302,7 +302,7 @@ describe("Track Extract app", () => {
   it("syncs audio-separator catalog models from the model manager", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     fireEvent.click(await screen.findByText("Sync audio-separator"));
 
     expect(await screen.findByText("audio-separator catalog synced")).toBeInTheDocument();
@@ -312,7 +312,7 @@ describe("Track Extract app", () => {
   it("keeps raw Demucs weight assets marked as needing model definitions", async () => {
     render(<App />);
 
-    fireEvent.click(await screen.findByText("Model library"));
+    fireEvent.click(await screen.findByText("Manage models"));
     const dialog = await screen.findByRole("dialog", { name: "Model Library" });
     const library = within(dialog);
     fireEvent.change(library.getByLabelText("Filter models"), { target: { value: "ebf34a2d" } });
