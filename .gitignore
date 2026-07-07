@@ -14,6 +14,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.artifacts
+test-results
 target
 src-tauri/gen
 .venv
