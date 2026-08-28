@@ -118,6 +118,7 @@ Most day-to-day entrypoints still go through `package.json`:
 npm run check
 npm run test:engine
 npm run test:rust
+npm run test:performance
 npm run models:build
 ```
 
@@ -129,7 +130,7 @@ Browser-only UI iteration:
 npm run dev:browser
 ```
 
-The browser tab is not a separate mock app when it runs on port `1420`. Vite exposes a development-only Track Extract bridge at `/__trackextract_dev/*`, and both the browser tab and Tauri desktop window use that bridge for Python-engine commands. That means project/session state, imports, jobs, generated stems, model installs, and workflow changes are shared while developing. Browser file imports are uploaded to the local dev bridge first, then imported through the same engine path as desktop-selected files.
+The browser tab is not a separate mock app when it runs on port `1420`. Vite exposes a development-only Track Extract bridge at `/__trackextract_dev/*`, so browser commands use the real Python engine. The Tauri window uses its native command bridge, while both surfaces share persisted project/session state. Browser file imports are uploaded to the local dev bridge first; desktop-selected files use their native paths directly.
 
 Tauri desktop development:
 
@@ -149,10 +150,13 @@ npm run format
 npm run format:check
 npm run lint
 npm run test:all
+npm run test:performance
 npm run check
 ```
 
 `npm run check` runs formatting checks, linters, registry validation, Python engine tests, frontend tests, the production frontend build, Rust clippy, and Rust tests.
+
+`npm run test:performance` runs a real 8 MiB browser drag-and-drop import through the development bridge and enforces explicit budgets for visible feedback, project readiness, source buffering, waveform decoding, and playback start. CI runs it separately after installing Chromium.
 
 Network model URL checks are opt-in:
 

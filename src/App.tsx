@@ -257,6 +257,17 @@ const EXPORT_FORMATS: Array<{ value: ExportFormat; label: string; description: s
 const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const THEME_STORAGE_KEY = "trackextract_theme";
 const DEV_BRIDGE_PREFIX = "/__trackextract_dev";
+const DEV_BRIDGE_PORT = import.meta.env.VITE_TRACKEXTRACT_DEV_BRIDGE_PORT ?? "1420";
+const PERFORMANCE_MARKS = {
+  appReady: "trackextract:app-ready",
+  importStart: "trackextract:import-start",
+  importFeedback: "trackextract:import-feedback",
+  projectReady: "trackextract:project-ready",
+  sourceCanPlay: "trackextract:source-can-play",
+  sourceWaveformReady: "trackextract:source-waveform-ready",
+  playbackRequested: "trackextract:playback-requested",
+  playbackStarted: "trackextract:playback-started",
+} as const;
 const DEV_BRIDGE_COMMANDS = new Set([
   "bootstrap_app",
   "import_audio_files",
@@ -301,12 +312,15 @@ function isTauriRuntime() {
 
 function isDevBridgeRuntime() {
   return (
-    typeof window !== "undefined" && window.location.protocol.startsWith("http") && window.location.port === "1420"
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    window.location.protocol.startsWith("http") &&
+    window.location.port === DEV_BRIDGE_PORT
   );
 }
 
 async function command<T>(name: string, args?: CommandArgs): Promise<T> {
-  if (name === "reveal_path" && isTauriRuntime()) {
+  if (isTauriRuntime()) {
     return invoke<T>(name, args);
   }
 
@@ -314,11 +328,24 @@ async function command<T>(name: string, args?: CommandArgs): Promise<T> {
     return devBridgeCommand<T>(name, args);
   }
 
-  if (isTauriRuntime()) {
-    return invoke<T>(name, args);
+  return mockCommand<T>(name, args);
+}
+
+function markPerformance(name: string) {
+  if (typeof performance !== "undefined" && typeof performance.mark === "function") {
+    performance.mark(name);
+  }
+}
+
+function markAfterPaint(name: string) {
+  if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+    markPerformance(name);
+    return;
   }
 
-  return mockCommand<T>(name, args);
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => markPerformance(name));
+  });
 }
 
 async function devBridgeCommand<T>(name: string, args?: CommandArgs): Promise<T> {
@@ -444,9 +471,11 @@ function App() {
         return;
       }
 
+      markPerformance(PERFORMANCE_MARKS.importStart);
       setIsBusy(true);
       setError(null);
       setStatus("Creating project session");
+      markAfterPaint(PERFORMANCE_MARKS.importFeedback);
 
       try {
         const imported = await command<ProjectSession>("import_audio_files", { paths });
@@ -456,6 +485,7 @@ function App() {
         setSourceMediaUrls({});
         setMediaUrls({});
         setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
+        markAfterPaint(PERFORMANCE_MARKS.projectReady);
         const refreshedJobs = await command<JobRecord[]>("get_jobs");
         setJobs(refreshedJobs);
       } catch (caught) {
@@ -536,6 +566,12 @@ function App() {
   }, [applyProjectSnapshot, mergeJob]);
 
   useEffect(() => {
+    if (boot) {
+      markAfterPaint(PERFORMANCE_MARKS.appReady);
+    }
+  }, [boot]);
+
+  useEffect(() => {
     if (!boot) {
       return;
     }
@@ -544,7 +580,7 @@ function App() {
     let tick = 0;
     let refreshing = false;
     async function refreshSharedState() {
-      if (refreshing) {
+      if (refreshing || isBusy) {
         return;
       }
       refreshing = true;
@@ -573,7 +609,8 @@ function App() {
       }
     }
 
-    const interval = window.setInterval(refreshSharedState, isDevBridgeRuntime() ? 1000 : 1800);
+    const hasActiveJob = jobs.some((job) => job.state === "running" || job.state === "preparing");
+    const interval = window.setInterval(refreshSharedState, hasActiveJob ? 1000 : 5000);
     window.addEventListener("focus", refreshSharedState);
 
     return () => {
@@ -581,7 +618,7 @@ function App() {
       window.clearInterval(interval);
       window.removeEventListener("focus", refreshSharedState);
     };
-  }, [applyProjectSnapshot, boot]);
+  }, [applyProjectSnapshot, boot, isBusy, jobs]);
 
   useEffect(() => {
     let unlistenDragDrop: (() => void) | undefined;
@@ -844,9 +881,11 @@ function App() {
       return;
     }
 
+    markPerformance(PERFORMANCE_MARKS.importStart);
     setIsBusy(true);
     setError(null);
     setStatus("Importing browser-selected audio");
+    markAfterPaint(PERFORMANCE_MARKS.importFeedback);
 
     try {
       const imported = await uploadBrowserAudioFiles(audioFiles);
@@ -856,6 +895,7 @@ function App() {
       setSourceMediaUrls({});
       setMediaUrls({});
       setStatus(`Imported ${imported.originalFiles.length} file${imported.originalFiles.length === 1 ? "" : "s"}`);
+      markAfterPaint(PERFORMANCE_MARKS.projectReady);
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
     } catch (caught) {
@@ -2328,12 +2368,16 @@ function AudioWaveform({
   durationSeconds,
   audioRef,
   onSeek,
+  readyToDecode = true,
+  readyPerformanceMark,
 }: {
   mediaUrl?: string;
   label: string;
   durationSeconds?: number | null;
   audioRef?: React.RefObject<HTMLAudioElement | null>;
   onSeek?: (ratio: number, fallbackDuration: number) => Promise<void> | void;
+  readyToDecode?: boolean;
+  readyPerformanceMark?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [waveform, setWaveform] = useState<WaveformData | null>(null);
@@ -2344,9 +2388,9 @@ function AudioWaveform({
   useEffect(() => {
     let cancelled = false;
 
-    if (!mediaUrl) {
+    if (!mediaUrl || !readyToDecode) {
       setWaveform(null);
-      setWaveformState("idle");
+      setWaveformState(mediaUrl ? "loading" : "idle");
       return () => {
         cancelled = true;
       };
@@ -2362,6 +2406,9 @@ function AudioWaveform({
         }
         setWaveform(loaded);
         setWaveformState("ready");
+        if (readyPerformanceMark) {
+          markPerformance(readyPerformanceMark);
+        }
       })
       .catch(() => {
         if (!cancelled) {
@@ -2373,7 +2420,7 @@ function AudioWaveform({
     return () => {
       cancelled = true;
     };
-  }, [mediaUrl]);
+  }, [mediaUrl, readyPerformanceMark, readyToDecode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -2466,6 +2513,7 @@ function AudioWaveform({
     <button
       aria-label={`Play ${label} from waveform`}
       className={`waveform-card waveform-${waveformState} ${isPlaying ? "is-playing" : ""}`}
+      data-waveform-state={waveformState}
       disabled={!mediaUrl || !onSeek}
       onClick={handleWaveformClick}
       type="button"
@@ -2481,9 +2529,11 @@ function AudioWaveform({
 function SourcePreview({ source, mediaUrl }: { source: AudioSource; mediaUrl?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [mediaError, setMediaError] = useState<string | null>(null);
+  const [mediaReady, setMediaReady] = useState(false);
 
   useEffect(() => {
     setMediaError(null);
+    setMediaReady(false);
     audioRef.current?.load();
   }, [mediaUrl]);
 
@@ -2497,7 +2547,14 @@ function SourcePreview({ source, mediaUrl }: { source: AudioSource; mediaUrl?: s
     if (duration > 0) {
       audio.currentTime = ratio * duration;
     }
+    markPerformance(PERFORMANCE_MARKS.playbackRequested);
     await audio.play();
+  }
+
+  function handleCanPlay() {
+    setMediaError(null);
+    setMediaReady(true);
+    markPerformance(PERFORMANCE_MARKS.sourceCanPlay);
   }
 
   return (
@@ -2517,13 +2574,18 @@ function SourcePreview({ source, mediaUrl }: { source: AudioSource; mediaUrl?: s
           label={source.originalName}
           mediaUrl={mediaUrl}
           onSeek={seekAndPlay}
+          readyPerformanceMark={PERFORMANCE_MARKS.sourceWaveformReady}
+          readyToDecode={mediaReady}
         />
         <audio
           ref={audioRef}
           controls
-          onCanPlay={() => setMediaError(null)}
+          data-media-ready={mediaReady ? "true" : "false"}
+          data-testid="source-audio"
+          onCanPlay={handleCanPlay}
           onError={() => setMediaError(describeMediaError(audioRef.current?.error))}
-          preload="metadata"
+          onPlay={() => markPerformance(PERFORMANCE_MARKS.playbackStarted)}
+          preload="auto"
         >
           {mediaUrl ? <source src={mediaUrl} type={audioMimeType(source.projectPath || source.sourcePath)} /> : null}
         </audio>

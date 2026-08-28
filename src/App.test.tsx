@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { open } from "@tauri-apps/plugin-dialog";
 import App from "./App";
 
 const mockInvoke = vi.fn();
@@ -48,6 +49,24 @@ const bootstrap = {
       license: "MIT",
     },
   ],
+  workflows: [
+    {
+      id: "quick_vocal_split",
+      displayName: "Quick Vocal Split",
+      description: "Responsive workflow fixture",
+      kind: "preset",
+      task: "vocals_instrumental",
+      steps: [
+        {
+          id: "split",
+          displayName: "Split vocals",
+          task: "vocals_instrumental",
+          modelId: "demucs_htdemucs_vocals_instrumental",
+          options: {},
+        },
+      ],
+    },
+  ],
   currentProject: null,
   jobs: [],
 };
@@ -55,12 +74,14 @@ const bootstrap = {
 describe("Track Extract app", () => {
   afterEach(() => {
     cleanup();
+    Reflect.deleteProperty(window, "__TAURI_INTERNALS__");
   });
 
   beforeEach(() => {
     window.localStorage.clear();
     delete document.documentElement.dataset.theme;
     mockInvoke.mockReset();
+    vi.mocked(open).mockReset();
     mockInvoke.mockImplementation((command: string) => {
       if (command === "bootstrap_app") {
         return Promise.resolve(bootstrap);
@@ -214,6 +235,58 @@ describe("Track Extract app", () => {
 
     expect((await screen.findAllByText("Artist - Browser Demo")).length).toBeGreaterThan(0);
     expect(await screen.findByText(/1 source file .* 0 stems/)).toBeInTheDocument();
+  });
+
+  it("acknowledges native imports before the engine finishes", async () => {
+    Object.defineProperty(window, "__TAURI_INTERNALS__", { configurable: true, value: {} });
+    vi.mocked(open).mockResolvedValue("C:\\Music\\responsive.wav");
+
+    let finishImport: (project: unknown) => void = () => undefined;
+    const pendingImport = new Promise((resolve) => {
+      finishImport = resolve;
+    });
+    mockInvoke.mockImplementation((command: string) => {
+      if (command === "bootstrap_app") {
+        return Promise.resolve(bootstrap);
+      }
+      if (command === "import_audio_files") {
+        return pendingImport;
+      }
+      if (command === "get_jobs") {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve(null);
+    });
+
+    render(<App />);
+    fireEvent.click(await screen.findByText("Drop audio here"));
+
+    expect(await screen.findByText("Creating project session")).toBeInTheDocument();
+    expect(mockInvoke).toHaveBeenCalledWith("import_audio_files", { paths: ["C:\\Music\\responsive.wav"] });
+
+    finishImport({
+      schemaVersion: 1,
+      id: "project-responsive",
+      name: "responsive",
+      rootPath: "C:\\Projects\\responsive",
+      createdAt: "2026-08-27T00:00:00Z",
+      updatedAt: "2026-08-27T00:00:00Z",
+      originalFiles: [
+        {
+          id: "source-responsive",
+          originalName: "responsive.wav",
+          sourcePath: "C:\\Music\\responsive.wav",
+          projectPath: "C:\\Projects\\responsive\\original\\responsive.wav",
+          sampleRate: 44_100,
+          channels: 2,
+          durationSeconds: 1,
+        },
+      ],
+      jobs: [],
+      stems: [],
+    });
+
+    expect(await screen.findByText("Imported 1 file")).toBeInTheDocument();
   });
 
   it("runs the browser mock separation and shows generated stems", async () => {

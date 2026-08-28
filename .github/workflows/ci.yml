@@ -125,3 +125,8 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: npm run test:e2e
+
+      - name: Performance guardrails
+        if: runner.os == 'Linux'
+        shell: bash
+        run: npm run test:performance

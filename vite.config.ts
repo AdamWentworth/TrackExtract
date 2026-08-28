@@ -15,7 +15,8 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { isPathWithin, isTrustedDevRequest, parseByteRange } from "./scripts/dev-bridge-security";
 
-const host = process.env.TAURI_DEV_HOST;
+const remoteHost = process.env.TAURI_DEV_HOST;
+const devHost = remoteHost || "127.0.0.1";
 const DEV_BRIDGE_PREFIX = "/__trackextract_dev";
 const MAX_COMMAND_BODY_BYTES = 1024 * 1024;
 const MAX_BROWSER_FILES = 16;
@@ -46,7 +47,7 @@ export default defineConfig(async () => ({
   plugins: [react(), trackExtractDevBridge()],
   test: {
     environment: "jsdom",
-    exclude: ["node_modules/**", "dist/**", "tests/e2e/**", "tests/demo-media/**"],
+    exclude: ["node_modules/**", "dist/**", "tests/e2e/**", "tests/demo-media/**", "tests/performance/**"],
     setupFiles: "./src/setupTests.ts",
     coverage: {
       provider: "v8",
@@ -69,17 +70,28 @@ export default defineConfig(async () => ({
   server: {
     port: 1420,
     strictPort: true,
-    host: host || false,
-    hmr: host
+    host: devHost,
+    hmr: remoteHost
       ? {
           protocol: "ws",
-          host,
+          host: remoteHost,
           port: 1421,
         }
       : undefined,
+    warmup: {
+      clientFiles: ["./src/main.tsx", "./src/App.tsx", "./src/waveform.ts"],
+    },
     watch: {
-      // 3. tell Vite to ignore Rust/Python build artifacts and local worker environments
-      ignored: ["**/src-tauri/**", "**/target/**", "**/.venv/**", "**/.venv-*/**", "**/__pycache__/**"],
+      // 3. tell Vite to ignore generated artifacts, native builds, and local worker environments
+      ignored: [
+        "**/.artifacts/**",
+        "**/test-results/**",
+        "**/src-tauri/**",
+        "**/target/**",
+        "**/.venv/**",
+        "**/.venv-*/**",
+        "**/__pycache__/**",
+      ],
     },
   },
 }));
@@ -229,6 +241,7 @@ function streamBrowserFiles(request: IncomingMessage, importDir: string): Promis
     });
     const paths: string[] = [];
     const writes: Promise<void>[] = [];
+    const usedNames = new Set<string>();
     let totalBytes = 0;
     let uploadError: Error | null = null;
 
@@ -245,7 +258,7 @@ function streamBrowserFiles(request: IncomingMessage, importDir: string): Promis
         return;
       }
 
-      const destination = path.join(importDir, `${String(paths.length + 1).padStart(2, "0")}-${fileName}`);
+      const destination = path.join(importDir, uniqueBrowserFileName(fileName, usedNames));
       paths.push(destination);
       file.on("data", (chunk: Buffer) => {
         totalBytes += chunk.length;
@@ -573,6 +586,10 @@ function defaultAppDataDir() {
 }
 
 function defaultProjectRoot() {
+  if (process.env.TRACKEXTRACT_PROJECT_ROOT) {
+    return path.resolve(process.env.TRACKEXTRACT_PROJECT_ROOT);
+  }
+
   const music = path.join(os.homedir(), "Music");
   const documents = path.join(os.homedir(), "Documents");
   return path.join(fs.existsSync(music) ? music : documents, "TrackExtract Projects");
@@ -584,6 +601,23 @@ function sanitizeFileName(value: string) {
     .map((character) => (invalid.has(character) || character.charCodeAt(0) < 32 ? "-" : character))
     .join("");
   return cleaned || "audio.wav";
+}
+
+function uniqueBrowserFileName(fileName: string, usedNames: Set<string>) {
+  const normalized = fileName.toLowerCase();
+  if (!usedNames.has(normalized)) {
+    usedNames.add(normalized);
+    return fileName;
+  }
+
+  const parsed = path.parse(fileName);
+  let index = 2;
+  while (usedNames.has(`${parsed.name} ${index}${parsed.ext}`.toLowerCase())) {
+    index += 1;
+  }
+  const uniqueName = `${parsed.name} ${index}${parsed.ext}`;
+  usedNames.add(uniqueName.toLowerCase());
+  return uniqueName;
 }
 
 function errorMessage(error: unknown) {

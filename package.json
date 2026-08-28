@@ -41,6 +41,7 @@
     "test:models": "npm run models:check && node scripts/validate-model-registry.mjs",
     "test:models:network": "node scripts/check-model-urls.mjs",
     "test:python": "npm run test:engine",
+    "test:performance": "playwright test --config performance.playwright.config.ts",
     "test:workflows": "node scripts/validate-workflows.mjs",
     "test:rust": "node scripts/rust-tools.mjs test",
     "test:bundle": "node scripts/check-bundle-size.mjs"
