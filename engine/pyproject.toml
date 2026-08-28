@@ -28,17 +28,17 @@ test = ["pytest>=8", "pytest-cov>=6"]
 dev = ["pytest>=8", "pytest-cov>=6", "ruff>=0.8"]
 runtime-cpu = [
   "static-ffmpeg",
-  "demucs==4.0.1",
+  "demucs==4.1.0",
   "audio-separator[cpu]==0.44.1",
 ]
 runtime-gpu = [
   "static-ffmpeg",
-  "demucs==4.0.1",
+  "demucs==4.1.0",
   "audio-separator[gpu]==0.44.1",
 ]
 runtime-dml = [
   "static-ffmpeg",
-  "demucs==4.0.1",
+  "demucs==4.1.0",
   "audio-separator[dml]==0.44.1",
 ]
 
