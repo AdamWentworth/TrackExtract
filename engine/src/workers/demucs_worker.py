@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import shutil
 import traceback
 import wave
@@ -112,6 +113,7 @@ def separate_with_demucs(
     wav /= ref.std()
 
     log.write(f"Running Demucs on {device}\n")
+    segment = compatible_segment(model, args.segment, log)
     sources = apply_model(
         model,
         wav[None],
@@ -121,7 +123,7 @@ def separate_with_demucs(
         overlap=args.overlap,
         progress=False,
         num_workers=0,
-        segment=args.segment,
+        segment=segment,
     )[0]
     sources *= ref.std()
     sources += ref.mean()
@@ -149,6 +151,27 @@ def separate_with_demucs(
         stems.append({"label": label, "path": str(destination)})
 
     return stems
+
+
+def compatible_segment(model, requested_segment: float | None, log) -> float | None:
+    """Only pass segment overrides that a hybrid model was trained to accept."""
+    if requested_segment is None:
+        return None
+
+    submodels = getattr(model, "models", None) or [model]
+    hybrid_segments = [
+        float(candidate.segment)
+        for candidate in submodels
+        if type(candidate).__name__ == "HTDemucs" and getattr(candidate, "segment", None) is not None
+    ]
+    if hybrid_segments and not all(math.isclose(requested_segment, trained) for trained in hybrid_segments):
+        trained = ", ".join(f"{value:g}s" for value in sorted(set(hybrid_segments)))
+        log.write(
+            f"Ignoring incompatible {requested_segment:g}s segment override; "
+            f"the selected HTDemucs model requires {trained}\n"
+        )
+        return None
+    return requested_segment
 
 
 def save_wav_tensor(tensor, destination: Path, sample_rate: int) -> None:

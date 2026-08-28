@@ -22,6 +22,12 @@ Create the managed Python engine environment:
 scripts/setup-trackextract-engine.sh
 ```
 
+Windows PowerShell uses the native setup entrypoint:
+
+```powershell
+scripts/setup-trackextract-engine.ps1
+```
+
 Local overrides are supplied as shell environment variables. The project does
 not load a committed `.env.example`; keeping those values explicit avoids
 confusion between Vite, npm scripts, Rust, and Python subprocesses.
@@ -48,6 +54,11 @@ python -m pip install -e "engine[runtime-gpu]"
 python -m pip install -e "engine[runtime-dml]"
 ```
 
+Use the setup scripts for GPU environments. PyPI's default Windows PyTorch
+package is CPU-only, so the scripts install the aligned CUDA 11.8 wheels and
+validate a real CUDA tensor operation. Directly installing `runtime-gpu` does
+not select PyTorch's separate CUDA package index.
+
 The setup script chooses the matching extra from
 `TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA`.
 
@@ -57,6 +68,12 @@ Examples:
 TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh
 TRACKEXTRACT_ENGINE_PYTHON=/absolute/path/to/python npm run tauri:dev
 TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
+```
+
+```powershell
+scripts/setup-trackextract-engine.ps1 -Runtime gpu
+$env:TRACKEXTRACT_ENGINE_PYTHON = "$PWD\.venv-trackextract-engine\Scripts\python.exe"
+npm run tauri:dev
 ```
 
 ## Automation Scripts

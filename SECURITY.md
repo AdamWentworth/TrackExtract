@@ -6,7 +6,8 @@ and any suggested mitigation.
 
 ## Dependency policy
 
-- npm dependencies are audited in CI and Dependabot checks npm, Cargo, pip, and GitHub Actions weekly.
+- npm and Rust dependencies are audited in CI, while GitHub vulnerability alerts remain enabled for the default
+  branch. Dependency updates are maintainer-controlled; automated Dependabot pull requests are intentionally disabled.
 - Direct model downloads are limited to approved HTTPS GitHub hosts, bounded by configured and absolute size limits,
   and support SHA-256 verification when the upstream publisher provides a digest.
 - `RUSTSEC-2024-0429` is temporarily ignored by the Cargo audit gate. It is a `glib::VariantStrIter` API unsoundness

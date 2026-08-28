@@ -1,0 +1,6 @@
+# PyTorch's CUDA 11.8 wheels retain support for Pascal-generation NVIDIA GPUs.
+# Keep the three packages aligned; mismatched releases can import successfully
+# and still fail when Demucs starts processing audio.
+torch==2.7.1
+torchaudio==2.7.1
+torchvision==0.22.1

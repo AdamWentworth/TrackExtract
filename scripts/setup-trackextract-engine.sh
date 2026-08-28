@@ -19,26 +19,22 @@ esac
 echo "Creating Track Extract Python engine environment at $VENV_DIR"
 trackextract_prepare_python_venv "$VENV_DIR" "${PYTHON:-python3}"
 "$VENV_PYTHON" -m pip install --upgrade pip wheel
-"$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine[runtime-$AUDIO_SEPARATOR_EXTRA]"
 
-"$VENV_PYTHON" - <<'PY'
-from importlib import metadata
-import importlib.util
+if [[ "$AUDIO_SEPARATOR_EXTRA" == "gpu" ]]; then
+  # PyPI's default torch wheel is CPU-only. CUDA 11.8 retains compatibility
+  # with Pascal-generation NVIDIA GPUs while satisfying our provider versions.
+  "$VENV_PYTHON" -m pip install --upgrade \
+    torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 \
+    --index-url https://download.pytorch.org/whl/cu118
+  "$VENV_PYTHON" -m pip install \
+    --constraint "$ROOT_DIR/engine/constraints-runtime-gpu.txt" \
+    -e "$ROOT_DIR/engine[runtime-$AUDIO_SEPARATOR_EXTRA]"
+else
+  "$VENV_PYTHON" -m pip install -e "$ROOT_DIR/engine[runtime-$AUDIO_SEPARATOR_EXTRA]"
+fi
 
-print("trackextract_engine importable:", importlib.util.find_spec("trackextract_engine") is not None)
-for package in ["demucs", "audio-separator"]:
-    try:
-        print(f"{package}: {metadata.version(package)}")
-    except Exception as error:
-        print(f"{package}: unavailable ({error})")
-
-try:
-    import torch
-    print(f"torch: {torch.__version__}")
-    print(f"cuda available: {torch.cuda.is_available()}")
-except Exception as error:
-    print(f"torch probe failed: {error}")
-PY
+"$VENV_PYTHON" "$ROOT_DIR/scripts/probe-trackextract-runtime.py" \
+  --expect "$AUDIO_SEPARATOR_EXTRA"
 
 echo
 echo "Done. Launch Track Extract from this repo or set:"

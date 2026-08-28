@@ -5,7 +5,7 @@ substitute for release criteria.
 
 | Area                   | Rating | Current guardrail                                                                                   |
 | ---------------------- | -----: | --------------------------------------------------------------------------------------------------- |
-| Dependency security    |   8/10 | npm audit, RustSec audit, Dependabot for npm/Cargo/pip/actions                                      |
+| Dependency security    |   8/10 | npm audit, RustSec audit, GitHub vulnerability alerts, maintainer-controlled updates                |
 | Functional correctness |   7/10 | React behavior tests, Python engine tests, Rust unit tests, production browser smoke test           |
 | Reliability            |   7/10 | Atomic JSON replacement, cross-process state lock, guarded job transitions, project-bound jobs      |
 | Security boundaries    |   7/10 | Same-origin dev bridge, streamed bounded uploads, capability-token media server, contained paths    |

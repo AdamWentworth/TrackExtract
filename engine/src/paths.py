@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+APP_IDENTIFIER = "com.trackextract.desktop"
+
 
 @dataclass(frozen=True)
 class EngineContext:
@@ -43,10 +45,10 @@ class EngineContext:
 def default_app_data_dir() -> Path:
     home = Path.home()
     if os.name == "nt":
-        return Path(os.environ.get("LOCALAPPDATA", home / "AppData" / "Local")) / "com.trackextract.app"
+        return Path(os.environ.get("APPDATA", home / "AppData" / "Roaming")) / APP_IDENTIFIER
     if sys_platform() == "darwin":
-        return home / "Library" / "Application Support" / "com.trackextract.app"
-    return Path(os.environ.get("XDG_DATA_HOME", home / ".local" / "share")) / "com.trackextract.app"
+        return home / "Library" / "Application Support" / APP_IDENTIFIER
+    return Path(os.environ.get("XDG_DATA_HOME", home / ".local" / "share")) / APP_IDENTIFIER
 
 
 def default_project_root() -> Path:

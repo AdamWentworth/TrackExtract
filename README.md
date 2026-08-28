@@ -87,6 +87,12 @@ Create the managed Python engine environment:
 scripts/setup-trackextract-engine.sh
 ```
 
+On Windows PowerShell:
+
+```powershell
+scripts/setup-trackextract-engine.ps1
+```
+
 Run the desktop app:
 
 ```bash
@@ -102,10 +108,21 @@ For NVIDIA CUDA support through audio-separator, build the engine environment wi
 TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=gpu scripts/setup-trackextract-engine.sh
 ```
 
+```powershell
+scripts/setup-trackextract-engine.ps1 -Runtime gpu
+```
+
+The GPU setup installs aligned PyTorch CUDA 11.8 packages and runs real CUDA,
+ONNX Runtime, and bundled FFmpeg probes before reporting success.
+
 For Windows DirectML:
 
 ```bash
 TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml scripts/setup-trackextract-engine.sh
+```
+
+```powershell
+scripts/setup-trackextract-engine.ps1 -Runtime dml
 ```
 
 ## Linux Tauri Prerequisites

@@ -23,7 +23,7 @@ from trackextract_engine.providers import audio_separator, demucs, worker_common
 from trackextract_engine.providers.worker_common import run_worker
 from trackextract_engine.registry import load_models
 from trackextract_engine.state import save_jobs
-from trackextract_engine.workers import audio_separator_worker
+from trackextract_engine.workers import audio_separator_worker, demucs_worker
 
 
 def context(tmp_path: Path) -> EngineContext:
@@ -85,15 +85,15 @@ def test_bootstrap_copies_registries_and_writes_state(tmp_path: Path) -> None:
 
 def test_default_app_data_dir_matches_desktop_identifier(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local-app-data"))
+    monkeypatch.setenv("APPDATA", str(tmp_path / "roaming-app-data"))
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg-data"))
 
     if os.name == "nt":
-        expected = tmp_path / "local-app-data" / "com.trackextract.app"
+        expected = tmp_path / "roaming-app-data" / "com.trackextract.desktop"
     elif sys.platform == "darwin":
-        expected = tmp_path / "home" / "Library" / "Application Support" / "com.trackextract.app"
+        expected = tmp_path / "home" / "Library" / "Application Support" / "com.trackextract.desktop"
     else:
-        expected = tmp_path / "xdg-data" / "com.trackextract.app"
+        expected = tmp_path / "xdg-data" / "com.trackextract.desktop"
 
     assert default_app_data_dir() == expected
 
@@ -698,6 +698,23 @@ def test_demucs_provider_builds_bounded_worker_command(monkeypatch, tmp_path: Pa
     assert captured["job_id"] == "job-1"
     assert captured["command"][captured["command"].index("--device") + 1] == "cpu"
     assert captured["command"][captured["command"].index("--segment") + 1] == "8.0"
+
+
+def test_demucs_worker_ignores_incompatible_hybrid_segment() -> None:
+    class HTDemucs:
+        segment = 7.8
+
+    log = StringIO()
+
+    assert demucs_worker.compatible_segment(types.SimpleNamespace(models=[HTDemucs()]), 8.0, log) is None
+    assert "requires 7.8s" in log.getvalue()
+    assert demucs_worker.compatible_segment(types.SimpleNamespace(models=[HTDemucs()]), 7.8, log) == 7.8
+
+
+def test_demucs_worker_preserves_segment_for_non_hybrid_model() -> None:
+    model = types.SimpleNamespace(segment=10.0)
+
+    assert demucs_worker.compatible_segment(model, 6.0, StringIO()) == 6.0
 
 
 def test_audio_separator_provider_builds_worker_command(monkeypatch, tmp_path: Path) -> None:

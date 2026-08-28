@@ -60,15 +60,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -134,15 +125,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -208,15 +190,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -282,15 +255,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -356,15 +320,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -430,15 +385,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -504,15 +450,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"
@@ -578,15 +515,6 @@
         "min": 0.05,
         "max": 0.75,
         "step": 0.05
-      },
-      {
-        "id": "demucsSegmentSeconds",
-        "displayName": "Segment",
-        "type": "integer",
-        "defaultValue": 0,
-        "min": 0,
-        "max": 30,
-        "step": 1
       }
     ],
     "installMethod": "source-only"

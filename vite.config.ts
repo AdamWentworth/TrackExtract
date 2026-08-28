@@ -564,12 +564,12 @@ function defaultAppDataDir() {
 
   const home = os.homedir();
   if (process.platform === "win32") {
-    return path.join(process.env.APPDATA || path.join(home, "AppData", "Roaming"), "com.trackextract.app");
+    return path.join(process.env.APPDATA || path.join(home, "AppData", "Roaming"), "com.trackextract.desktop");
   }
   if (process.platform === "darwin") {
-    return path.join(home, "Library", "Application Support", "com.trackextract.app");
+    return path.join(home, "Library", "Application Support", "com.trackextract.desktop");
   }
-  return path.join(process.env.XDG_DATA_HOME || path.join(home, ".local", "share"), "com.trackextract.app");
+  return path.join(process.env.XDG_DATA_HOME || path.join(home, ".local", "share"), "com.trackextract.desktop");
 }
 
 function defaultProjectRoot() {
