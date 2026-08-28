@@ -8,6 +8,14 @@
   <strong>Local-first desktop stem separation for producers, engineers, DJs, remixers, and creators.</strong>
 </p>
 
+<p align="center">
+  <a href="https://github.com/AdamWentworth/TrackExtract/actions/workflows/ci.yml"><img src="https://github.com/AdamWentworth/TrackExtract/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <img src="https://img.shields.io/badge/Python-3.12%20Engine-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12 engine" />
+  <img src="https://img.shields.io/badge/React%20%2B%20TypeScript-UI-20232A?logo=react&amp;logoColor=61DAFB" alt="React and TypeScript UI" />
+  <img src="https://img.shields.io/badge/Tauri%202-Desktop-FFC131?logo=tauri&amp;logoColor=111827" alt="Tauri 2 desktop" />
+  <img src="https://img.shields.io/badge/Rust-Native%20Bridge-000000?logo=rust&amp;logoColor=white" alt="Rust native bridge" />
+</p>
+
 Track Extract wraps AI stem-separation models in a practical desktop workflow: import audio, choose a curated
 workflow, run an offline render, preview the generated stems, and export DAW-ready files with predictable names and
 folders.
