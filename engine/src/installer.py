@@ -1,13 +1,20 @@
 from __future__ import annotations
 
+import hashlib
+import os
 import subprocess
 import sys
 import urllib.request
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
+from urllib.parse import urlparse
 
 from .errors import TrackExtractError
 from .paths import EngineContext
 from .registry import load_models, save_models
+
+DOWNLOAD_TIMEOUT_SECONDS = 30
+MAX_MODEL_BYTES = 8 * 1024 * 1024 * 1024
+ALLOWED_MODEL_HOSTS = {"github.com"}
 
 
 def install_model(context: EngineContext, model_id: str, emit) -> dict:
@@ -48,27 +55,65 @@ def download_direct_model(context: EngineContext, model: dict, emit) -> None:
     path = model.get("path")
     if not url or not path:
         raise TrackExtractError(f"{model['displayName']} does not have a managed download yet")
-    destination = context.app_data_dir / path
+    validate_model_url(str(url))
+    destination = (context.app_data_dir / path).resolve()
+    if not is_within(context.app_data_dir.resolve(), destination):
+        raise TrackExtractError("Model destination must stay inside Track Extract application data")
     destination.parent.mkdir(parents=True, exist_ok=True)
     temp = destination.with_suffix(destination.suffix + ".download")
 
     expected_total = int(model.get("downloadSizeMb") or 0) * 1024 * 1024 or None
+    max_bytes = min(
+        MAX_MODEL_BYTES,
+        max(int(expected_total * 1.25), expected_total + 5 * 1024 * 1024) if expected_total else MAX_MODEL_BYTES,
+    )
     emit_progress(emit, model, 0, 0, expected_total, f"Downloading {model['displayName']}")
-    with urllib.request.urlopen(url) as response, temp.open("wb") as output:
-        total = int(response.headers.get("Content-Length") or expected_total or 0) or None
-        downloaded = 0
-        while True:
-            chunk = response.read(1024 * 512)
-            if not chunk:
-                break
-            output.write(chunk)
-            downloaded += len(chunk)
-            progress = downloaded / total if total else 0
-            emit_progress(emit, model, progress, downloaded, total, f"Downloading {model['displayName']}")
-    temp.replace(destination)
+    digest = hashlib.sha256()
+    try:
+        with urllib.request.urlopen(url, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response, temp.open("wb") as output:
+            validate_model_url(response.geturl())
+            total = int(response.headers.get("Content-Length") or expected_total or 0) or None
+            if total and total > max_bytes:
+                raise TrackExtractError(f"{model['displayName']} is larger than its configured download limit")
+            downloaded = 0
+            while True:
+                chunk = response.read(1024 * 512)
+                if not chunk:
+                    break
+                downloaded += len(chunk)
+                if downloaded > max_bytes:
+                    raise TrackExtractError(f"{model['displayName']} exceeded its configured download limit")
+                output.write(chunk)
+                digest.update(chunk)
+                progress = downloaded / total if total else 0
+                emit_progress(emit, model, progress, downloaded, total, f"Downloading {model['displayName']}")
+            output.flush()
+            os.fsync(output.fileno())
+        expected_digest = str(model.get("sha256") or "").lower()
+        if expected_digest and digest.hexdigest() != expected_digest:
+            raise TrackExtractError(f"Checksum verification failed for {model['displayName']}")
+        temp.replace(destination)
+    finally:
+        temp.unlink(missing_ok=True)
     emit_progress(
         emit, model, 1, destination.stat().st_size, destination.stat().st_size, f"Installed {model['displayName']}"
     )
+
+
+def validate_model_url(url: str) -> None:
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    allowed_host = host in ALLOWED_MODEL_HOSTS or host.endswith(".githubusercontent.com")
+    if parsed.scheme != "https" or not allowed_host or parsed.username or parsed.password:
+        raise TrackExtractError("Managed model downloads must use an approved HTTPS GitHub host")
+
+
+def is_within(parent: Path, child: Path) -> bool:
+    try:
+        child.relative_to(parent)
+        return child != parent
+    except ValueError:
+        return False
 
 
 def prefetch_audio_separator_model(context: EngineContext, model: dict, emit) -> None:

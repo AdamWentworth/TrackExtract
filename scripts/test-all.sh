@@ -13,6 +13,7 @@ npm run test:workflows
 npm run test:engine
 npm run test:frontend
 npm run test:build
+npm run test:bundle
 npm run test:rust
 
 if [[ "${TRACKEXTRACT_TEST_NETWORK:-0}" == "1" ]]; then

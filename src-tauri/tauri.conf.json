@@ -20,11 +20,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost; media-src 'self' asset: http://asset.localhost http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline'",
-      "assetProtocol": {
-        "enable": true,
-        "scope": ["$HOME/**", "$APPDATA/**", "$LOCALDATA/**", "$DOCUMENT/**", "$DOWNLOAD/**", "$AUDIO/**"]
-      }
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' data:; media-src 'self' data: http://127.0.0.1:* http://localhost:*; style-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {

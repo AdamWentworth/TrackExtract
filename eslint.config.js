@@ -9,6 +9,7 @@ export default tseslint.config(
     ignores: [
       "dist",
       "dist-ssr",
+      ".artifacts",
       "node_modules",
       "target",
       "src-tauri/gen",
@@ -38,7 +39,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["*.config.{js,ts}", "scripts/**/*.mjs", "eslint.config.js"],
+    files: ["*.config.{js,ts}", "scripts/**/*.{mjs,ts}", "eslint.config.js"],
     languageOptions: {
       globals: {
         ...globals.node,

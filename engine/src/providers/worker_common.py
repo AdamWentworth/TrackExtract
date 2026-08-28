@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -22,15 +23,19 @@ def run_worker(
     started_at = time.monotonic()
     last_message = ""
 
-    while process.poll() is None:
-        if emit:
-            elapsed = time.monotonic() - started_at
-            detail = read_log_status(log_path) or f"{provider_name} is running"
-            message = f"{detail} · {format_elapsed(elapsed)} elapsed"
-            if message != last_message:
-                emit(estimated_progress(elapsed), message)
-                last_message = message
-        time.sleep(poll_interval)
+    try:
+        while process.poll() is None:
+            if emit:
+                elapsed = time.monotonic() - started_at
+                detail = read_log_status(log_path) or f"{provider_name} is running"
+                message = f"{detail} · {format_elapsed(elapsed)} elapsed"
+                if message != last_message:
+                    emit(estimated_progress(elapsed), message)
+                    last_message = message
+            time.sleep(poll_interval)
+    except BaseException:
+        terminate_worker(process)
+        raise
 
     if process.returncode != 0:
         detail = read_log_tail(log_path) or f"{provider_name} exited with status {process.returncode}"
@@ -39,6 +44,25 @@ def run_worker(
         raise TrackExtractError(f"{provider_name} finished but did not write a result file")
     result = json.loads(result_path.read_text(encoding="utf-8"))
     return [stem_file(item["label"], Path(item["path"]), job_id) for item in result.get("stems", [])], log_path
+
+
+def terminate_worker(process: subprocess.Popen) -> None:
+    if process.poll() is not None:
+        return
+    if os.name == "nt":
+        completed = subprocess.run(
+            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if completed.returncode == 0:
+            return
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
 
 
 def read_log_tail(path: Path) -> str:

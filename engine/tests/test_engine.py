@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
 import sys
 import threading
+import time
 import types
 import wave
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from io import StringIO
 from pathlib import Path
 
@@ -15,8 +16,10 @@ from trackextract_engine import installer
 from trackextract_engine import project as project_module
 from trackextract_engine.catalog_audio_separator import entry_from_supported_model
 from trackextract_engine.engine import Engine
+from trackextract_engine.jobs import claim_job, set_progress
 from trackextract_engine.paths import EngineContext, default_app_data_dir
 from trackextract_engine.project import clear_project_child_directory
+from trackextract_engine.providers import audio_separator, demucs, worker_common
 from trackextract_engine.providers.worker_common import run_worker
 from trackextract_engine.registry import load_models
 from trackextract_engine.state import save_jobs
@@ -461,6 +464,72 @@ def test_enqueue_rejects_active_job(tmp_path: Path) -> None:
         raise AssertionError("enqueue should reject a second active job")
 
 
+def test_concurrent_enqueue_only_allows_one_active_job(tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    engine.import_audio_files({"paths": [str(source)]})
+    ctx.models_path.write_text(json.dumps([installed_stub_model()]), encoding="utf-8")
+    barrier = threading.Barrier(3)
+    results = []
+
+    def enqueue_once() -> None:
+        barrier.wait()
+        try:
+            results.append(
+                engine.enqueue_separation(
+                    {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+                )
+            )
+        except Exception as error:
+            results.append(error)
+
+    threads = [threading.Thread(target=enqueue_once) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    barrier.wait()
+    for thread in threads:
+        thread.join()
+
+    assert sum(isinstance(result, dict) for result in results) == 1
+    assert sum(isinstance(result, Exception) for result in results) == 1
+    assert len(engine.get_jobs({})) == 1
+
+
+def test_cancelled_job_rejects_late_progress_and_project_switch(tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    first_source = tmp_path / "first.wav"
+    second_source = tmp_path / "second.wav"
+    write_wav(first_source)
+    write_wav(second_source)
+    engine.import_audio_files({"paths": [str(first_source)]})
+    ctx.models_path.write_text(json.dumps([installed_stub_model()]), encoding="utf-8")
+    job = engine.enqueue_separation(
+        {"task": "vocals_instrumental", "modelId": "test_stub", "sourceId": None, "options": {}}
+    )
+
+    try:
+        engine.import_audio_files({"paths": [str(second_source)]})
+    except Exception as error:
+        assert "active" in str(error)
+    else:
+        raise AssertionError("project switching should be blocked while a job is queued")
+
+    claim_job(ctx, job["id"])
+    engine.cancel_job({"jobId": job["id"]})
+    try:
+        set_progress(ctx, job["id"], 0.8, "Late worker update")
+    except Exception as error:
+        assert "cancelled" in str(error)
+    else:
+        raise AssertionError("cancelled jobs must reject late progress")
+
+    persisted = next(candidate for candidate in engine.get_jobs({}) if candidate["id"] == job["id"])
+    assert persisted["state"] == "cancelled"
+
+
 def test_cancel_and_failed_job_transitions(tmp_path: Path) -> None:
     ctx = context(tmp_path)
     engine = Engine(ctx)
@@ -568,6 +637,107 @@ def test_worker_common_emits_heartbeat_progress(tmp_path: Path) -> None:
     assert any("Running test worker" in message for _, message in events)
 
 
+def test_worker_common_terminates_child_when_progress_callback_fails(monkeypatch, tmp_path: Path) -> None:
+    terminated = []
+    real_terminate = worker_common.terminate_worker
+
+    def recording_terminate(process) -> None:
+        terminated.append(process.pid)
+        real_terminate(process)
+
+    monkeypatch.setattr(worker_common, "terminate_worker", recording_terminate)
+    started = time.monotonic()
+    try:
+        run_worker(
+            [sys.executable, "-c", "import time; time.sleep(10)"],
+            tmp_path / "unused.json",
+            tmp_path / "unused.log",
+            "Test Worker",
+            "job-1",
+            emit=lambda *_: (_ for _ in ()).throw(RuntimeError("stop polling")),
+            poll_interval=0.01,
+        )
+    except RuntimeError as error:
+        assert "stop polling" in str(error)
+    else:
+        raise AssertionError("progress callback failure should escape")
+
+    assert terminated
+    assert time.monotonic() - started < 3
+
+
+def test_demucs_provider_builds_bounded_worker_command(monkeypatch, tmp_path: Path) -> None:
+    captured = {}
+
+    def fake_run_worker(command, result_path, log_path, provider_name, job_id, emit=None):
+        captured.update(
+            command=command,
+            result_path=result_path,
+            log_path=log_path,
+            provider_name=provider_name,
+            job_id=job_id,
+        )
+        return [], log_path
+
+    monkeypatch.setattr(demucs, "run_worker", fake_run_worker)
+    project_root = tmp_path / "project"
+    request = {
+        "job": {
+            "id": "job-1",
+            "sourcePath": str(tmp_path / "source.wav"),
+            "task": "vocals_instrumental",
+            "options": {"device": "cpu", "demucsShifts": 2, "demucsOverlap": 0.4, "demucsSegmentSeconds": 8},
+        },
+        "model": {"runtime": {"demucsModel": "htdemucs", "demucsMode": "vocals"}},
+        "project": {"rootPath": str(project_root), "name": "Demo"},
+    }
+
+    demucs.run(request, lambda *_: None)
+
+    assert captured["provider_name"] == "Demucs"
+    assert captured["job_id"] == "job-1"
+    assert captured["command"][captured["command"].index("--device") + 1] == "cpu"
+    assert captured["command"][captured["command"].index("--segment") + 1] == "8.0"
+
+
+def test_audio_separator_provider_builds_worker_command(monkeypatch, tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    model_path = ctx.app_data_dir / "models" / "audio-separator" / "model.onnx"
+    model_path.parent.mkdir(parents=True)
+    model_path.write_bytes(b"model")
+    captured = {}
+
+    def fake_run_worker(command, result_path, log_path, provider_name, job_id, emit=None):
+        captured.update(command=command, provider_name=provider_name, job_id=job_id)
+        return [], log_path
+
+    monkeypatch.setattr(audio_separator, "run_worker", fake_run_worker)
+    request = {
+        "engineContext": ctx,
+        "job": {
+            "id": "job-2",
+            "sourcePath": str(tmp_path / "source.wav"),
+            "task": "vocals_instrumental",
+            "options": {"batchSize": 2, "enableDenoisePass": True},
+        },
+        "model": {
+            "displayName": "Model",
+            "path": "models/audio-separator/model.onnx",
+            "stems": ["Vocals", "Instrumental"],
+            "sampleRate": 44100,
+            "runtime": {"provider": "audio-separator"},
+        },
+        "project": {"rootPath": str(tmp_path / "project"), "name": "Demo"},
+    }
+
+    audio_separator.run(request, lambda *_: None)
+
+    assert captured["provider_name"] == "Audio Separator"
+    assert captured["command"][captured["command"].index("--model-filename") + 1] == "model.onnx"
+    assert captured["command"][captured["command"].index("--batch-size") + 1] == "2"
+    assert "--enable-denoise-pass" in captured["command"]
+
+
 def test_audio_separator_worker_uses_static_ffmpeg_when_system_ffmpeg_is_missing(monkeypatch) -> None:
     ready = {"value": False}
 
@@ -600,53 +770,75 @@ def test_installer_rejects_source_only(tmp_path: Path) -> None:
         raise AssertionError("source-only install should fail")
 
 
-def test_installer_handles_direct_url_download(tmp_path: Path) -> None:
+def test_installer_handles_direct_url_download(monkeypatch, tmp_path: Path) -> None:
     ctx = context(tmp_path)
     engine = Engine(ctx)
     engine.bootstrap_app({})
-    serve_dir = tmp_path / "serve"
-    serve_dir.mkdir()
-    model_file = serve_dir / "model.onnx"
-    model_file.write_bytes(b"model")
 
-    previous_cwd = Path.cwd()
-    os.chdir(serve_dir)
-    server = ThreadingHTTPServer(("127.0.0.1", 0), SimpleHTTPRequestHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        model = {
-            "id": "direct_model",
-            "displayName": "Direct Model",
-            "backend": "python-engine",
-            "tasks": ["vocals_instrumental"],
-            "stems": ["Vocals", "Instrumental"],
-            "sampleRate": 44100,
-            "quality": "test",
-            "version": "1",
-            "installed": False,
-            "path": "models/audio-separator/direct_model.onnx",
-            "downloadUrl": f"http://127.0.0.1:{server.server_port}/model.onnx",
-            "sourceUrl": "",
-            "license": "",
-            "notes": "",
-            "downloadSizeMb": 1,
-            "installMethod": "direct-url",
-            "runtime": {"provider": "audio-separator", "modelFilename": "direct_model.onnx"},
-            "options": [],
-        }
-        ctx.models_path.write_text(json.dumps([model]), encoding="utf-8")
-        events = []
-        installed = engine.install_model(
-            {"modelId": "direct_model"}, lambda name, payload: events.append((name, payload))
-        )
-    finally:
-        server.shutdown()
-        os.chdir(previous_cwd)
+    class FakeResponse:
+        headers = {"Content-Length": "5"}
+
+        def __init__(self):
+            self.remaining = b"model"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def geturl(self):
+            return "https://release-assets.githubusercontent.com/model.onnx"
+
+        def read(self, _size):
+            chunk, self.remaining = self.remaining, b""
+            return chunk
+
+    monkeypatch.setattr(installer.urllib.request, "urlopen", lambda *_args, **_kwargs: FakeResponse())
+    model = {
+        "id": "direct_model",
+        "displayName": "Direct Model",
+        "backend": "python-engine",
+        "tasks": ["vocals_instrumental"],
+        "stems": ["Vocals", "Instrumental"],
+        "sampleRate": 44100,
+        "quality": "test",
+        "version": "1",
+        "installed": False,
+        "path": "models/audio-separator/direct_model.onnx",
+        "downloadUrl": "https://github.com/example/models/releases/download/v1/model.onnx",
+        "sourceUrl": "",
+        "license": "",
+        "notes": "",
+        "downloadSizeMb": 1,
+        "sha256": hashlib.sha256(b"model").hexdigest(),
+        "installMethod": "direct-url",
+        "runtime": {"provider": "audio-separator", "modelFilename": "direct_model.onnx"},
+        "options": [],
+    }
+    ctx.models_path.write_text(json.dumps([model]), encoding="utf-8")
+    events = []
+    installed = engine.install_model({"modelId": "direct_model"}, lambda name, payload: events.append((name, payload)))
 
     assert installed["installed"] is True
     assert (ctx.app_data_dir / "models/audio-separator/direct_model.onnx").read_bytes() == b"model"
     assert any(name == "model_download_progress" for name, _ in events)
+
+
+def test_installer_rejects_untrusted_downloads_and_destinations(tmp_path: Path) -> None:
+    ctx = context(tmp_path)
+    unsafe = {
+        "displayName": "Unsafe Model",
+        "downloadUrl": "http://127.0.0.1/model.onnx",
+        "path": "../outside.onnx",
+        "downloadSizeMb": 1,
+    }
+    try:
+        installer.download_direct_model(ctx, unsafe, lambda *_: None)
+    except Exception as error:
+        assert "approved HTTPS" in str(error)
+    else:
+        raise AssertionError("untrusted model URL should be rejected")
 
 
 def test_installer_prefetches_audio_separator_models(monkeypatch, tmp_path: Path) -> None:

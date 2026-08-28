@@ -130,6 +130,10 @@ if (!Array.isArray(registry)) {
       errors.push(`${label}: downloadSizeMb must be a positive integer when present.`);
     }
 
+    if (model.sha256 !== undefined && !/^[a-f0-9]{64}$/i.test(model.sha256)) {
+      errors.push(`${label}: sha256 must be a 64-character hexadecimal digest when present.`);
+    }
+
     if (model.options !== undefined) {
       validateOptions(label, model.options);
     }

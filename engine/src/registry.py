@@ -110,7 +110,7 @@ def upsert_custom_workflow(context: EngineContext, workflow: dict) -> dict:
 
 def preserve_local_install_fields(model: dict) -> dict:
     preserved: dict[str, Any] = {}
-    for key in ["installed", "path", "downloadUrl", "downloadSizeMb", "installMethod", "runtime"]:
+    for key in ["installed", "path", "downloadUrl", "downloadSizeMb", "sha256", "installMethod", "runtime"]:
         if key in model:
             preserved[key] = model[key]
     return preserved

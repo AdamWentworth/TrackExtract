@@ -12,7 +12,6 @@ use std::{
 
 #[cfg(unix)]
 use std::os::unix::process::CommandExt;
-#[cfg(unix)]
 use std::time::Duration;
 
 use serde_json::{json, Value};
@@ -31,10 +30,13 @@ struct RuntimeState {
 
 impl RuntimeState {
     fn new(app: &AppHandle) -> Result<Self, String> {
+        let bridge = PythonEngineBridge::new(app)?;
+        let media_server =
+            MediaServer::start(bridge.project_root.clone()).map_err(|error| error.to_string())?;
         Ok(Self {
-            bridge: PythonEngineBridge::new(app)?,
+            bridge,
             running_children: Mutex::new(HashMap::new()),
-            media_server: MediaServer::start().map_err(|error| error.to_string())?,
+            media_server,
         })
     }
 }
@@ -249,6 +251,16 @@ fn terminate_child_process(child: &mut Child) {
         thread::sleep(Duration::from_millis(250));
     }
 
+    #[cfg(windows)]
+    {
+        let _ = Command::new("taskkill")
+            .args(["/PID", &child.id().to_string(), "/T", "/F"])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+
     let _ = child.kill();
 }
 
@@ -409,6 +421,17 @@ fn get_jobs(state: State<'_, Arc<RuntimeState>>) -> Result<Value, String> {
 }
 
 #[tauri::command]
+fn get_snapshot(
+    include_registries: Option<bool>,
+    state: State<'_, Arc<RuntimeState>>,
+) -> Result<Value, String> {
+    state.bridge.run_json(
+        "get_snapshot",
+        json!({ "includeRegistries": include_registries.unwrap_or(false) }),
+    )
+}
+
+#[tauri::command]
 fn clear_jobs(state: State<'_, Arc<RuntimeState>>, app: AppHandle) -> Result<Value, String> {
     let jobs = state.bridge.run_json("clear_jobs", json!({}))?;
     let project = state.bridge.run_json("get_project", json!({}))?;
@@ -485,12 +508,30 @@ fn clear_project_source(
 
 #[tauri::command]
 fn stem_media_url(path: String, state: State<'_, Arc<RuntimeState>>) -> Result<String, String> {
-    Ok(state.media_server.url_for_path(&PathBuf::from(path)))
+    let path = PathBuf::from(path)
+        .canonicalize()
+        .map_err(|error| format!("Could not open media path: {error}"))?;
+    let project_root = state
+        .bridge
+        .project_root
+        .canonicalize()
+        .unwrap_or_else(|_| state.bridge.project_root.clone());
+    if !is_trackextract_media_path(&path, &project_root) {
+        return Err("Requested media path is outside Track Extract project media".to_string());
+    }
+    Ok(state.media_server.url_for_path(&path))
 }
 
 #[tauri::command]
-fn reveal_path(path: String) -> Result<(), String> {
-    open_path(&PathBuf::from(path))
+fn reveal_path(path: String, state: State<'_, Arc<RuntimeState>>) -> Result<(), String> {
+    let path = PathBuf::from(path);
+    let resolved = path.canonicalize().unwrap_or_else(|_| path.clone());
+    if !path_is_within(&resolved, &state.bridge.project_root)
+        && !path_is_within(&resolved, &state.bridge.app_data_dir)
+    {
+        return Err("Track Extract can only reveal project and application data paths".to_string());
+    }
+    open_path(&resolved)
 }
 
 fn open_path(path: &PathBuf) -> Result<(), String> {
@@ -636,42 +677,76 @@ fn copy_dir_all(source: &Path, target: &Path) -> std::io::Result<()> {
 #[derive(Debug)]
 struct MediaServer {
     origin: String,
+    token: String,
 }
 
 impl MediaServer {
-    fn start() -> std::io::Result<Self> {
+    fn start(project_root: PathBuf) -> std::io::Result<Self> {
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let origin = format!("http://{}", listener.local_addr()?);
+        let mut token_bytes = [0_u8; 32];
+        getrandom::fill(&mut token_bytes)
+            .map_err(|error| std::io::Error::other(error.to_string()))?;
+        let token = token_bytes
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        let server_token = token.clone();
+        let canonical_project_root = project_root.canonicalize().unwrap_or(project_root);
 
         thread::spawn(move || {
             for stream in listener.incoming().flatten() {
+                let token = server_token.clone();
+                let project_root = canonical_project_root.clone();
                 thread::spawn(move || {
-                    let _ = handle_media_stream(stream);
+                    let _ = handle_media_stream(stream, &token, &project_root);
                 });
             }
         });
 
-        Ok(Self { origin })
+        Ok(Self { origin, token })
     }
 
     fn url_for_path(&self, path: &Path) -> String {
         format!(
-            "{}/stem?path={}",
+            "{}/stem?token={}&path={}",
             self.origin,
+            self.token,
             percent_encode(&path.to_string_lossy())
         )
     }
 }
 
-fn handle_media_stream(mut stream: TcpStream) -> std::io::Result<()> {
+fn handle_media_stream(
+    mut stream: TcpStream,
+    token: &str,
+    project_root: &Path,
+) -> std::io::Result<()> {
+    stream.set_read_timeout(Some(Duration::from_secs(5)))?;
     let mut reader = BufReader::new(stream.try_clone()?);
     let mut request_line = String::new();
     reader.read_line(&mut request_line)?;
+    if request_line.len() > 8 * 1024 {
+        return write_error_response(
+            &mut stream,
+            "431 Request Header Fields Too Large",
+            "Request line is too large",
+        );
+    }
 
     let mut headers = HashMap::new();
+    let mut header_bytes = request_line.len();
     loop {
         let mut line = String::new();
         reader.read_line(&mut line)?;
+        header_bytes += line.len();
+        if header_bytes > 32 * 1024 {
+            return write_error_response(
+                &mut stream,
+                "431 Request Header Fields Too Large",
+                "Request headers are too large",
+            );
+        }
         let line = line.trim_end_matches(['\r', '\n']);
         if line.is_empty() {
             break;
@@ -706,6 +781,8 @@ fn handle_media_stream(mut stream: TcpStream) -> std::io::Result<()> {
         target,
         headers.get("range").map(String::as_str),
         method == "HEAD",
+        token,
+        project_root,
     ) {
         Ok(()) => Ok(()),
         Err(error) => write_error_response(&mut stream, "400 Bad Request", &error),
@@ -717,11 +794,16 @@ fn stream_stem_http(
     target: &str,
     range: Option<&str>,
     head_only: bool,
+    expected_token: &str,
+    project_root: &Path,
 ) -> Result<(), String> {
-    let path = media_target_path(target)?;
+    let (path, token) = media_target_path(target)?;
+    if token != expected_token {
+        return Err("Media request token is invalid".to_string());
+    }
     let canonical_path = path.canonicalize().map_err(|error| error.to_string())?;
 
-    if !is_trackextract_media_path(&canonical_path) {
+    if !is_trackextract_media_path(&canonical_path, project_root) {
         return Err("Requested media path is outside Track Extract project media".to_string());
     }
 
@@ -779,7 +861,7 @@ fn stream_stem_http(
     Ok(())
 }
 
-fn media_target_path(target: &str) -> Result<PathBuf, String> {
+fn media_target_path(target: &str) -> Result<(PathBuf, String), String> {
     let (path, query) = target
         .split_once('?')
         .ok_or_else(|| "Media request is missing a path query".to_string())?;
@@ -787,14 +869,21 @@ fn media_target_path(target: &str) -> Result<PathBuf, String> {
         return Err("Media request path is not supported".to_string());
     }
 
+    let mut media_path = None;
+    let mut token = None;
     for pair in query.split('&') {
         let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
         if key == "path" {
-            return Ok(PathBuf::from(percent_decode(value)?));
+            media_path = Some(PathBuf::from(percent_decode(value)?));
+        } else if key == "token" {
+            token = Some(percent_decode(value)?);
         }
     }
 
-    Err("Media request is missing a stem path".to_string())
+    Ok((
+        media_path.ok_or_else(|| "Media request is missing a stem path".to_string())?,
+        token.ok_or_else(|| "Media request is missing a token".to_string())?,
+    ))
 }
 
 fn write_error_response(
@@ -838,15 +927,21 @@ fn write_headers(
     write!(stream, "\r\n")
 }
 
-fn is_trackextract_media_path(path: &Path) -> bool {
+fn is_trackextract_media_path(path: &Path, project_root: &Path) -> bool {
     audio_content_type(path).is_some()
-        && path
-            .components()
-            .any(|component| component.as_os_str() == "TrackExtract Projects")
+        && path_is_within(path, project_root)
         && path
             .parent()
             .and_then(|parent| parent.file_name())
             .is_some_and(|name| name == "stems" || name == "original")
+}
+
+fn path_is_within(path: &Path, parent: &Path) -> bool {
+    let path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
+    let parent = parent
+        .canonicalize()
+        .unwrap_or_else(|_| parent.to_path_buf());
+    path != parent && path.starts_with(parent)
 }
 
 fn audio_content_type(path: &Path) -> Option<&'static str> {
@@ -877,6 +972,9 @@ fn parse_byte_range(range: &str, len: u64) -> Result<(u64, u64), String> {
         let suffix = end
             .parse::<u64>()
             .map_err(|_| "Byte range suffix is malformed".to_string())?;
+        if suffix == 0 {
+            return Err("Byte range suffix must be greater than zero".to_string());
+        }
         let start = len.saturating_sub(suffix);
         (start, len - 1)
     } else {
@@ -972,6 +1070,7 @@ pub fn run() {
             sync_audio_separator_catalog,
             get_project,
             get_jobs,
+            get_snapshot,
             clear_jobs,
             export_stems,
             clear_project_stems,
@@ -999,15 +1098,23 @@ mod tests {
 
     #[test]
     fn media_path_allows_project_stems_and_originals() {
-        assert!(is_trackextract_media_path(Path::new(
-            "/tmp/TrackExtract Projects/Song/stems/Song - Vocals.wav"
-        )));
-        assert!(is_trackextract_media_path(Path::new(
-            "/tmp/TrackExtract Projects/Song/original/Song.flac"
-        )));
-        assert!(!is_trackextract_media_path(Path::new(
-            "/tmp/TrackExtract Projects/Song/logs/Song.wav"
-        )));
+        let root = Path::new("/tmp/TrackExtract Projects");
+        assert!(is_trackextract_media_path(
+            Path::new("/tmp/TrackExtract Projects/Song/stems/Song - Vocals.wav"),
+            root
+        ));
+        assert!(is_trackextract_media_path(
+            Path::new("/tmp/TrackExtract Projects/Song/original/Song.flac"),
+            root
+        ));
+        assert!(!is_trackextract_media_path(
+            Path::new("/tmp/TrackExtract Projects/Song/logs/Song.wav"),
+            root
+        ));
+        assert!(!is_trackextract_media_path(
+            Path::new("/tmp/Other Projects/Song/stems/Song.wav"),
+            root
+        ));
     }
 
     #[test]
@@ -1023,5 +1130,6 @@ mod tests {
     #[test]
     fn byte_range_parses_open_ended_range() {
         assert_eq!(parse_byte_range("bytes=10-", 100).expect("range"), (10, 99));
+        assert!(parse_byte_range("bytes=-0", 100).is_err());
     }
 }

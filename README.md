@@ -169,6 +169,9 @@ Network checks for model download URLs are opt-in so local tests are not flaky:
 TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
 ```
 
+The Linux CI lane also runs the frontend with coverage thresholds and exercises the production build through a
+Playwright browser smoke test. Production JavaScript and CSS gzip sizes are checked against explicit budgets.
+
 ## Roadmap
 
 1. Package the Python engine cleanly for end users.

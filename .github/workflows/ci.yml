@@ -16,6 +16,32 @@ env:
   TRACKEXTRACT_TEST_VENV: .venv-python-tests
 
 jobs:
+  security:
+    name: Dependency security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=high
+
+      - name: Audit Rust dependencies
+        uses: rustsec/audit-check@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ignore: RUSTSEC-2024-0429
+
   test:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -83,3 +109,18 @@ jobs:
       - name: Test
         shell: bash
         run: npm run test:all
+
+      - name: Frontend coverage gate
+        if: runner.os == 'Linux'
+        shell: bash
+        run: npm run test:frontend:coverage
+
+      - name: Install browser for end-to-end smoke test
+        if: runner.os == 'Linux'
+        shell: bash
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end production smoke test
+        if: runner.os == 'Linux'
+        shell: bash
+        run: npm run test:e2e

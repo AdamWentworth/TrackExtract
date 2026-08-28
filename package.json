@@ -9,7 +9,7 @@
     "npm": ">=11"
   },
   "scripts": {
-    "check": "npm run format:check && npm run lint && npm run test:all",
+    "check": "npm run format:check && npm run lint && npm run security:check && npm run test:all",
     "dev": "vite",
     "dev:browser": "vite",
     "build": "tsc && vite build",
@@ -25,6 +25,7 @@
     "lint:rust": "bash scripts/test-rust.sh --lint-only",
     "models:build": "node scripts/build-model-registry.mjs",
     "models:check": "node scripts/build-model-registry.mjs --check",
+    "security:check": "npm audit --audit-level=high",
     "preview": "vite preview",
     "capture:demo:media": "playwright test --config demo-media.playwright.config.ts",
     "tauri": "bash scripts/tauri-env.sh",
@@ -34,12 +35,15 @@
     "test:all": "bash scripts/test-all.sh",
     "test:build": "npm run build",
     "test:frontend": "vitest run",
+    "test:frontend:coverage": "vitest run --coverage",
     "test:engine": "bash scripts/test-python.sh",
+    "test:e2e": "playwright test --config playwright.config.ts",
     "test:models": "npm run models:check && node scripts/validate-model-registry.mjs",
     "test:models:network": "node scripts/check-model-urls.mjs",
     "test:python": "npm run test:engine",
     "test:workflows": "node scripts/validate-workflows.mjs",
-    "test:rust": "bash scripts/test-rust.sh"
+    "test:rust": "bash scripts/test-rust.sh",
+    "test:bundle": "node scripts/check-bundle-size.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -55,10 +59,13 @@
     "@tauri-apps/cli": "^2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
+    "@types/busboy": "^1.5.4",
     "@types/node": "^25.7.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "busboy": "^1.6.0",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

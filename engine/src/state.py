@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import TypeVar
 
 from .paths import EngineContext
-from .schemas import read_json, write_json
+from .schemas import file_lock, read_json, write_json
+
+T = TypeVar("T")
 
 
 def load_state(context: EngineContext) -> dict:
@@ -11,7 +15,20 @@ def load_state(context: EngineContext) -> dict:
 
 
 def save_state(context: EngineContext, state: dict) -> None:
-    write_json(context.state_path, state)
+    with file_lock(state_lock_path(context)):
+        write_json(context.state_path, state)
+
+
+def mutate_state(context: EngineContext, mutator: Callable[[dict], T]) -> T:
+    with file_lock(state_lock_path(context)):
+        state = load_state(context)
+        result = mutator(state)
+        write_json(context.state_path, state)
+        return result
+
+
+def state_lock_path(context: EngineContext) -> Path:
+    return context.state_path.with_suffix(f"{context.state_path.suffix}.lock")
 
 
 def current_project_path(context: EngineContext) -> Path | None:
@@ -21,8 +38,11 @@ def current_project_path(context: EngineContext) -> Path | None:
         return Path(path)
     latest = latest_project_session(context.project_root)
     if latest:
-        state["currentProjectPath"] = str(latest)
-        save_state(context, state)
+
+        def select_latest(current: dict) -> None:
+            current["currentProjectPath"] = str(latest)
+
+        mutate_state(context, select_latest)
     return latest
 
 
@@ -36,11 +56,12 @@ def latest_project_session(project_root: Path) -> Path | None:
 
 
 def set_current_project(context: EngineContext, session_path: Path, jobs: list[dict] | None = None) -> None:
-    state = load_state(context)
-    state["currentProjectPath"] = str(session_path)
-    if jobs is not None:
-        state["jobs"] = jobs
-    save_state(context, state)
+    def update(state: dict) -> None:
+        state["currentProjectPath"] = str(session_path)
+        if jobs is not None:
+            state["jobs"] = jobs
+
+    mutate_state(context, update)
 
 
 def load_jobs(context: EngineContext) -> list[dict]:
@@ -48,6 +69,7 @@ def load_jobs(context: EngineContext) -> list[dict]:
 
 
 def save_jobs(context: EngineContext, jobs: list[dict]) -> None:
-    state = load_state(context)
-    state["jobs"] = jobs
-    save_state(context, state)
+    def update(state: dict) -> None:
+        state["jobs"] = jobs
+
+    mutate_state(context, update)

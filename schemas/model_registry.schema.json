@@ -59,6 +59,7 @@
       "license": { "type": "string" },
       "notes": { "type": "string" },
       "downloadSizeMb": { "type": "integer", "minimum": 1 },
+      "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
       "installMethod": {
         "type": "string",
         "enum": ["direct-url", "audio-separator", "source-only"]

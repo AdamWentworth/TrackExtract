@@ -37,6 +37,7 @@ EXPORT_FORMATS = {
 
 
 def import_audio_files(context: EngineContext, paths: list[str]) -> dict:
+    ensure_no_active_jobs(context)
     if not paths:
         raise TrackExtractError("Project has no imported audio files")
     source_paths = [Path(path).expanduser() for path in paths]
@@ -231,9 +232,9 @@ def require_current_project(context: EngineContext) -> dict:
 
 
 def ensure_no_active_jobs(context: EngineContext) -> None:
-    active = next((job for job in load_jobs(context) if job.get("state") in {"preparing", "running"}), None)
+    active = next((job for job in load_jobs(context) if job.get("state") in {"queued", "preparing", "running"}), None)
     if active:
-        raise TrackExtractError("Cancel the running job before clearing workspace files")
+        raise TrackExtractError("Cancel the active job before changing workspace files")
 
 
 def clear_project_child_directory(root_path: Path, child_name: str) -> None:

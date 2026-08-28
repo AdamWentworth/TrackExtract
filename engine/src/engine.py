@@ -3,9 +3,20 @@ from __future__ import annotations
 from pathlib import Path
 
 from .catalog_audio_separator import sync_catalog
-from .errors import TrackExtractError
+from .errors import CancelledError, TrackExtractError
 from .installer import install_model
-from .jobs import cancel, clear_job_history, complete, enqueue, fail, list_jobs, set_progress, set_state
+from .jobs import (
+    cancel,
+    claim_job,
+    clear_job_history,
+    complete,
+    enqueue,
+    fail,
+    get_job,
+    list_jobs,
+    set_progress,
+    set_state,
+)
 from .paths import EngineContext
 from .project import (
     clear_project_source,
@@ -17,6 +28,7 @@ from .project import (
 )
 from .providers import run_provider
 from .registry import bootstrap_registries, find_model, load_models, load_workflows, upsert_custom_workflow
+from .schemas import read_json
 
 
 class Engine:
@@ -63,6 +75,16 @@ class Engine:
     def get_jobs(self, _args: dict) -> list[dict]:
         return list_jobs(self.context)
 
+    def get_snapshot(self, args: dict) -> dict:
+        snapshot = {
+            "currentProject": get_current_project(self.context),
+            "jobs": list_jobs(self.context),
+        }
+        if args.get("includeRegistries"):
+            snapshot["models"] = load_models(self.context)
+            snapshot["workflows"] = load_workflows(self.context)
+        return snapshot
+
     def clear_jobs(self, _args: dict) -> list[dict]:
         return clear_job_history(self.context)
 
@@ -94,23 +116,30 @@ class Engine:
 
     def start_job(self, args: dict, emit) -> dict:
         job_id = args.get("jobId")
-        job = set_state(self.context, job_id, "preparing", "Preparing source audio")
+        job = claim_job(self.context, job_id)
         emit("job_state_changed", job)
-        job = set_state(self.context, job_id, "running", "Running separation")
-        emit("job_state_changed", job)
-        emit("job_progress", {"jobId": job_id, "progress": 0.03, "message": "Preparing Python engine"})
-
-        project = get_current_project(self.context)
-        if not project:
-            raise TrackExtractError("No project is currently open")
-        model = find_model(self.context, job["modelId"])
-
-        def provider_progress(progress: float, message: str) -> None:
-            updated = set_progress(self.context, job_id, progress, message)
-            emit("job_progress", {"jobId": job_id, "progress": progress, "message": message})
-            emit("job_state_changed", updated)
 
         try:
+            job = set_state(self.context, job_id, "running", "Running separation")
+            emit("job_state_changed", job)
+            emit("job_progress", {"jobId": job_id, "progress": 0.03, "message": "Preparing Python engine"})
+
+            project_path = Path(job.get("projectSessionPath") or "")
+            project = read_json(project_path, None) if project_path.is_file() else None
+            if not project:
+                current_project = get_current_project(self.context)
+                project = (
+                    current_project if current_project and current_project.get("id") == job.get("projectId") else None
+                )
+            if not project:
+                raise TrackExtractError("The project associated with this job is no longer available")
+            model = find_model(self.context, job["modelId"])
+
+            def provider_progress(progress: float, message: str) -> None:
+                updated = set_progress(self.context, job_id, progress, message)
+                emit("job_progress", {"jobId": job_id, "progress": progress, "message": message})
+                emit("job_state_changed", updated)
+
             stems, log_path = run_provider(
                 {
                     "context": {
@@ -130,6 +159,10 @@ class Engine:
             emit("job_state_changed", final_job)
             emit("job_progress", {"jobId": job_id, "progress": 1.0, "message": "Separation complete"})
             return final_job
+        except CancelledError:
+            cancelled = get_job(self.context, job_id)
+            emit("job_state_changed", cancelled)
+            return cancelled
         except Exception as error:
             failed = fail(self.context, job_id, str(error))
             emit("job_state_changed", failed)

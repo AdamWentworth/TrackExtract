@@ -2,17 +2,25 @@
 /// <reference types="vitest" />
 
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
+import { pipeline } from "node:stream/promises";
+import Busboy from "busboy";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { isPathWithin, isTrustedDevRequest, parseByteRange } from "./scripts/dev-bridge-security";
 
 const host = process.env.TAURI_DEV_HOST;
 const DEV_BRIDGE_PREFIX = "/__trackextract_dev";
+const MAX_COMMAND_BODY_BYTES = 1024 * 1024;
+const MAX_BROWSER_FILES = 16;
+const MAX_BROWSER_FILE_BYTES = 2 * 1024 * 1024 * 1024;
+const MAX_BROWSER_UPLOAD_BYTES = 4 * 1024 * 1024 * 1024;
 const ENGINE_SYNC_COMMANDS = new Set([
   "bootstrap_app",
   "list_models",
@@ -23,6 +31,7 @@ const ENGINE_SYNC_COMMANDS = new Set([
   "cancel_job",
   "get_project",
   "get_jobs",
+  "get_snapshot",
   "clear_jobs",
   "export_stems",
   "clear_project_stems",
@@ -37,7 +46,19 @@ export default defineConfig(async () => ({
   plugins: [react(), trackExtractDevBridge()],
   test: {
     environment: "jsdom",
+    exclude: ["node_modules/**", "dist/**", "tests/e2e/**", "tests/demo-media/**"],
     setupFiles: "./src/setupTests.ts",
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      reportsDirectory: ".artifacts/coverage/frontend",
+      thresholds: {
+        branches: 60,
+        functions: 60,
+        lines: 65,
+        statements: 65,
+      },
+    },
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
@@ -84,6 +105,11 @@ function trackExtractDevBridge(): Plugin {
           return;
         }
 
+        if (!isTrustedDevRequest(request)) {
+          sendJson(response, 403, { ok: false, message: "Cross-origin dev bridge request denied." });
+          return;
+        }
+
         if (request.method === "OPTIONS") {
           sendJson(response, 204, null);
           return;
@@ -111,13 +137,16 @@ function trackExtractDevBridge(): Plugin {
           }
 
           if (route === "/stem" && (request.method === "GET" || request.method === "HEAD")) {
-            await serveStemFile(request, response, requestUrl, request.method === "HEAD");
+            await serveStemFile(request, response, requestUrl, request.method === "HEAD", context.projectRoot);
             return;
           }
 
           sendJson(response, 404, { ok: false, message: "Track Extract dev bridge route not found." });
         } catch (error) {
-          sendJson(response, 500, { ok: false, message: errorMessage(error) });
+          sendJson(response, error instanceof HttpError ? error.status : 500, {
+            ok: false,
+            message: errorMessage(error),
+          });
         }
       });
     },
@@ -131,11 +160,19 @@ async function handleDevCommand(
   runningChildren: Map<string, ChildProcessWithoutNullStreams>,
 ) {
   if (command === "stem_media_url") {
-    return `${DEV_BRIDGE_PREFIX}/stem?path=${encodeURIComponent(String(args.path ?? ""))}`;
+    const mediaPath = path.resolve(String(args.path ?? ""));
+    if (!isTrackExtractMediaPath(mediaPath, context.projectRoot)) {
+      throw new HttpError(400, "Requested media path is outside Track Extract project media.");
+    }
+    return `${DEV_BRIDGE_PREFIX}/stem?path=${encodeURIComponent(mediaPath)}`;
   }
 
   if (command === "reveal_path") {
-    openLocalPath(String(args.path ?? ""));
+    const revealPath = path.resolve(String(args.path ?? ""));
+    if (!isPathWithin(revealPath, context.projectRoot) && !isPathWithin(revealPath, context.appDataDir)) {
+      throw new HttpError(400, "Track Extract can only reveal project and application data paths.");
+    }
+    openLocalPath(revealPath);
     return null;
   }
 
@@ -159,31 +196,89 @@ async function handleDevCommand(
 async function importBrowserFiles(request: IncomingMessage, context: EngineContext) {
   const contentType = request.headers["content-type"];
   if (!contentType?.includes("multipart/form-data")) {
-    throw new Error("Browser import requires multipart form data.");
+    throw new HttpError(415, "Browser import requires multipart form data.");
   }
 
-  const body = await readRequestBody(request);
-  const uploadRequest = new Request("http://trackextract.local/import-files", {
-    method: "POST",
-    headers: { "content-type": contentType },
-    body,
-  });
-  const formData = await uploadRequest.formData();
-  const files = formData.getAll("files").filter((value): value is File => value instanceof File);
-  if (files.length === 0) {
-    throw new Error("Choose at least one audio file to import.");
+  const contentLength = Number(request.headers["content-length"] ?? 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_BROWSER_UPLOAD_BYTES) {
+    throw new HttpError(413, "Browser import is larger than the 4 GiB upload limit.");
   }
 
-  const importDir = path.join(context.appDataDir, "browser-imports", Date.now().toString(36));
+  const importDir = path.join(context.appDataDir, "browser-imports", `${Date.now().toString(36)}-${randomUUID()}`);
   await mkdir(importDir, { recursive: true });
-  const paths = [];
-  for (const file of files) {
-    const destination = path.join(importDir, sanitizeFileName(file.name || "audio.wav"));
-    await writeFile(destination, Buffer.from(await file.arrayBuffer()));
-    paths.push(destination);
-  }
 
-  return runEngineJson("import_audio_files", { paths }, context);
+  try {
+    const paths = await streamBrowserFiles(request, importDir);
+    return await runEngineJson("import_audio_files", { paths }, context);
+  } catch (error) {
+    await rm(importDir, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+function streamBrowserFiles(request: IncomingMessage, importDir: string): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    const parser = Busboy({
+      headers: request.headers,
+      limits: {
+        files: MAX_BROWSER_FILES,
+        fileSize: MAX_BROWSER_FILE_BYTES,
+        fields: 4,
+        parts: MAX_BROWSER_FILES + 4,
+      },
+    });
+    const paths: string[] = [];
+    const writes: Promise<void>[] = [];
+    let totalBytes = 0;
+    let uploadError: Error | null = null;
+
+    parser.on("file", (fieldName, file, info) => {
+      if (fieldName !== "files") {
+        file.resume();
+        return;
+      }
+
+      const fileName = sanitizeFileName(info.filename || "audio.wav");
+      if (!audioContentType(fileName)) {
+        uploadError ??= new HttpError(415, `Unsupported audio file: ${fileName}`);
+        file.resume();
+        return;
+      }
+
+      const destination = path.join(importDir, `${String(paths.length + 1).padStart(2, "0")}-${fileName}`);
+      paths.push(destination);
+      file.on("data", (chunk: Buffer) => {
+        totalBytes += chunk.length;
+        if (totalBytes > MAX_BROWSER_UPLOAD_BYTES) {
+          const error = new HttpError(413, "Browser import is larger than the 4 GiB upload limit.");
+          uploadError ??= error;
+          request.unpipe(parser);
+          request.resume();
+          parser.destroy(error);
+        }
+      });
+      file.on("limit", () => {
+        uploadError ??= new HttpError(413, `${fileName} is larger than the 2 GiB per-file limit.`);
+      });
+      writes.push(pipeline(file, fs.createWriteStream(destination, { flags: "wx" })));
+    });
+    parser.on("filesLimit", () => {
+      uploadError ??= new HttpError(413, `Browser import accepts at most ${MAX_BROWSER_FILES} files.`);
+    });
+    parser.on("error", reject);
+    parser.on("close", () => {
+      void Promise.all(writes).then(() => {
+        if (uploadError) {
+          reject(uploadError);
+        } else if (paths.length === 0) {
+          reject(new HttpError(400, "Choose at least one audio file to import."));
+        } else {
+          resolve(paths);
+        }
+      }, reject);
+    });
+    request.pipe(parser);
+  });
 }
 
 function runEngineJson(command: string, args: Record<string, unknown>, context: EngineContext): Promise<unknown> {
@@ -313,7 +408,15 @@ function terminateTrackedChild(runningChildren: Map<string, ChildProcessWithoutN
   runningChildren.delete(key);
 
   try {
-    if (process.platform !== "win32" && child.pid) {
+    if (process.platform === "win32" && child.pid) {
+      const killer = spawn("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+        stdio: "ignore",
+        windowsHide: true,
+      });
+      killer.on("error", () => child.kill("SIGTERM"));
+      return;
+    }
+    if (child.pid) {
       process.kill(-child.pid, "SIGTERM");
     }
   } catch {
@@ -337,16 +440,24 @@ function resolveEnginePython(repoRoot: string) {
   return "python3";
 }
 
-async function serveStemFile(request: IncomingMessage, response: ServerResponse, requestUrl: URL, headOnly: boolean) {
+async function serveStemFile(
+  request: IncomingMessage,
+  response: ServerResponse,
+  requestUrl: URL,
+  headOnly: boolean,
+  projectRoot: string,
+) {
   const stemPath = requestUrl.searchParams.get("path");
   if (!stemPath) {
     sendText(response, 400, "Media request is missing a stem path.");
     return;
   }
 
-  const resolved = path.resolve(stemPath);
+  const unresolved = path.resolve(stemPath);
+  const resolved = await fs.promises.realpath(unresolved).catch(() => unresolved);
+  const resolvedProjectRoot = await fs.promises.realpath(projectRoot).catch(() => path.resolve(projectRoot));
   const contentType = audioContentType(resolved);
-  if (!isTrackExtractMediaPath(resolved) || !contentType) {
+  if (!isTrackExtractMediaPath(resolved, resolvedProjectRoot) || !contentType) {
     sendText(response, 400, "Requested media path is outside Track Extract project media.");
     return;
   }
@@ -357,7 +468,6 @@ async function serveStemFile(request: IncomingMessage, response: ServerResponse,
     const { start, end } = parseByteRange(range, stat.size);
     response.writeHead(206, {
       "Accept-Ranges": "bytes",
-      "Access-Control-Allow-Origin": "*",
       "Content-Length": end + 1 - start,
       "Content-Range": `bytes ${start}-${end}/${stat.size}`,
       "Content-Type": contentType,
@@ -372,7 +482,6 @@ async function serveStemFile(request: IncomingMessage, response: ServerResponse,
 
   response.writeHead(200, {
     "Accept-Ranges": "bytes",
-    "Access-Control-Allow-Origin": "*",
     "Content-Length": stat.size,
     "Content-Type": contentType,
   });
@@ -383,31 +492,10 @@ async function serveStemFile(request: IncomingMessage, response: ServerResponse,
   }
 }
 
-function parseByteRange(range: string, size: number) {
-  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-  if (!match || size <= 0) {
-    throw new Error("Byte range is malformed.");
-  }
-
-  if (!match[1]) {
-    const suffix = Number(match[2]);
-    const start = Math.max(0, size - suffix);
-    return { start, end: size - 1 };
-  }
-
-  const start = Number(match[1]);
-  const end = match[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
-  if (Number.isNaN(start) || Number.isNaN(end) || start > end || start >= size) {
-    throw new Error("Byte range is not satisfiable.");
-  }
-  return { start, end };
-}
-
-function isTrackExtractMediaPath(value: string) {
-  const parts = value.split(path.sep);
+function isTrackExtractMediaPath(value: string, projectRoot: string) {
   return (
     Boolean(audioContentType(value)) &&
-    parts.includes("TrackExtract Projects") &&
+    isPathWithin(value, projectRoot) &&
     ["original", "stems"].includes(path.basename(path.dirname(value)))
   );
 }
@@ -439,30 +527,32 @@ function openLocalPath(value: string) {
 }
 
 async function readJson(request: IncomingMessage): Promise<unknown> {
-  const body = await readRequestBody(request);
+  const body = await readRequestBody(request, MAX_COMMAND_BODY_BYTES);
   return body.length === 0 ? {} : JSON.parse(body.toString("utf8"));
 }
 
-async function readRequestBody(request: IncomingMessage) {
+async function readRequestBody(request: IncomingMessage, maxBytes: number) {
   const chunks: Buffer[] = [];
+  let totalBytes = 0;
   for await (const chunk of request) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    totalBytes += buffer.length;
+    if (totalBytes > maxBytes) {
+      throw new HttpError(413, "Dev bridge command is larger than the 1 MiB request limit.");
+    }
+    chunks.push(buffer);
   }
   return Buffer.concat(chunks);
 }
 
 function sendJson(response: ServerResponse, status: number, payload: unknown) {
   response.statusCode = status;
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Headers", "content-type");
-  response.setHeader("Access-Control-Allow-Methods", "GET,POST,HEAD,OPTIONS");
   response.setHeader("Content-Type", "application/json");
   response.end(payload === null ? "" : JSON.stringify(payload));
 }
 
 function sendText(response: ServerResponse, status: number, message: string) {
   response.statusCode = status;
-  response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Content-Type", "text/plain");
   response.end(message);
 }
@@ -498,6 +588,15 @@ function sanitizeFileName(value: string) {
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
+}
+
+class HttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
 }
 
 interface EngineContext {

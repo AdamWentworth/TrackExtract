@@ -8,6 +8,7 @@ import bundledModels from "../resources/models.json";
 import bundledWorkflows from "../resources/workflows.json";
 import logoRow from "./assets/brand/trackextract-logo-row.png";
 import logoRowWhite from "./assets/brand/trackextract-logo-row-white.png";
+import { getWaveformData, WAVEFORM_PEAK_COUNT, type WaveformData } from "./waveform";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -94,6 +95,7 @@ interface ModelEntry {
   license?: string;
   notes?: string;
   downloadSizeMb?: number;
+  sha256?: string;
   installMethod?: InstallMethod;
   runtime?: {
     provider?: RuntimeProvider;
@@ -193,6 +195,13 @@ interface BootstrapState {
   jobs: JobRecord[];
 }
 
+interface SharedSnapshot {
+  currentProject: ProjectSession | null;
+  jobs: JobRecord[];
+  models?: ModelEntry[];
+  workflows?: WorkflowEntry[];
+}
+
 interface BackendProgress {
   jobId: string;
   progress: number;
@@ -211,11 +220,6 @@ interface PreviewState {
   muted: boolean;
   solo: boolean;
   volume: number;
-}
-
-interface WaveformData {
-  durationSeconds: number;
-  peaks: number[];
 }
 
 interface ScrollMetrics {
@@ -252,7 +256,6 @@ const EXPORT_FORMATS: Array<{ value: ExportFormat; label: string; description: s
 ];
 const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const THEME_STORAGE_KEY = "trackextract_theme";
-const WAVEFORM_PEAK_COUNT = 192;
 const DEV_BRIDGE_PREFIX = "/__trackextract_dev";
 const DEV_BRIDGE_COMMANDS = new Set([
   "bootstrap_app",
@@ -266,6 +269,7 @@ const DEV_BRIDGE_COMMANDS = new Set([
   "cancel_job",
   "get_project",
   "get_jobs",
+  "get_snapshot",
   "clear_jobs",
   "export_stems",
   "clear_project_stems",
@@ -392,7 +396,7 @@ function App() {
   const [modelTaskFilter, setModelTaskFilter] = useState<ModelTaskFilter>("all");
   const [modelBackendFilter, setModelBackendFilter] = useState<ModelBackendFilter>("all");
   const [customWorkflowName, setCustomWorkflowName] = useState("");
-  const [status, setStatus] = useState("Ready");
+  const [status, setStatus] = useState("Starting Track Extract");
   const [error, setError] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [logEntries, setLogEntries] = useState<string[]>([]);
@@ -476,7 +480,7 @@ function App() {
         setSelectedWorkflowId(snapshot.workflows[0]?.id ?? "");
         applyProjectSnapshot(snapshot.currentProject);
         setJobs(snapshot.jobs);
-        setStatus("Ready");
+        setStatus((current) => (current === "Starting Track Extract" ? "Ready" : current));
       } catch (caught) {
         setError(String(caught));
         setStatus("Startup failed");
@@ -538,32 +542,34 @@ function App() {
 
     let cancelled = false;
     let tick = 0;
+    let refreshing = false;
     async function refreshSharedState() {
+      if (refreshing) {
+        return;
+      }
+      refreshing = true;
       try {
         const includeRegistries = tick % 5 === 0;
         tick += 1;
-        const [latestProject, latestJobs, latestModels, latestWorkflows] = await Promise.all([
-          command<ProjectSession | null>("get_project"),
-          command<JobRecord[]>("get_jobs"),
-          includeRegistries ? command<ModelEntry[]>("list_models") : Promise.resolve(null),
-          includeRegistries ? command<WorkflowEntry[]>("list_workflows") : Promise.resolve(null),
-        ]);
+        const snapshot = await command<SharedSnapshot>("get_snapshot", { includeRegistries });
         if (!cancelled) {
-          applyProjectSnapshot(latestProject);
-          setJobs(latestJobs);
-          const activeJob = latestJobs.find((job) => job.state === "running" || job.state === "preparing");
+          applyProjectSnapshot(snapshot.currentProject);
+          setJobs(snapshot.jobs);
+          const activeJob = snapshot.jobs.find((job) => job.state === "running" || job.state === "preparing");
           if (activeJob) {
             setStatus(activeJob.statusMessage);
           }
-          if (latestModels) {
-            setModels(latestModels);
+          if (snapshot.models) {
+            setModels(snapshot.models);
           }
-          if (latestWorkflows) {
-            setWorkflows(latestWorkflows);
+          if (snapshot.workflows) {
+            setWorkflows(snapshot.workflows);
           }
         }
       } catch {
         // Polling is opportunistic; direct commands still surface user-readable errors.
+      } finally {
+        refreshing = false;
       }
     }
 
@@ -2316,8 +2322,6 @@ function ColumnScrollbar({
   );
 }
 
-const waveformCache = new Map<string, WaveformData>();
-
 function AudioWaveform({
   mediaUrl,
   label,
@@ -2348,24 +2352,14 @@ function AudioWaveform({
       };
     }
 
-    const cached = waveformCache.get(mediaUrl);
-    if (cached) {
-      setWaveform(cached);
-      setWaveformState("ready");
-      return () => {
-        cancelled = true;
-      };
-    }
-
     setWaveform(null);
     setWaveformState("loading");
 
-    loadWaveformData(mediaUrl)
+    getWaveformData(mediaUrl)
       .then((loaded) => {
         if (cancelled) {
           return;
         }
-        waveformCache.set(mediaUrl, loaded);
         setWaveform(loaded);
         setWaveformState("ready");
       })
@@ -2560,68 +2554,6 @@ function audioMimeType(path: string) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
-}
-
-async function loadWaveformData(mediaUrl: string): Promise<WaveformData> {
-  if (typeof window === "undefined" || typeof fetch === "undefined") {
-    throw new Error("Waveform decoding is not available.");
-  }
-
-  const AudioContextConstructor =
-    window.AudioContext ??
-    (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioContextConstructor) {
-    throw new Error("This browser cannot decode waveform previews.");
-  }
-
-  const response = await fetch(mediaUrl);
-  if (!response.ok) {
-    throw new Error("Could not load audio for waveform preview.");
-  }
-
-  const bytes = await response.arrayBuffer();
-  const context = new AudioContextConstructor();
-  try {
-    const audioBuffer = await context.decodeAudioData(bytes.slice(0));
-    return {
-      durationSeconds: audioBuffer.duration,
-      peaks: buildWaveformPeaks(audioBuffer, WAVEFORM_PEAK_COUNT),
-    };
-  } finally {
-    void context.close();
-  }
-}
-
-function buildWaveformPeaks(audioBuffer: AudioBuffer, peakCount: number) {
-  const channels = Array.from({ length: Math.min(audioBuffer.numberOfChannels, 2) }, (_, index) =>
-    audioBuffer.getChannelData(index),
-  );
-  if (channels.length === 0 || audioBuffer.length === 0) {
-    return new Array(peakCount).fill(0.03);
-  }
-
-  const blockSize = Math.max(1, Math.floor(audioBuffer.length / peakCount));
-  const peaks = new Array(peakCount).fill(0).map((_, blockIndex) => {
-    const start = blockIndex * blockSize;
-    const end = blockIndex === peakCount - 1 ? audioBuffer.length : Math.min(audioBuffer.length, start + blockSize);
-    const stride = Math.max(1, Math.floor((end - start) / 420));
-    let peak = 0;
-
-    for (const channel of channels) {
-      for (let sampleIndex = start; sampleIndex < end; sampleIndex += stride) {
-        peak = Math.max(peak, Math.abs(channel[sampleIndex] ?? 0));
-      }
-    }
-
-    return peak;
-  });
-
-  const maxPeak = Math.max(...peaks);
-  if (maxPeak <= 0) {
-    return peaks.map(() => 0.03);
-  }
-
-  return peaks.map((peak) => Math.max(0.035, peak / maxPeak));
 }
 
 function drawWaveformCanvas(
@@ -3362,6 +3294,13 @@ async function mockCommand<T>(name: string, args?: CommandArgs): Promise<T> {
 
     case "get_jobs":
       return mockJobs as T;
+
+    case "get_snapshot":
+      return {
+        currentProject: mockProject,
+        jobs: mockJobs,
+        ...(args?.includeRegistries ? { models: mockModels, workflows: mockWorkflows } : {}),
+      } as T;
 
     case "clear_jobs":
       if (mockJobs.some((job) => job.state === "preparing" || job.state === "running")) {
