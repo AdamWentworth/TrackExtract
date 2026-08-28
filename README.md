@@ -1,4 +1,4 @@
-# Track Extract
+# 🎛️ Track Extract
 
 <p align="center">
   <img src="docs/assets/trackextract-banner.png" alt="TrackExtract logo" />
@@ -8,23 +8,37 @@
   <strong>Local-first desktop stem separation for producers, engineers, DJs, remixers, and creators.</strong>
 </p>
 
-Track Extract is a desktop-first app for local AI stem separation. The goal is a cleaner workflow than
-dependency-heavy command-line wrappers: import audio, choose a curated workflow, run an offline render, preview the
-generated stems, and export DAW-ready files with predictable names and folders.
-
-Track Extract is a personal portfolio project and is not accepting external contributions.
+Track Extract wraps AI stem-separation models in a practical desktop workflow: import audio, choose a curated
+workflow, run an offline render, preview the generated stems, and export DAW-ready files with predictable names and
+folders.
 
 The current prototype uses a Tauri + React desktop shell with a Python-owned ML engine. Rust stays intentionally thin:
 it handles desktop plumbing, command/event forwarding, local media serving, path resolution, and process cancellation.
 Python owns projects, sessions, jobs, model registry state, installs, catalog sync, and separation providers.
 
+## 🎬 Product Preview
+
+<p align="center">
+  <a href="https://phlosion.com/?demo=trackextract#demos">
+    <img src="docs/assets/trackextract-rendered-stems.png" alt="Track Extract showing six separated stems ready to preview and export" />
+  </a>
+</p>
+
+<p align="center">
+  <em>Six-stem result workspace with per-stem preview, solo, mute, volume, selection, and DAW-ready export.</em><br />
+  <a href="https://phlosion.com/?demo=trackextract#demos"><strong>Explore the interactive Track Extract showcase on Phlosion →</strong></a>
+</p>
+
 <p align="center">
   <img src="docs/assets/workflow.svg" alt="Track Extract producer workflow" />
 </p>
 
-## Current Status
+## ✨ Current Status
 
 Track Extract is usable as a development prototype, not a polished end-user release.
+
+> [!NOTE]
+> Track Extract is a personal portfolio project and is not accepting external contributions.
 
 What works today:
 
@@ -46,7 +60,7 @@ Not included yet:
 - No cloud processing, account system, payments, or subscription logic.
 - No fully packaged Python runtime for non-developer installs yet.
 
-## Architecture
+## 🧭 Architecture
 
 <p align="center">
   <img src="docs/assets/architecture.svg" alt="Track Extract runtime architecture" />
@@ -67,7 +81,7 @@ The canonical engine source lives in `engine/src`, packaged as `trackextract_eng
 
 See [docs/architecture.md](docs/architecture.md) for command/event flow and backend boundaries.
 
-## Quick Start
+## 🚀 Quick Start
 
 Install JavaScript dependencies:
 
@@ -119,7 +133,7 @@ TRACKEXTRACT_AUDIO_SEPARATOR_EXTRA=dml scripts/setup-trackextract-engine.sh
 scripts/setup-trackextract-engine.ps1 -Runtime dml
 ```
 
-## Linux Tauri Prerequisites
+## 🐧 Linux Tauri Prerequisites
 
 On Ubuntu-like Linux systems, Tauri needs WebKit/RSVG/AppIndicator development packages:
 
@@ -131,7 +145,7 @@ sudo apt install pkg-config libdbus-1-dev libwebkit2gtk-4.1-dev build-essential 
 The npm Tauri scripts sanitize Snap VS Code's GTK/GIO environment automatically. Raw `tauri dev` commands launched from
 Snap VS Code terminals may still hit a `libpthread` symbol lookup error.
 
-## Browser Development
+## 🌐 Browser Development
 
 For browser UI iteration:
 
@@ -143,7 +157,7 @@ When the Vite server is running on `http://localhost:1420`, both the Tauri deskt
 the same local Python engine bridge. Imports, current project/session state, jobs, generated stems, model installs, and
 workflow changes are shared during development.
 
-## Models And Workflows
+## 🧠 Models and Workflows
 
 The generated bundled registry lives at `resources/models.json`. Source fragments live under `resources/models/`.
 
@@ -163,7 +177,7 @@ Workflow presets live in `resources/workflows.json`. The UI also supports custom
 
 See [docs/model-registry.md](docs/model-registry.md) for registry structure, source notes, and install-state semantics.
 
-## Checks
+## ✅ Quality Checks
 
 Run the full local suite:
 
@@ -183,7 +197,7 @@ TRACKEXTRACT_TEST_NETWORK=1 npm run test:all
 The Linux CI lane also runs the frontend with coverage thresholds and exercises the production build through a
 Playwright browser smoke test. Production JavaScript and CSS gzip sizes are checked against explicit budgets.
 
-## Roadmap
+## 🗺️ Roadmap
 
 1. Package the Python engine cleanly for end users.
 2. Expand audio-separator catalog sync into curated installable workflows.
@@ -193,6 +207,6 @@ Playwright browser smoke test. Production JavaScript and CSS gzip sizes are chec
 6. Add DAW export templates for Ableton, Logic, Pro Tools, Reaper, and FL Studio.
 7. Explore a future VST3/AU bridge plugin that talks to the same offline Track Extract engine.
 
-## License
+## 📄 License
 
 Track Extract is released under the [MIT License](LICENSE).
