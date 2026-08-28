@@ -1,24 +1,18 @@
 # Track Extract
 
 <p align="center">
-  <img src="docs/assets/brand/trackextract-github-banner.png" alt="TrackExtract logo" />
+  <img src="docs/assets/trackextract-banner.png" alt="TrackExtract logo" />
 </p>
 
 <p align="center">
   <strong>Local-first desktop stem separation for producers, engineers, DJs, remixers, and creators.</strong>
 </p>
 
-<p align="center">
-  <a href="https://github.com/AdamWentworth/TrackExtract/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/AdamWentworth/TrackExtract/actions/workflows/ci.yml/badge.svg" /></a>
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2ec4d6" /></a>
-  <img alt="Status: Prototype" src="https://img.shields.io/badge/status-prototype-f7c948" />
-  <img alt="Tauri 2" src="https://img.shields.io/badge/Tauri-2-24c8db" />
-  <img alt="Python Engine" src="https://img.shields.io/badge/engine-Python-73d18b" />
-</p>
-
 Track Extract is a desktop-first app for local AI stem separation. The goal is a cleaner workflow than
 dependency-heavy command-line wrappers: import audio, choose a curated workflow, run an offline render, preview the
 generated stems, and export DAW-ready files with predictable names and folders.
+
+Track Extract is a personal portfolio project and is not accepting external contributions.
 
 The current prototype uses a Tauri + React desktop shell with a Python-owned ML engine. Rust stays intentionally thin:
 it handles desktop plumbing, command/event forwarding, local media serving, path resolution, and process cancellation.
@@ -69,7 +63,7 @@ The canonical engine source lives in `engine/src`, packaged as `trackextract_eng
 | `resources/` | Bundled model and workflow registries copied into app data.                           |
 | `schemas/`   | JSON schemas for model, workflow, and session formats.                                |
 | `scripts/`   | Setup, validation, formatting, linting, testing, and registry-generation helpers.     |
-| `docs/`      | Architecture, development, packaging, and model-registry notes.                       |
+| `docs/`      | Architecture, development, and model-registry notes.                                  |
 
 See [docs/architecture.md](docs/architecture.md) for command/event flow and backend boundaries.
 

@@ -1,9 +1,0 @@
-{
-  "recommendations": [
-    "charliermarsh.ruff",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "rust-lang.rust-analyzer",
-    "tauri-apps.tauri-vscode"
-  ]
-}

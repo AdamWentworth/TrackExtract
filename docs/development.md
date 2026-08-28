@@ -76,6 +76,35 @@ $env:TRACKEXTRACT_ENGINE_PYTHON = "$PWD\.venv-trackextract-engine\Scripts\python
 npm run tauri:dev
 ```
 
+## Packaging Status
+
+Track Extract currently uses the managed development Python environment rather
+than bundling Python and provider dependencies into the desktop installers.
+Tauri can produce Windows MSI and NSIS packages, but those packages are not yet
+self-contained end-user releases. Production packaging still needs an explicit
+strategy for the Python runtime, provider dependencies, model caches, and
+hardware-specific acceleration packages on each platform.
+
+## Project Output
+
+Projects use predictable DAW-friendly folders:
+
+```text
+Track Extract Projects/
+  Artist - Song/
+    original/
+    stems/
+      Artist - Song - Vocals.wav
+      Artist - Song - Drums.wav
+      Artist - Song - Bass.wav
+      Artist - Song - Guitar.wav
+      Artist - Song - Piano.wav
+      Artist - Song - Other.wav
+    renders/
+    logs/
+    session.json
+```
+
 ## Automation Scripts
 
 The `scripts/` directory is intentional. This repo spans npm, Tauri/Rust,
