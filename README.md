@@ -28,12 +28,12 @@ Python owns projects, sessions, jobs, model registry state, installs, catalog sy
 
 <p align="center">
   <a href="https://phlosion.com/?demo=trackextract#demos">
-    <img src="docs/assets/trackextract-rendered-stems.png" alt="Track Extract showing six separated stems ready to preview and export" />
+    <img src="docs/assets/trackextract-demo.gif" alt="Track Extract importing audio, running a six-stem workflow, and previewing the rendered stems" />
   </a>
 </p>
 
 <p align="center">
-  <em>Six-stem result workspace with per-stem preview, solo, mute, volume, selection, and DAW-ready export.</em><br />
+  <em>From audio import to six previewable, mix-ready stems in one local desktop workflow.</em><br />
   <a href="https://phlosion.com/?demo=trackextract#demos"><strong>Explore the interactive Track Extract showcase on Phlosion →</strong></a>
 </p>
 
