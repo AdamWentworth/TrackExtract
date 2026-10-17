@@ -4,7 +4,7 @@ import time
 import wave
 from pathlib import Path
 
-from ..project import daw_friendly_stem_filename
+from ..project import daw_friendly_stem_filename, unique_file_path
 from ..schemas import stem_file
 
 
@@ -28,7 +28,7 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     rendered = []
     for index, label in enumerate(labels):
         emit(0.12 + index / max(len(labels), 1) * 0.78, f"Rendering placeholder {label}")
-        destination = stems_dir / daw_friendly_stem_filename(project["name"], label)
+        destination = unique_file_path(stems_dir, daw_friendly_stem_filename(project["name"], label))
         write_silence(destination, source_info["sampleRate"], source_info["channels"], source_info["frames"])
         rendered.append(stem_file(label, destination, job["id"]))
         time.sleep(0.05)

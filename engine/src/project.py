@@ -156,10 +156,8 @@ def export_stems(
 def clear_project_stems(context: EngineContext) -> dict:
     session = require_current_project(context)
     ensure_no_active_jobs(context)
-    root_path = Path(session["rootPath"])
     source_job_ids = {stem.get("sourceJobId") for stem in session.get("stems", []) if stem.get("sourceJobId")}
 
-    clear_project_child_directory(root_path, "stems")
     session["stems"] = []
     save_project(session)
 

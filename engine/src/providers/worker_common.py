@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import time
 from pathlib import Path
 
 from ..errors import TrackExtractError
-from ..schemas import stem_file
+from ..project import unique_file_path
+from ..schemas import stem_file, write_json
 
 
 def run_worker(
@@ -16,6 +18,8 @@ def run_worker(
     log_path: Path,
     provider_name: str,
     job_id: str,
+    *,
+    stems_dir: Path,
     emit=None,
     poll_interval: float = 5.0,
 ) -> tuple[list[dict], Path]:
@@ -43,6 +47,13 @@ def run_worker(
     if not result_path.is_file():
         raise TrackExtractError(f"{provider_name} finished but did not write a result file")
     result = json.loads(result_path.read_text(encoding="utf-8"))
+    stems_dir.mkdir(parents=True, exist_ok=True)
+    for item in result.get("stems", []):
+        source = Path(item["path"])
+        destination = unique_file_path(stems_dir, source.name)
+        shutil.move(str(source), str(destination))
+        item["path"] = str(destination)
+    write_json(result_path, result)
     return [stem_file(item["label"], Path(item["path"]), job_id) for item in result.get("stems", [])], log_path
 
 

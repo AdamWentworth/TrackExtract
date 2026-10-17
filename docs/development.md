@@ -105,6 +105,12 @@ Track Extract Projects/
     session.json
 ```
 
+Clear stems removes the workspace previews while keeping the audio files for DAWs
+that reference them. New renders preserve previous files, adding a numeric suffix
+such as `Artist - Song - Drums 2.wav` when a filename already exists. External
+workers render in per-job folders under `logs/` before publishing the completed
+files into `stems/`.
+
 ## Automation Scripts
 
 The `scripts/` directory is intentional. This repo spans npm, Tauri/Rust,

@@ -1177,13 +1177,6 @@ function App() {
       return;
     }
 
-    const confirmed = window.confirm(
-      "Clear generated stems from this workspace? This removes files in the stems folder.",
-    );
-    if (!confirmed) {
-      return;
-    }
-
     setIsBusy(true);
     setError(null);
     setStatus("Clearing generated stems");
@@ -1196,7 +1189,7 @@ function App() {
       setMediaUrls({});
       const refreshedJobs = await command<JobRecord[]>("get_jobs");
       setJobs(refreshedJobs);
-      setStatus("Generated stems cleared");
+      setStatus("Stem previews cleared; audio files kept");
     } catch (caught) {
       setError(String(caught));
       setStatus("Could not clear stems");
@@ -1699,6 +1692,7 @@ function App() {
                   className="secondary-action inline-action"
                   type="button"
                   onClick={clearGeneratedStems}
+                  title="Clear previews while keeping audio files on disk"
                   disabled={!project || project.stems.length === 0 || isBusy || Boolean(runningJob)}
                 >
                   <Trash2 aria-hidden />

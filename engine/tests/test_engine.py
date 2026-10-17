@@ -326,7 +326,7 @@ def test_workspace_cleanup_clears_stems_and_source(tmp_path: Path) -> None:
 
     assert cleared_stems["originalFiles"] == imported["originalFiles"]
     assert cleared_stems["stems"] == []
-    assert all(not path.exists() for path in stem_paths)
+    assert all(path.exists() for path in stem_paths)
     assert engine.get_jobs({}) == []
 
     cleared_source = engine.clear_project_source({})
@@ -336,6 +336,41 @@ def test_workspace_cleanup_clears_stems_and_source(tmp_path: Path) -> None:
     assert cleared_source["stems"] == []
     assert engine.get_jobs({}) == []
     assert not Path(imported["originalFiles"][0]["projectPath"]).exists()
+
+
+def test_clear_stems_preserves_files_in_use_and_rerender_uses_new_paths(tmp_path: Path, monkeypatch) -> None:
+    ctx = context(tmp_path)
+    engine = Engine(ctx)
+    source = tmp_path / "input.wav"
+    write_wav(source)
+    engine.import_audio_files({"paths": [str(source)]})
+    load_models(ctx)
+    ctx.models_path.write_text(json.dumps([installed_stub_model()]), encoding="utf-8")
+    args = {"task": "vocals_instrumental", "modelId": "test_stub", "options": {}}
+    first = engine.enqueue_separation(args)
+    completed = engine.start_job({"jobId": first["id"]}, lambda *_: None)
+    originals = {Path(stem["path"]): Path(stem["path"]).read_bytes() for stem in completed["stems"]}
+    sidecar = next(iter(originals)).with_suffix(".wav.asd")
+    sidecar.write_bytes(b"DAW analysis")
+    real_unlink = Path.unlink
+
+    def reject_in_use_file(path, *args, **kwargs):
+        if path in originals or path == sidecar:
+            raise PermissionError("File is open in a DAW")
+        return real_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "unlink", reject_in_use_file)
+    assert engine.clear_project_stems({})["stems"] == []
+    assert engine.get_project({})["stems"] == []
+    assert engine.get_jobs({})[0]["stems"] == []
+
+    second = engine.enqueue_separation(args)
+    rerendered = engine.start_job({"jobId": second["id"]}, lambda *_: None)
+    assert rerendered["state"] == "complete"
+    assert all(Path(stem["path"]) not in originals for stem in rerendered["stems"])
+    assert all(Path(stem["path"]).is_file() for stem in rerendered["stems"])
+    assert {path: path.read_bytes() for path in originals} == originals
+    assert sidecar.read_bytes() == b"DAW analysis"
 
 
 def test_delete_project_stem_removes_only_selected_stem(tmp_path: Path) -> None:
@@ -628,6 +663,7 @@ def test_worker_common_emits_heartbeat_progress(tmp_path: Path) -> None:
         log_path,
         "Test Worker",
         "job-1",
+        stems_dir=tmp_path / "stems",
         emit=lambda progress, message: events.append((progress, message)),
         poll_interval=0.05,
     )
@@ -654,6 +690,7 @@ def test_worker_common_terminates_child_when_progress_callback_fails(monkeypatch
             tmp_path / "unused.log",
             "Test Worker",
             "job-1",
+            stems_dir=tmp_path / "stems",
             emit=lambda *_: (_ for _ in ()).throw(RuntimeError("stop polling")),
             poll_interval=0.01,
         )
@@ -666,16 +703,51 @@ def test_worker_common_terminates_child_when_progress_callback_fails(monkeypatch
     assert time.monotonic() - started < 3
 
 
+def test_worker_common_publishes_stems_without_overwriting_previous_renders(tmp_path: Path) -> None:
+    stems_dir = tmp_path / "stems"
+    stems_dir.mkdir()
+    original = stems_dir / "Demo - Drums.wav"
+    original.write_bytes(b"previous render in DAW")
+    second = stems_dir / "Demo - Drums 2.wav"
+    second.write_bytes(b"another previous render")
+    staged = tmp_path / "work" / original.name
+    staged.parent.mkdir()
+    write_wav(staged)
+    new_audio = staged.read_bytes()
+    result_path = tmp_path / "result.json"
+    result_path.write_text(json.dumps({"stems": [{"label": "Drums", "path": str(staged)}]}), encoding="utf-8")
+
+    stems, _ = run_worker(
+        [sys.executable, "-c", "pass"],
+        result_path,
+        tmp_path / "worker.log",
+        "Test Worker",
+        "job-2",
+        stems_dir=stems_dir,
+        poll_interval=0.01,
+    )
+
+    destination = stems_dir / "Demo - Drums 3.wav"
+    assert destination.read_bytes() == new_audio
+    assert original.read_bytes() == b"previous render in DAW"
+    assert second.read_bytes() == b"another previous render"
+    assert stems[0]["path"] == str(destination)
+    assert stems[0]["sourceJobId"] == "job-2"
+    assert json.loads(result_path.read_text(encoding="utf-8"))["stems"][0]["path"] == str(destination)
+    assert not staged.exists()
+
+
 def test_demucs_provider_builds_bounded_worker_command(monkeypatch, tmp_path: Path) -> None:
     captured = {}
 
-    def fake_run_worker(command, result_path, log_path, provider_name, job_id, emit=None):
+    def fake_run_worker(command, result_path, log_path, provider_name, job_id, *, stems_dir, emit=None):
         captured.update(
             command=command,
             result_path=result_path,
             log_path=log_path,
             provider_name=provider_name,
             job_id=job_id,
+            stems_dir=stems_dir,
         )
         return [], log_path
 
@@ -696,6 +768,10 @@ def test_demucs_provider_builds_bounded_worker_command(monkeypatch, tmp_path: Pa
 
     assert captured["provider_name"] == "Demucs"
     assert captured["job_id"] == "job-1"
+    assert captured["stems_dir"] == project_root / "stems"
+    assert Path(captured["command"][captured["command"].index("--output-dir") + 1]) == (
+        project_root / "logs" / "demucs-work-job-1" / "stems"
+    )
     assert captured["command"][captured["command"].index("--device") + 1] == "cpu"
     assert captured["command"][captured["command"].index("--segment") + 1] == "8.0"
 
@@ -724,8 +800,8 @@ def test_audio_separator_provider_builds_worker_command(monkeypatch, tmp_path: P
     model_path.write_bytes(b"model")
     captured = {}
 
-    def fake_run_worker(command, result_path, log_path, provider_name, job_id, emit=None):
-        captured.update(command=command, provider_name=provider_name, job_id=job_id)
+    def fake_run_worker(command, result_path, log_path, provider_name, job_id, *, stems_dir, emit=None):
+        captured.update(command=command, provider_name=provider_name, job_id=job_id, stems_dir=stems_dir)
         return [], log_path
 
     monkeypatch.setattr(audio_separator, "run_worker", fake_run_worker)
@@ -750,6 +826,10 @@ def test_audio_separator_provider_builds_worker_command(monkeypatch, tmp_path: P
     audio_separator.run(request, lambda *_: None)
 
     assert captured["provider_name"] == "Audio Separator"
+    assert captured["stems_dir"] == tmp_path / "project" / "stems"
+    assert Path(captured["command"][captured["command"].index("--output-dir") + 1]) == (
+        tmp_path / "project" / "logs" / "audio-separator-work-job-2" / "stems"
+    )
     assert captured["command"][captured["command"].index("--model-filename") + 1] == "model.onnx"
     assert captured["command"][captured["command"].index("--batch-size") + 1] == "2"
     assert "--enable-denoise-pass" in captured["command"]

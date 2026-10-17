@@ -35,7 +35,7 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
         "--input",
         job["sourcePath"],
         "--output-dir",
-        str(stems_dir),
+        str(logs_dir / f"audio-separator-work-{job['id']}" / "stems"),
         "--model-file-dir",
         str(model_path.parent),
         "--model-filename",
@@ -65,4 +65,4 @@ def run(request: dict, emit) -> tuple[list[dict], Path]:
     ]
     if options.get("enableDenoisePass"):
         command.append("--enable-denoise-pass")
-    return run_worker(command, result_path, log_path, "Audio Separator", job["id"], emit=emit)
+    return run_worker(command, result_path, log_path, "Audio Separator", job["id"], stems_dir=stems_dir, emit=emit)
