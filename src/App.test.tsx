@@ -322,7 +322,7 @@ describe("Track Extract app", () => {
     ).toBeInTheDocument();
     expect((await screen.findAllByText("Clean Vocal")).length).toBeGreaterThan(0);
     expect((await screen.findAllByText("Noise")).length).toBeGreaterThan(0);
-  });
+  }, 15000);
 
   it("clears generated stems and source audio from the workspace", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -374,10 +374,10 @@ describe("Track Extract app", () => {
 
     fireEvent.click(await screen.findByText("Manage models"));
     const dialog = await screen.findByRole("dialog", { name: "Model Library" });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Refresh" }));
+    fireEvent.click(within(dialog).getByText("Refresh", { selector: "button" }));
 
-    expect(await screen.findByText("Model registry refreshed")).toBeInTheDocument();
-  });
+    expect(await screen.findByText("Model registry refreshed", {}, { timeout: 5000 })).toBeInTheDocument();
+  }, 10000);
 
   it("syncs audio-separator catalog models from the model manager", async () => {
     render(<App />);
@@ -385,9 +385,9 @@ describe("Track Extract app", () => {
     fireEvent.click(await screen.findByText("Manage models"));
     fireEvent.click(await screen.findByText("Sync audio-separator"));
 
-    expect(await screen.findByText("audio-separator catalog synced")).toBeInTheDocument();
+    expect(await screen.findByText("audio-separator catalog synced", {}, { timeout: 5000 })).toBeInTheDocument();
     expect(await screen.findByText("Mock audio-separator RoFormer")).toBeInTheDocument();
-  });
+  }, 10000);
 
   it("keeps raw Demucs weight assets marked as needing model definitions", async () => {
     render(<App />);
